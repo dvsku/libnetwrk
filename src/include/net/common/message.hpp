@@ -266,26 +266,9 @@ namespace libnetwrk::net::common {
 
     template <typename command_type, typename connection_data = nothing>
     class owned_message {
-        protected:
+        public:
             message<command_type> m_msg;
             std::shared_ptr<connection<command_type, connection_data>> m_client;
-
-        public:
-            message<command_type>& message() {
-                return m_msg;
-            }
-
-            void set_message(libnetwrk::net::common::message<command_type> msg) {
-                m_msg = msg;
-            }
-
-            std::shared_ptr<connection<command_type, connection_data>>& client() {
-                return m_client;
-            }
-
-            void set_client(std::shared_ptr<connection<command_type, connection_data>> client) {
-                m_client = client;
-            }
     };
 }
 

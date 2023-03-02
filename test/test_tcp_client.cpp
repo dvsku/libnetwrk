@@ -13,7 +13,7 @@ void tcp_client_create() {
 void tcp_client_connect_fail() {
 	tcp_client<int> client;
 
-	assert(client.connect("127.0.0.1", 21205) == false);
+	assert(client.connect_async("127.0.0.1", 21205) == false);
 }
 
 void run_all_tests() {
@@ -22,6 +22,13 @@ void run_all_tests() {
 }
 
 int main(int argc, char* argv[]) {
-	run_all_tests();
+	if (argc != 2) return -1;
+
+	switch (std::stoi(argv[1])) {
+		case 0: tcp_client_create();			break;
+		case 1: tcp_client_connect_fail();		break;
+		default: break;
+	}
+
 	return 0;
 }

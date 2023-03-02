@@ -11,11 +11,13 @@ void message_create() {
 	assert(msg.m_head.m_data_len == 0);
 }
 
-void run_all_tests() {
-	message_create();
-}
-
 int main(int argc, char* argv[]) {
-	run_all_tests();
+	if (argc != 2) return -1;
+
+	switch (std::stoi(argv[1])) {
+		case 0: message_create();			break;
+		default: break;
+	}
+
 	return 0;
 }

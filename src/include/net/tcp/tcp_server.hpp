@@ -21,10 +21,10 @@ namespace libnetwrk::net::tcp {
 			std::thread m_asio_thread;
 			std::thread m_update_thread;
 
-			bool m_running;
+			bool m_running = false;
 
 		public:
-			tcp_server() : m_running(false) {
+			tcp_server() {
 				try {
 					m_context = std::make_shared<asio::io_context>(1);
 				}
@@ -45,31 +45,88 @@ namespace libnetwrk::net::tcp {
 				return m_running;
 			}
 
-			void start(const char* host, const unsigned short port) {
+			bool start(const char* host, const unsigned short port, const bool process_messages = true) {
+				if (m_running)
+					return false;
+
 				try {
+					// Create ASIO acceptor
 					m_acceptor = std::make_shared<asio::ip::tcp::acceptor>
 						(*m_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
 					
+					// Start listening for and accepting connections
 					do_accept();
+
+					// Start ASIO context
 					m_asio_thread = std::thread([&] { start_context(); });
 
 					m_running = true;
 
 					//OUTPUT_INFO("listening for connections on %s:%d", host, port);
+
+					// Start processing received messages
+					if (process_messages)
+						do_process_messages();
 				}
 				catch (const std::exception& e) {
 					//OUTPUT_ERROR("failed to start listening | %s", e.what());
+					stop();
+					return false;
 				}
+				catch (...) {
+					//OUTPUT_ERROR("failed to start listening | fatal error");
+					stop();
+					return false;
+				}
+
+				return true;
+			}
+
+			bool start_async(const char* host, const unsigned short port, const bool process_messages = true) {
+				if (m_running)
+					return false;
+
+				try {
+					// Create ASIO acceptor
+					m_acceptor = std::make_shared<asio::ip::tcp::acceptor>
+						(*m_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
+
+					// Start listening for and accepting connections
+					do_accept();
+
+					// Start ASIO context
+					m_asio_thread = std::thread([&] { start_context(); });
+
+					m_running = true;
+
+					//OUTPUT_INFO("listening for connections on %s:%d", host, port);
+
+					// Start processing received messages
+					if (process_messages)
+						m_update_thread = std::thread([&] { do_process_messages(); });
+				}
+				catch (const std::exception& e) {
+					//OUTPUT_ERROR("failed to start listening | %s", e.what());
+					stop();
+					return false;
+				}
+				catch (...) {
+					//OUTPUT_ERROR("failed to start listening | fatal error");
+					stop();
+					return false;
+				}
+
+				return true;
 			}
 
 			void stop() {
 				m_running = false;
 
-				if (m_acceptor != nullptr)
+				if (m_acceptor)
 					if (m_acceptor->is_open())
 						m_acceptor->close();
 
-				if (m_context != nullptr)
+				if (m_context)
 					if (!m_context->stopped())
 						m_context->stop();
 
@@ -84,12 +141,28 @@ namespace libnetwrk::net::tcp {
 				//OUTPUT_INFO("tcp service stopped");
 			}
 
-			void process_messages() {
-				do_process_messages();
-			}
+			/// <summary>
+			/// Processes a single message if the queue is not empty.
+			/// </summary>
+			/// <returns>true if a message has been processed, false if it hasn't</returns>
+			bool process_single_message() {
+				try {
+					if (m_incoming_messages.empty())
+						return false;
+					
+					libnetwrk::net::common::owned_message<command_type, storage> msg = m_incoming_messages.pop_front();
+					on_message(msg);
+				}
+				catch (const std::exception& e) {
+					//OUTPUT_ERROR("update_one() fail | %s", e.what());
+					return false;
+				}
+				catch (...) {
+					//OUTPUT_ERROR("update_one() fail | undefined reason");
+					return false;
+				}
 
-			void async_process_messages() {
-				m_update_thread = std::thread([&] { do_process_messages(); });
+				return true;
 			}
 
 			void queue_async_job(std::function<void()> const& lambda) {

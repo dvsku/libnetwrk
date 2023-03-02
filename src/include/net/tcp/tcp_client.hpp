@@ -20,10 +20,10 @@ namespace libnetwrk::net::tcp {
 			std::thread m_asio_thread;
 			std::thread m_update_thread;
 
-			bool m_running;
+			bool m_running = false;
 
 		public:
-			tcp_client() : m_running(false) {
+			tcp_client() {
 				try {
 					m_context = std::make_shared<asio::io_context>(1);
 				}
@@ -41,27 +41,96 @@ namespace libnetwrk::net::tcp {
 				return m_running;
 			}
 
-			bool connect(const char* host, const unsigned short port) {
+			bool connect(const char* host, const unsigned short port, const bool process_messages = true) {
+				if (m_running)
+					return false;
+
 				try {
+					// Create ASIO endpoint
 					asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
+
+					// Create ASIO socket
 					asio::ip::tcp::socket socket(*m_context, ep.protocol());
+
+					// Connect
 					socket.connect(ep);
 
+					// Create connection object
 					m_connection = std::make_shared<libnetwrk::net::common::connection<command_type>>(
 						libnetwrk::net::common::owner::client, std::move(socket),
 						m_context, m_incoming_messages);
 
+					// Start receiving messages
 					m_connection->start();
 
+					// Start ASIO context
 					m_asio_thread = std::thread([&] { m_context->run(); });
 
 					m_running = true;
 
 					//OUTPUT_INFO("connected to %s:%d", host, port);
+
+					// Start processing received messages
+					if (process_messages)
+						do_process_messages();
 				}
 				catch (const std::exception& e) {
 					VAR_IGNORE(e);
 					//OUTPUT_ERROR("failed to connect | %s", e.what());
+					stop();
+					return false;
+				}
+				catch (...) {
+					//OUTPUT_ERROR("failed to connect | fatal error");
+					stop();
+					return false;
+				}
+
+				return true;
+			}
+
+			bool connect_async(const char* host, const unsigned short port, const bool process_messages = true) {
+				if (m_running)
+					return false;
+
+				try {
+					// Create ASIO endpoint
+					asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
+
+					// Create ASIO socket
+					asio::ip::tcp::socket socket(*m_context, ep.protocol());
+
+					// Connect
+					socket.connect(ep);
+
+					// Create connection object
+					m_connection = std::make_shared<libnetwrk::net::common::connection<command_type>>(
+						libnetwrk::net::common::owner::client, std::move(socket),
+						m_context, m_incoming_messages);
+
+					// Start receiving messages
+					m_connection->start();
+
+					// Start ASIO context
+					m_asio_thread = std::thread([&] { m_context->run(); });
+
+					m_running = true;
+
+					//OUTPUT_INFO("connected to %s:%d", host, port);
+
+					// Start processing received messages
+					if (process_messages)
+						m_update_thread = std::thread([&] { do_process_messages(); });
+				}
+				catch (const std::exception& e) {
+					VAR_IGNORE(e);
+					//OUTPUT_ERROR("failed to connect | %s", e.what());
+					stop();
+					return false;
+				}
+				catch (...) {
+					//OUTPUT_ERROR("failed to connect | fatal error");
+					stop();
 					return false;
 				}
 
@@ -90,23 +159,28 @@ namespace libnetwrk::net::tcp {
 				//OUTPUT_INFO("tcp_client stopped");
 			}
 
-			void async_update() {
-				m_update_thread = worker([&] { do_update; });
-			}
-
-			void update_one() {
+			/// <summary>
+			/// Processes a single message if the queue is not empty.
+			/// </summary>
+			/// <returns>true if a message has been processed, false if it hasn't</returns>
+			bool process_single_message() {
 				try {
-					if (!m_incoming_messages.empty()) {
-						libnetwrk::net::common::message<command_type> msg = m_incoming_messages.pop_front().m_msg;
-						on_message(msg);
-					}
+					if (m_incoming_messages.empty())
+						return false;
+
+					libnetwrk::net::common::message<command_type> msg = m_incoming_messages.pop_front().m_msg;
+					on_message(msg);
 				}
 				catch (const std::exception& e) {
 					//OUTPUT_ERROR("update_one() fail | %s", e.what());
+					return false;
 				}
 				catch (...) {
 					//OUTPUT_ERROR("update_one() fail | undefined reason");
+					return false;
 				}
+
+				return true;
 			}
 
 			void send(const libnetwrk::net::common::message<command_type>& message) {
@@ -127,7 +201,7 @@ namespace libnetwrk::net::tcp {
 			virtual void on_disconnect() {}
 
 		private:
-			void do_update(size_t max_messages = -1) {
+			void do_process_messages(size_t max_messages = -1) {
 				while (m_running) {
 					m_incoming_messages.wait();
 

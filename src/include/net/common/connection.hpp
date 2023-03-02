@@ -70,7 +70,7 @@ namespace libnetwrk::net::common {
 			void send(const message<command_type>& msg) {
 				post(*m_context,
 					[this, msg]() {
-						bool was_empty = m_outgoing_messages.is_empty();
+						bool was_empty = m_outgoing_messages.empty();
 						m_outgoing_messages.push_back(msg);
 
 						if (was_empty)
@@ -124,7 +124,7 @@ namespace libnetwrk::net::common {
 							else {
 								m_outgoing_messages.pop_front();
 
-								if (!m_outgoing_messages.is_empty())
+								if (!m_outgoing_messages.empty())
 									do_write_header();
 							}
 						}
@@ -143,7 +143,7 @@ namespace libnetwrk::net::common {
 						if (!ec) {
 							m_outgoing_messages.pop_front();
 
-							if (!m_outgoing_messages.is_empty())
+							if (!m_outgoing_messages.empty())
 								do_write_header();
 						}
 						else if (ec == asio::error::eof || ec == asio::error::connection_reset)
@@ -156,12 +156,12 @@ namespace libnetwrk::net::common {
 
 			void add_message_to_queue() {
 				owned_message<command_type, storage> owned_message;
-				owned_message.set_message(m_temp_message);
+				owned_message.m_msg = m_temp_message;
 
 				if (m_owner == owner::server)
-					owned_message.set_client(this->shared_from_this());
+					owned_message.m_client = this->shared_from_this();
 				else
-					owned_message.set_client(nullptr);
+					owned_message.m_client = nullptr;
 
 				m_incoming_messages.push_back(owned_message);
 
@@ -179,8 +179,8 @@ namespace libnetwrk::net::common {
 			}
 	};
 
-	template <typename command_type, typename connection_data> 
-	using connection_ptr = std::shared_ptr<connection<command_type, connection_data>>;
+	template <typename command_type, typename storage = nothing> 
+	using connection_ptr = std::shared_ptr<connection<command_type, storage>>;
 }
 
 #endif
