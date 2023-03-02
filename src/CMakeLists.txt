@@ -1,13 +1,17 @@
 ﻿CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
 
-PROJECT("libnetwrk" C CXX)
+ADD_LIBRARY(libnetwrk STATIC 
+	"include/libnetwrk.hpp"
+	"include/net/definitions.hpp"
+	"include/net/common/message.hpp"
+	"include/net/common/connection.hpp"
+	"include/net/common/serialization/serializable.hpp"
+	"include/net/common/serialization/serialize.hpp"
+	"include/net/common/serialization/type_traits.hpp"
+	"include/net/common/containers/tsdeque.hpp"
+	"include/utilities/buffers.hpp"
 
-ADD_LIBRARY(${PROJECT_NAME} STATIC  "libnetwrk.h" "libnetwrk.cpp")
+	"impl/libnetwrk.cpp" 
+	"impl/utilities/buffers.cpp")
 
-IF(CMAKE_VERSION VERSION_GREATER 3.12)
-    SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
-ELSEIF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5)
-    SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-ELSE()
-    SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
-ENDIF()
+SET_TARGET_PROPERTIES(libnetwrk PROPERTIES LINKER_LANGUAGE CXX)
