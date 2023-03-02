@@ -8,4 +8,8 @@ ADD_TEST(NAME test_message COMMAND test_message)
 ADD_EXECUTABLE(test_tsdeque test_tsdeque.cpp)
 ADD_TEST(NAME test_tsdeque COMMAND test_tsdeque)
 
+# TEST: TCP_SERVER
+ADD_EXECUTABLE(test_tcp_server test_tcp_server.cpp)
+ADD_TEST(NAME test_tcp_server COMMAND test_tcp_server)
+
 LINK_LIBRARIES(libnetwrk)

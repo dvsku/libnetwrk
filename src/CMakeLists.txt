@@ -10,6 +10,7 @@ ADD_LIBRARY(libnetwrk STATIC
 	"include/net/common/serialization/type_traits.hpp"
 	"include/net/common/containers/tsdeque.hpp"
 	"include/utilities/buffers.hpp"
+	"include/net/tcp/tcp_server.hpp"
 
 	"impl/libnetwrk.cpp" 
 	"impl/utilities/buffers.cpp")

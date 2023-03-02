@@ -1,0 +1,220 @@
+#ifndef LIBNETWRK_NET_TCP_TCP_SERVER_H
+#define LIBNETWRK_NET_TCP_TCP_SERVER_H
+
+#include <exception>
+
+#include "net/common/connection.hpp"
+#include "net/common/message.hpp"
+#include "net/common/containers/tsdeque.hpp"
+#include "net/definitions.hpp"
+
+namespace libnetwrk::net::tcp {
+	template <typename command_type, typename storage = libnetwrk::net::common::nothing>
+	class tcp_server {
+		protected:
+			context_ptr m_context;
+			acceptor_ptr m_acceptor;
+
+			libnetwrk::net::common::tsdeque<libnetwrk::net::common::owned_message<command_type, storage>> m_incoming_messages;
+			std::deque<std::shared_ptr<libnetwrk::net::common::connection<command_type, storage>>> m_connections;
+
+			std::thread m_asio_thread;
+			std::thread m_update_thread;
+
+			bool m_running;
+
+		public:
+			tcp_server() : m_running(false) {
+				try {
+					m_context = std::make_shared<asio::io_context>(1);
+				}
+				catch (const std::exception& e) {
+					//OUTPUT_ERROR("failed to create tcp_service | %s", e.what());
+				}
+			};
+
+			~tcp_server() {
+				stop();
+			};
+
+			context_ptr context() {
+				return this->m_context;
+			}
+
+			bool running() {
+				return m_running;
+			}
+
+			void start(const char* host, const unsigned short port) {
+				try {
+					m_acceptor = std::make_shared<asio::ip::tcp::acceptor>
+						(*m_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
+					
+					do_accept();
+					m_asio_thread = std::thread([&] { start_context(); });
+
+					m_running = true;
+
+					//OUTPUT_INFO("listening for connections on %s:%d", host, port);
+				}
+				catch (const std::exception& e) {
+					//OUTPUT_ERROR("failed to start listening | %s", e.what());
+				}
+			}
+
+			void stop() {
+				m_running = false;
+
+				if (m_acceptor != nullptr)
+					if (m_acceptor->is_open())
+						m_acceptor->close();
+
+				if (m_context != nullptr)
+					if (!m_context->stopped())
+						m_context->stop();
+
+				if (m_asio_thread.joinable())
+					m_asio_thread.join();
+
+				m_incoming_messages.cancel_wait();
+
+				if (m_update_thread.joinable())
+					m_update_thread.join();
+
+				//OUTPUT_INFO("tcp service stopped");
+			}
+
+			void process_messages() {
+				do_process_messages();
+			}
+
+			void async_process_messages() {
+				m_update_thread = std::thread([&] { do_process_messages(); });
+			}
+
+			void queue_async_job(std::function<void()> const& lambda) {
+				post(*(this->m_context), lambda);
+			}
+
+			void send(libnetwrk::net::common::connection_ptr<command_type, storage> client, 
+				const libnetwrk::net::common::message<command_type>& msg) 
+			{
+				if (client && client->is_alive()) {
+					client->send(msg);
+				}
+				else {
+					on_client_disconnect(client);
+					client.reset();
+
+					m_connections.erase(remove(m_connections.begin(), m_connections.end(), client), m_connections.end());
+				}
+			}
+
+			void send_all(const libnetwrk::net::common::message<command_type>& msg) {
+				bool has_invalid_clients = false;
+
+				for (auto& client : m_connections) {
+					if (client && client->is_alive()) {
+						client->send(msg);
+					}
+					else {
+						on_client_disconnect(client);
+						client.reset();
+						has_invalid_clients = true;
+					}
+				}
+
+				if (has_invalid_clients)
+					m_connections.erase(remove(m_connections.begin(), m_connections.end(), nullptr), m_connections.end());
+			}
+
+			void send_all(const libnetwrk::net::common::message<command_type>& msg, 
+				std::function<bool(const storage&)> predicate) 
+			{
+				bool has_invalid_clients = false;
+
+				for (auto& client : m_connections) {
+					if (client && client->is_alive()) {
+						if (predicate(client->connection_data()))
+							client->send(msg);
+					}
+					else {
+						on_client_disconnect(client);
+						client.reset();
+						has_invalid_clients = true;
+					}
+				}
+
+				if (has_invalid_clients)
+					m_connections.erase(remove(m_connections.begin(), m_connections.end(), nullptr), m_connections.end());
+			}
+
+		protected:
+			virtual void on_message(libnetwrk::net::common::owned_message<command_type, storage>& msg) {
+				return;
+			}
+
+			virtual bool on_client_connect(libnetwrk::net::common::connection_ptr<command_type, storage> client) {
+				return true;
+			}
+
+			virtual void on_client_disconnect(libnetwrk::net::common::connection_ptr<command_type, storage> client) {
+				return;
+			}
+
+		private:
+			void start_context() {
+				m_context->run();
+			}
+
+			void do_accept() {
+				m_acceptor->async_accept(
+					[this](std::error_code ec, asio::ip::tcp::socket socket) {
+						if (!ec) {
+							/*OUTPUT_INFO("attempted connection from %s:%d", socket.remote_endpoint().address().to_string().c_str(),
+								socket.remote_endpoint().port());*/
+
+							libnetwrk::net::common::connection_ptr<command_type, storage> new_connection =
+								std::make_shared<libnetwrk::net::common::connection<command_type, storage>>(
+									libnetwrk::net::common::owner::server,
+									std::move(socket), this->context(), m_incoming_messages);
+
+							if (on_client_connect(new_connection)) {
+								m_connections.push_back(new_connection);
+								m_connections.back()->start();
+
+								/*OUTPUT_INFO("connection success from %s:%d", m_connections.back()->get_remote_address().c_str(),
+									m_connections.back()->get_remote_port());*/
+							}
+							else {
+								/*OUTPUT_WARNING("connection denied");*/
+							}
+						}
+						else if (ec == asio::error::operation_aborted) {
+							/*OUTPUT_INFO("listening stopped");*/
+							return;
+						}
+						else {
+							/*OUTPUT_ERROR("failed to accept connection | %s", ec.message().c_str());*/
+						}
+
+						do_accept();
+					}
+				);
+			};
+
+			void do_process_messages(size_t max_messages = -1) {
+				while (m_running) {
+					m_incoming_messages.wait();
+					size_t message_count = 0;
+					while (message_count < max_messages && !m_incoming_messages.empty()) {
+						libnetwrk::net::common::owned_message<command_type, storage> msg = m_incoming_messages.pop_front();
+						on_message(msg);
+						message_count++;
+					}
+				}
+			}
+	};
+}
+
+#endif
