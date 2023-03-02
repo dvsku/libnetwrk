@@ -11,6 +11,7 @@ ADD_LIBRARY(libnetwrk STATIC
 	"include/net/common/containers/tsdeque.hpp"
 	"include/utilities/buffers.hpp"
 	"include/net/tcp/tcp_server.hpp"
+	"include/net/tcp/tcp_client.hpp"
 
 	"impl/libnetwrk.cpp" 
 	"impl/utilities/buffers.cpp")

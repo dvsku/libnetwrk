@@ -12,4 +12,8 @@ ADD_TEST(NAME test_tsdeque COMMAND test_tsdeque)
 ADD_EXECUTABLE(test_tcp_server test_tcp_server.cpp)
 ADD_TEST(NAME test_tcp_server COMMAND test_tcp_server)
 
+# TEST: TCP_CLIENT
+ADD_EXECUTABLE(test_tcp_client test_tcp_client.cpp)
+ADD_TEST(NAME test_tcp_client COMMAND test_tcp_client)
+
 LINK_LIBRARIES(libnetwrk)
