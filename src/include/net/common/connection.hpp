@@ -85,8 +85,8 @@ namespace libnetwrk::net::common {
 					[this](std::error_code ec, std::size_t len) {
 						if (!ec) {
 							// MESSAGE HAS A BODY
-							if (m_temp_message.m_head.m_size > 0) {
-								m_temp_message.m_data.resize(m_temp_message.m_head.m_size);
+							if (m_temp_message.m_head.m_data_len > 0) {
+								m_temp_message.m_data.resize(m_temp_message.m_head.m_data_len);
 								do_read_body();
 							}
 							else {	// MESSAGE HAS NO BODY
@@ -102,7 +102,7 @@ namespace libnetwrk::net::common {
 			}
 
 			void do_read_body() {
-				async_read(m_socket, asio::buffer(m_temp_message.m_data.data(), m_temp_message.m_head.m_size),
+				async_read(m_socket, asio::buffer(m_temp_message.m_data.data(), m_temp_message.m_head.m_data_len),
 					[this](std::error_code ec, std::size_t len) {
 						if (!ec)
 							add_message_to_queue();

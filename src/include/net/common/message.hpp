@@ -10,33 +10,26 @@
 #include "utilities/buffers.hpp"
 
 namespace libnetwrk::net::common {
+    template <typename T> struct message_head {
+        T m_command{};
+        uint32_t m_data_len;
+
+        message_head() : m_data_len(0) {}
+    };
+    
     template <typename T> 
     class message {
-        protected:
-            template <typename T> struct message_head {
-                T m_command_id{};
-                uint32_t m_data_len;
-
-                message_head() : m_data_len(0) {}
-            };
-
+        public:
             message_head<T> m_head;
             BUFFER_U8 m_data;
 
-            message(const message<T>& msg) = delete;
-
-        public:
-            message(T command) {
-                m_head.m_command_id = command;
+            message() {
                 m_data.resize(0);
             }
 
-            const T& command() const {
-                return m_head.m_command_id;
-            }
-
-            const size_t& data_size() const {
-                return m_head.m_data_len;
+            message(T command) {
+                m_head.m_command = command;
+                m_data.resize(0);
             }
 
             // Returns the size of the message (head + data)
