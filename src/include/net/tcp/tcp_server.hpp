@@ -3,9 +3,9 @@
 
 #include <exception>
 
-#include "net/common/connection.hpp"
 #include "net/common/message.hpp"
 #include "net/common/containers/tsdeque.hpp"
+#include "net/tcp/tcp_connection.hpp"
 #include "net/definitions.hpp"
 
 namespace libnetwrk::net::tcp {
@@ -16,7 +16,7 @@ namespace libnetwrk::net::tcp {
 			acceptor_ptr m_acceptor;
 
 			libnetwrk::net::common::tsdeque<libnetwrk::net::common::owned_message<command_type, storage>> m_incoming_messages;
-			std::deque<std::shared_ptr<libnetwrk::net::common::connection<command_type, storage>>> m_connections;
+			std::deque<std::shared_ptr<tcp_connection<command_type, storage>>> m_connections;
 
 			std::thread m_asio_thread;
 			std::thread m_update_thread;
@@ -169,7 +169,7 @@ namespace libnetwrk::net::tcp {
 				post(*(this->m_context), lambda);
 			}
 
-			void send(libnetwrk::net::common::connection_ptr<command_type, storage> client, 
+			void send(tcp_connection<command_type, storage> client,
 				const libnetwrk::net::common::message<command_type>& msg) 
 			{
 				if (client && client->is_alive()) {
@@ -227,11 +227,11 @@ namespace libnetwrk::net::tcp {
 				return;
 			}
 
-			virtual bool on_client_connect(libnetwrk::net::common::connection_ptr<command_type, storage> client) {
+			virtual bool on_client_connect(tcp_connection_ptr<command_type, storage> client) {
 				return true;
 			}
 
-			virtual void on_client_disconnect(libnetwrk::net::common::connection_ptr<command_type, storage> client) {
+			virtual void on_client_disconnect(tcp_connection_ptr<command_type, storage> client) {
 				return;
 			}
 
@@ -247,8 +247,8 @@ namespace libnetwrk::net::tcp {
 							/*OUTPUT_INFO("attempted connection from %s:%d", socket.remote_endpoint().address().to_string().c_str(),
 								socket.remote_endpoint().port());*/
 
-							libnetwrk::net::common::connection_ptr<command_type, storage> new_connection =
-								std::make_shared<libnetwrk::net::common::connection<command_type, storage>>(
+							tcp_connection_ptr<command_type, storage> new_connection =
+								std::make_shared<tcp_connection<command_type, storage>>(
 									libnetwrk::net::common::owner::server,
 									std::move(socket), this->context(), m_incoming_messages);
 

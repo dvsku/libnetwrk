@@ -54,11 +54,11 @@ class test_service : public tcp_server<commands> {
 			}
 		}
 
-		bool on_client_connect(connection_ptr<commands> client) override {
+		bool on_client_connect(tcp_connection_ptr<commands> client) override {
 			return true;
 		}
 
-		void on_client_disconnect(connection_ptr<commands> client) override {
+		void on_client_disconnect(tcp_connection_ptr<commands> client) override {
 
 		}
 

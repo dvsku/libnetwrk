@@ -4,7 +4,7 @@ ADD_LIBRARY(libnetwrk STATIC
 	"include/libnetwrk.hpp"
 	"include/net/definitions.hpp"
 	"include/net/common/message.hpp"
-	"include/net/common/connection.hpp"
+	"include/net/common/base_connection.hpp"
 	"include/net/common/serialization/serializable.hpp"
 	"include/net/common/serialization/serialize.hpp"
 	"include/net/common/serialization/type_traits.hpp"

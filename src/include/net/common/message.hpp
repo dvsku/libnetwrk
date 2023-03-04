@@ -262,13 +262,13 @@ namespace libnetwrk::net::common {
 
     // FORWARD DECLARE
     struct nothing;
-    template <typename A, typename B> class connection;
+    template <typename A, typename B> class base_connection;
 
     template <typename command_type, typename connection_data = nothing>
     class owned_message {
         public:
             message<command_type> m_msg;
-            std::shared_ptr<connection<command_type, connection_data>> m_client;
+            std::shared_ptr<base_connection<command_type, connection_data>> m_client;
     };
 }
 

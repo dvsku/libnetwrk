@@ -3,16 +3,16 @@
 
 #include <thread>
 
-#include "net/common/connection.hpp"
 #include "net/common/message.hpp"
 #include "net/common/containers/tsdeque.hpp"
+#include "net/tcp/tcp_connection.hpp"
 #include "net/definitions.hpp"
 
 namespace libnetwrk::net::tcp {
 	template <typename command_type, typename storage = libnetwrk::net::common::nothing>
 	class tcp_client {
 		protected:
-			libnetwrk::net::common::connection_ptr<command_type, storage> m_connection;
+			tcp_connection_ptr<command_type, storage> m_connection;
 			context_ptr m_context;
 
 			libnetwrk::net::common::tsdeque<libnetwrk::net::common::owned_message<command_type, storage>> m_incoming_messages;
@@ -56,7 +56,7 @@ namespace libnetwrk::net::tcp {
 					socket.connect(ep);
 
 					// Create connection object
-					m_connection = std::make_shared<libnetwrk::net::common::connection<command_type>>(
+					m_connection = std::make_shared<tcp_connection<command_type>>(
 						libnetwrk::net::common::owner::client, std::move(socket),
 						m_context, m_incoming_messages);
 
@@ -104,7 +104,7 @@ namespace libnetwrk::net::tcp {
 					socket.connect(ep);
 
 					// Create connection object
-					m_connection = std::make_shared<libnetwrk::net::common::connection<command_type>>(
+					m_connection = std::make_shared<tcp_connection<command_type>>(
 						libnetwrk::net::common::owner::client, std::move(socket),
 						m_context, m_incoming_messages);
 
