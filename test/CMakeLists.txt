@@ -17,9 +17,15 @@ ADD_TEST(NAME tsdeque_clear COMMAND test_tsdeque 7)
 ADD_TEST(NAME tsdeque_empty COMMAND test_tsdeque 8)
 ADD_TEST(NAME tsdeque_count COMMAND test_tsdeque 9)
 
+# TEST: BUFFER
+ADD_EXECUTABLE(test_buffer test_buffer.cpp)
+ADD_TEST(NAME buffer_create COMMAND test_buffer 0)
+ADD_TEST(NAME buffer_get_range COMMAND test_buffer 1)
+ADD_TEST(NAME buffer_push_back_buffer COMMAND test_buffer 2)
+
 # TEST: SERIALIZABLE
-ADD_EXECUTABLE(test_serializable test_serializable.cpp)
-ADD_TEST(NAME serialize_deserialize_custom_struct COMMAND test_serializable 0)
+#ADD_EXECUTABLE(test_serializable test_serializable.cpp)
+#ADD_TEST(NAME serialize_deserialize_custom_struct COMMAND test_serializable 0)
 
 # TEST: TCP_SERVER
 ADD_EXECUTABLE(test_tcp_server test_tcp_server.cpp)

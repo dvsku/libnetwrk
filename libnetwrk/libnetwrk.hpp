@@ -2,6 +2,7 @@
 #define LIBNETWRK_HPP
 
 #include "libnetwrk/net/message.hpp"
+#include "libnetwrk/net/common/containers/buffer.hpp"
 
 #if defined(LIBNETWRK_SERVER)
 	#if defined(LIBNETWRK_TCP)
