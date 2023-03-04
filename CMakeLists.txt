@@ -16,21 +16,21 @@ ELSE()
     ENDIF()
 ENDIF()
 
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src")
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/libnetwrk")
 
 ADD_LIBRARY(libnetwrk STATIC 
-	"src/libnetwrk.hpp"
-	"src/libnetwrk/net/definitions.hpp"
-	"src/libnetwrk/net/message.hpp"
-	"src/libnetwrk/net/common/base_connection.hpp"
-	"src/libnetwrk/net/common/serialization/serializable.hpp"
-	"src/libnetwrk/net/common/serialization/serialize.hpp"
-	"src/libnetwrk/net/common/serialization/type_traits.hpp"
-	"src/libnetwrk/net/common/containers/tsdeque.hpp"
-	"src/libnetwrk/utilities/buffers.hpp"
-	"src/libnetwrk/net/tcp/tcp_connection.hpp"
-	"src/libnetwrk/net/tcp/tcp_server.hpp"
-	"src/libnetwrk/net/tcp/tcp_client.hpp")
+	"libnetwrk/libnetwrk.hpp"
+	"libnetwrk/libnetwrk/net/definitions.hpp"
+	"libnetwrk/libnetwrk/net/message.hpp"
+	"libnetwrk/libnetwrk/net/common/base_connection.hpp"
+	"libnetwrk/libnetwrk/net/common/serialization/serializable.hpp"
+	"libnetwrk/libnetwrk/net/common/serialization/serialize.hpp"
+	"libnetwrk/libnetwrk/net/common/serialization/type_traits.hpp"
+	"libnetwrk/libnetwrk/net/common/containers/tsdeque.hpp"
+	"libnetwrk/libnetwrk/utilities/buffers.hpp"
+	"libnetwrk/libnetwrk/net/tcp/tcp_connection.hpp"
+	"libnetwrk/libnetwrk/net/tcp/tcp_server.hpp"
+	"libnetwrk/libnetwrk/net/tcp/tcp_client.hpp")
 
 SET_TARGET_PROPERTIES(libnetwrk PROPERTIES LINKER_LANGUAGE CXX)
 
