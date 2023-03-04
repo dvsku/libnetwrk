@@ -1,7 +1,7 @@
 #ifndef LIBNETWRK_NET_TCP_TCP_CONNECTION_HPP
 #define LIBNETWRK_NET_TCP_TCP_CONNECTION_HPP
 
-#include "net/common/base_connection.hpp"
+#include "libnetwrk/net/common/base_connection.hpp"
 
 namespace libnetwrk::net::tcp {
 	template <typename command_type, typename storage = libnetwrk::nothing>

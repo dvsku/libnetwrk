@@ -4,10 +4,10 @@
 #include <thread>
 #include <exception>
 
-#include "net/message.hpp"
-#include "net/common/containers/tsdeque.hpp"
-#include "net/tcp/tcp_connection.hpp"
-#include "net/definitions.hpp"
+#include "libnetwrk/net/message.hpp"
+#include "libnetwrk/net/common/containers/tsdeque.hpp"
+#include "libnetwrk/net/tcp/tcp_connection.hpp"
+#include "libnetwrk/net/definitions.hpp"
 
 namespace libnetwrk::net::tcp {
 	template <typename command_type, typename storage = libnetwrk::nothing>

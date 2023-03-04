@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-#include "serializable.hpp"
+#include "libnetwrk/net/common/serialization/serializable.hpp"
 
 namespace libnetwrk::net::common {
 	// Type trait for every object deriving from serializable struct

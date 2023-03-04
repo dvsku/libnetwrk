@@ -16,9 +16,24 @@ ELSE()
     ENDIF()
 ENDIF()
 
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/include")
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src")
+
+ADD_LIBRARY(libnetwrk STATIC 
+	"src/libnetwrk.hpp"
+	"src/libnetwrk/net/definitions.hpp"
+	"src/libnetwrk/net/message.hpp"
+	"src/libnetwrk/net/common/base_connection.hpp"
+	"src/libnetwrk/net/common/serialization/serializable.hpp"
+	"src/libnetwrk/net/common/serialization/serialize.hpp"
+	"src/libnetwrk/net/common/serialization/type_traits.hpp"
+	"src/libnetwrk/net/common/containers/tsdeque.hpp"
+	"src/libnetwrk/utilities/buffers.hpp"
+	"src/libnetwrk/net/tcp/tcp_connection.hpp"
+	"src/libnetwrk/net/tcp/tcp_server.hpp"
+	"src/libnetwrk/net/tcp/tcp_client.hpp")
+
+SET_TARGET_PROPERTIES(libnetwrk PROPERTIES LINKER_LANGUAGE CXX)
 
 ENABLE_TESTING()
 
-ADD_SUBDIRECTORY ("src")
 ADD_SUBDIRECTORY ("test")

@@ -1,9 +1,9 @@
 #ifndef LIBNETWRK_NET_COMMON_BASE_CONNECTION_HPP
 #define LIBNETWRK_NET_COMMON_BASE_CONNECTION_HPP
 
-#include "net/common/containers/tsdeque.hpp"
-#include "net/message.hpp"
-#include "net/definitions.hpp"
+#include "libnetwrk/net/common/containers/tsdeque.hpp"
+#include "libnetwrk/net/message.hpp"
+#include "libnetwrk/net/definitions.hpp"
 
 namespace libnetwrk::net::common {
 	template <typename command_type, typename storage = libnetwrk::nothing>

@@ -5,7 +5,7 @@
 #include <string>
 #include <memory>
 
-#include "lib/asio/asio.hpp"
+#include "libnetwrk/lib/asio/asio.hpp"
 
 namespace libnetwrk {
 	// Empty struct

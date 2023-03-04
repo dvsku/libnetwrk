@@ -1,8 +1,6 @@
-#include "net/tcp/tcp_server.hpp"
-#include "net/tcp/tcp_client.hpp"
+#include "libnetwrk.hpp"
 
 #include <thread>
-
 #include <cassert>
 
 using namespace libnetwrk::net::tcp;

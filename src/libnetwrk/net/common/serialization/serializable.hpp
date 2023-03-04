@@ -1,7 +1,7 @@
 #ifndef LIBNETWRK_NET_COMMON_SERIALIZABLE_HPP
 #define LIBNETWRK_NET_COMMON_SERIALIZABLE_HPP
 
-#include "net/definitions.hpp"
+#include "libnetwrk/net/definitions.hpp"
 
 namespace libnetwrk::net::common {
 	// Base struct for every user made serializable object

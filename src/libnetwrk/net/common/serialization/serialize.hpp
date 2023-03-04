@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "net/definitions.hpp"
+#include "libnetwrk/net/definitions.hpp"
 
 namespace libnetwrk::net::common {
 	// Serializes a primitive type

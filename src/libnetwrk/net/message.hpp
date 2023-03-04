@@ -3,10 +3,10 @@
 
 #include <type_traits>
 
-#include "net/common/serialization/type_traits.hpp"
-#include "net/common/serialization/serialize.hpp"
-#include "net/definitions.hpp"
-#include "utilities/buffers.hpp"
+#include "libnetwrk/net/common/serialization/type_traits.hpp"
+#include "libnetwrk/net/common/serialization/serialize.hpp"
+#include "libnetwrk/net/definitions.hpp"
+#include "libnetwrk/utilities/buffers.hpp"
 
 namespace libnetwrk::net {
     template <typename T> struct message_head {
