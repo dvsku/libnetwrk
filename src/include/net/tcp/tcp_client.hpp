@@ -15,7 +15,7 @@ namespace libnetwrk::net::tcp {
 			tcp_connection_ptr<command_type, storage> m_connection;
 			context_ptr m_context;
 
-			libnetwrk::net::common::tsdeque<libnetwrk::net::common::owned_message<command_type, storage>> m_incoming_messages;
+			libnetwrk::net::common::tsdeque<libnetwrk::net::owned_message<command_type, storage>> m_incoming_messages;
 
 			std::thread m_asio_thread;
 			std::thread m_update_thread;
@@ -168,7 +168,7 @@ namespace libnetwrk::net::tcp {
 					if (m_incoming_messages.empty())
 						return false;
 
-					libnetwrk::net::common::message<command_type> msg = m_incoming_messages.pop_front().m_msg;
+					libnetwrk::net::message<command_type> msg = m_incoming_messages.pop_front().m_msg;
 					on_message(msg);
 				}
 				catch (const std::exception& e) {
@@ -183,7 +183,7 @@ namespace libnetwrk::net::tcp {
 				return true;
 			}
 
-			void send(const libnetwrk::net::common::message<command_type>& message) {
+			void send(const libnetwrk::net::message<command_type>& message) {
 				if (m_connection != nullptr && m_running) {
 					if (m_connection->is_alive()) {
 						m_connection->send(message);
@@ -196,7 +196,7 @@ namespace libnetwrk::net::tcp {
 			}
 
 		protected:
-			virtual void on_message(libnetwrk::net::common::message<command_type>& msg) { }
+			virtual void on_message(libnetwrk::net::message<command_type>& msg) { }
 
 			virtual void on_disconnect() {}
 
@@ -208,12 +208,13 @@ namespace libnetwrk::net::tcp {
 					try {
 						size_t message_count = 0;
 						while (message_count < max_messages && !m_incoming_messages.empty()) {
-							libnetwrk::net::common::message<command_type> msg = m_incoming_messages.pop_front().m_msg;
+							libnetwrk::net::message<command_type> msg = m_incoming_messages.pop_front().m_msg;
 							on_message(msg);
 							message_count++;
 						}
 					}
 					catch (const std::exception& e) {
+						VAR_IGNORE(e);
 						//OUTPUT_ERROR("do_update() fail | %s", e.what());
 					}
 					catch (...) {

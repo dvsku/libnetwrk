@@ -13,7 +13,7 @@ namespace libnetwrk::net::tcp {
 
 		public:
 			tcp_connection(libnetwrk::net::common::owner owner, asio::ip::tcp::socket socket, context_ptr context, 
-				libnetwrk::net::common::tsdeque<libnetwrk::net::common::owned_message<command_type, storage>>& queue)
+				libnetwrk::net::common::tsdeque<libnetwrk::net::owned_message<command_type, storage>>& queue)
 				: libnetwrk::net::common::base_connection<command_type, storage>(owner, context, queue), 
 				m_socket(std::move(socket)) {}
 
@@ -36,7 +36,7 @@ namespace libnetwrk::net::tcp {
 		protected:
 			void read_message_head() override {
 				asio::async_read(m_socket, asio::buffer(&this->m_temp_message.m_head, 
-					sizeof(libnetwrk::net::common::message_head<command_type>)),
+					sizeof(libnetwrk::net::message_head<command_type>)),
 					std::bind(&tcp_connection::read_message_head_callback, 
 						this, std::placeholders::_1, std::placeholders::_2));
 			}
@@ -50,7 +50,7 @@ namespace libnetwrk::net::tcp {
 
 			void write_message_head() override {
 				asio::async_write(m_socket, asio::buffer(&this->m_outgoing_messages.front().m_head, 
-					sizeof(libnetwrk::net::common::message_head<command_type>)),
+					sizeof(libnetwrk::net::message_head<command_type>)),
 					std::bind(&tcp_connection::write_message_head_callback, 
 						this, std::placeholders::_1, std::placeholders::_2));
 			}

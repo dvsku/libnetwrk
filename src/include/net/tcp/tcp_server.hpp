@@ -15,7 +15,7 @@ namespace libnetwrk::net::tcp {
 			context_ptr m_context;
 			acceptor_ptr m_acceptor;
 
-			libnetwrk::net::common::tsdeque<libnetwrk::net::common::owned_message<command_type, storage>> m_incoming_messages;
+			libnetwrk::net::common::tsdeque<libnetwrk::net::owned_message<command_type, storage>> m_incoming_messages;
 			std::deque<std::shared_ptr<tcp_connection<command_type, storage>>> m_connections;
 
 			std::thread m_asio_thread;
@@ -29,6 +29,7 @@ namespace libnetwrk::net::tcp {
 					m_context = std::make_shared<asio::io_context>(1);
 				}
 				catch (const std::exception& e) {
+					VAR_IGNORE(e);
 					//OUTPUT_ERROR("failed to create tcp_service | %s", e.what());
 				}
 			};
@@ -106,6 +107,7 @@ namespace libnetwrk::net::tcp {
 						m_update_thread = std::thread([&] { do_process_messages(); });
 				}
 				catch (const std::exception& e) {
+					VAR_IGNORE(e);
 					//OUTPUT_ERROR("failed to start listening | %s", e.what());
 					stop();
 					return false;
@@ -150,7 +152,7 @@ namespace libnetwrk::net::tcp {
 					if (m_incoming_messages.empty())
 						return false;
 					
-					libnetwrk::net::common::owned_message<command_type, storage> msg = m_incoming_messages.pop_front();
+					libnetwrk::net::owned_message<command_type, storage> msg = m_incoming_messages.pop_front();
 					on_message(msg);
 				}
 				catch (const std::exception& e) {
@@ -166,11 +168,11 @@ namespace libnetwrk::net::tcp {
 			}
 
 			void queue_async_job(std::function<void()> const& lambda) {
-				post(*(this->m_context), lambda);
+				asio::post(*(this->m_context), lambda);
 			}
 
 			void send(tcp_connection<command_type, storage> client,
-				const libnetwrk::net::common::message<command_type>& msg) 
+				const libnetwrk::net::message<command_type>& msg) 
 			{
 				if (client && client->is_alive()) {
 					client->send(msg);
@@ -179,11 +181,11 @@ namespace libnetwrk::net::tcp {
 					on_client_disconnect(client);
 					client.reset();
 
-					m_connections.erase(remove(m_connections.begin(), m_connections.end(), client), m_connections.end());
+					m_connections.erase(std::remove(m_connections.begin(), m_connections.end(), client), m_connections.end());
 				}
 			}
 
-			void send_all(const libnetwrk::net::common::message<command_type>& msg) {
+			void send_all(const libnetwrk::net::message<command_type>& msg) {
 				bool has_invalid_clients = false;
 
 				for (auto& client : m_connections) {
@@ -198,10 +200,10 @@ namespace libnetwrk::net::tcp {
 				}
 
 				if (has_invalid_clients)
-					m_connections.erase(remove(m_connections.begin(), m_connections.end(), nullptr), m_connections.end());
+					m_connections.erase(std::remove(m_connections.begin(), m_connections.end(), nullptr), m_connections.end());
 			}
 
-			void send_all(const libnetwrk::net::common::message<command_type>& msg, 
+			void send_all(const libnetwrk::net::message<command_type>& msg, 
 				std::function<bool(const storage&)> predicate) 
 			{
 				bool has_invalid_clients = false;
@@ -219,11 +221,11 @@ namespace libnetwrk::net::tcp {
 				}
 
 				if (has_invalid_clients)
-					m_connections.erase(remove(m_connections.begin(), m_connections.end(), nullptr), m_connections.end());
+					m_connections.erase(std::remove(m_connections.begin(), m_connections.end(), nullptr), m_connections.end());
 			}
 
 		protected:
-			virtual void on_message(libnetwrk::net::common::owned_message<command_type, storage>& msg) {
+			virtual void on_message(libnetwrk::net::owned_message<command_type, storage>& msg) {
 				return;
 			}
 
@@ -281,7 +283,7 @@ namespace libnetwrk::net::tcp {
 					m_incoming_messages.wait();
 					size_t message_count = 0;
 					while (message_count < max_messages && !m_incoming_messages.empty()) {
-						libnetwrk::net::common::owned_message<command_type, storage> msg = m_incoming_messages.pop_front();
+						libnetwrk::net::owned_message<command_type, storage> msg = m_incoming_messages.pop_front();
 						on_message(msg);
 						message_count++;
 					}

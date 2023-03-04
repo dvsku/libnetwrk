@@ -9,7 +9,7 @@
 #include "net/definitions.hpp"
 #include "utilities/buffers.hpp"
 
-namespace libnetwrk::net::common {
+namespace libnetwrk::net {
     template <typename T> struct message_head {
         T m_command{};
         uint32_t m_data_len;
@@ -103,12 +103,12 @@ namespace libnetwrk::net::common {
 
         protected:
             static void push(message<T>& msg, const std::string& data) {
-                BUFFER_U8 bytes = serialize(data);
+                BUFFER_U8 bytes = libnetwrk::net::common::serialize(data);
                 msg.push_bytes(bytes);
             }
 
             static void push(message<T>& msg, const BUFFER_STR& data) {
-                BUFFER_U8 bytes = serialize(data);
+                BUFFER_U8 bytes = libnetwrk::net::common::serialize(data);
                 msg.push_bytes(bytes);
             }
 
@@ -116,13 +116,13 @@ namespace libnetwrk::net::common {
             static void push(message<T>& msg, const DataType& data, 
                 typename std::enable_if<std::is_standard_layout<DataType>::value, bool>::type = true)
             {
-                BUFFER_U8 bytes = serialize(data);
+                BUFFER_U8 bytes = libnetwrk::net::common::serialize(data);
                 msg.push_bytes(bytes);
             }
 
             template <typename DataType>
             static void push(message<T>& msg, const DataType& data, 
-                typename std::enable_if<is_serializable<DataType>::value, bool>::type = true)
+                typename std::enable_if<libnetwrk::net::common::is_serializable<DataType>::value, bool>::type = true)
             {
                 BUFFER_U8 bytes = data.serialize();
                 msg.push_bytes(bytes);
@@ -132,13 +132,13 @@ namespace libnetwrk::net::common {
             static void push(message<T>& msg, const BUFFER_<DataType>& data, 
                 typename std::enable_if<std::is_standard_layout<DataType>::value, bool>::type = true)
             {
-                BUFFER_U8 bytes = serialize(data);
+                BUFFER_U8 bytes = libnetwrk::net::common::serialize(data);
                 msg.push_bytes(bytes);
             }
 
             template <typename DataType>
             static void push(message<T>& msg, const BUFFER_<DataType>& data, 
-                typename std::enable_if<is_serializable<DataType>::value, bool>::type = true)
+                typename std::enable_if<libnetwrk::net::common::is_serializable<DataType>::value, bool>::type = true)
             {
                 BUFFER_U8 bytes;
 
@@ -180,7 +180,7 @@ namespace libnetwrk::net::common {
 
             template <typename DataType>
             static void pop(message<T>& msg, DataType& data, 
-                typename std::enable_if<is_serializable<DataType>::value, bool>::type = true)
+                typename std::enable_if<libnetwrk::net::common::is_serializable<DataType>::value, bool>::type = true)
             {
                 size_t offset = msg.m_data.size() - data.size();
                 data.deserialize(libnetwrk::utilities::get_range(msg.m_data, offset, data.size()));
@@ -204,7 +204,7 @@ namespace libnetwrk::net::common {
 
             template <typename DataType>
             static void pop(message<T>& msg, BUFFER_<DataType>& data, 
-                typename std::enable_if<is_serializable<DataType>::value, bool>::type = true)
+                typename std::enable_if<libnetwrk::net::common::is_serializable<DataType>::value, bool>::type = true)
             {
                 size_t count = 0;
                 msg >> count;
@@ -261,14 +261,16 @@ namespace libnetwrk::net::common {
     };
 
     // FORWARD DECLARE
-    struct nothing;
-    template <typename A, typename B> class base_connection;
+    namespace common {
+        struct nothing;
+        template <typename A, typename B> class base_connection;
+    }
 
-    template <typename command_type, typename connection_data = nothing>
+    template <typename command_type, typename storage = common::nothing>
     class owned_message {
         public:
             message<command_type> m_msg;
-            std::shared_ptr<base_connection<command_type, connection_data>> m_client;
+            std::shared_ptr<common::base_connection<command_type, storage>> m_client;
     };
 }
 

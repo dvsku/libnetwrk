@@ -6,7 +6,7 @@
 #include <cassert>
 
 using namespace libnetwrk::net::tcp;
-using namespace libnetwrk::net::common;
+using namespace libnetwrk::net;
 
 enum class commands : unsigned int {
 	c2s_hello,

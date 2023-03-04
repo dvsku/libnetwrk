@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-using namespace libnetwrk::net::common;
+using namespace libnetwrk::net;
 
 void message_create() {
 	message<int> msg(1);
