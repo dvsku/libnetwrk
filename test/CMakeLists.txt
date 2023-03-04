@@ -17,6 +17,10 @@ ADD_TEST(NAME tsdeque_clear COMMAND test_tsdeque 7)
 ADD_TEST(NAME tsdeque_empty COMMAND test_tsdeque 8)
 ADD_TEST(NAME tsdeque_count COMMAND test_tsdeque 9)
 
+# TEST: SERIALIZABLE
+ADD_EXECUTABLE(test_serializable test_serializable.cpp)
+ADD_TEST(NAME serialize_deserialize_custom_struct COMMAND test_serializable 0)
+
 # TEST: TCP_SERVER
 ADD_EXECUTABLE(test_tcp_server test_tcp_server.cpp)
 ADD_TEST(NAME tcp_server_create COMMAND test_tcp_server 0)
