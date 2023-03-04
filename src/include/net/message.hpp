@@ -1,5 +1,5 @@
-#ifndef LIBNETWRK_NET_COMMON_MESSAGE_H
-#define LIBNETWRK_NET_COMMON_MESSAGE_H
+#ifndef LIBNETWRK_NET_MESSAGE_HPP
+#define LIBNETWRK_NET_MESSAGE_HPP
 
 #include <type_traits>
 #include <memory>
