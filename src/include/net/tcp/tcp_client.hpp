@@ -2,6 +2,7 @@
 #define LIBNETWRK_NET_TCP_TCP_CLIENT_HPP
 
 #include <thread>
+#include <exception>
 
 #include "net/message.hpp"
 #include "net/common/containers/tsdeque.hpp"
@@ -9,7 +10,7 @@
 #include "net/definitions.hpp"
 
 namespace libnetwrk::net::tcp {
-	template <typename command_type, typename storage = libnetwrk::net::common::nothing>
+	template <typename command_type, typename storage = libnetwrk::nothing>
 	class tcp_client {
 		protected:
 			tcp_connection_ptr<command_type, storage> m_connection;
@@ -57,8 +58,8 @@ namespace libnetwrk::net::tcp {
 
 					// Create connection object
 					m_connection = std::make_shared<tcp_connection<command_type>>(
-						libnetwrk::net::common::owner::client, std::move(socket),
-						m_context, m_incoming_messages);
+						libnetwrk::net::common::base_connection<command_type, storage>::owner::client, 
+						std::move(socket), m_context, m_incoming_messages);
 
 					// Start receiving messages
 					m_connection->start();
@@ -105,8 +106,8 @@ namespace libnetwrk::net::tcp {
 
 					// Create connection object
 					m_connection = std::make_shared<tcp_connection<command_type>>(
-						libnetwrk::net::common::owner::client, std::move(socket),
-						m_context, m_incoming_messages);
+						libnetwrk::net::common::base_connection<command_type, storage>::owner::client, 
+						std::move(socket), m_context, m_incoming_messages);
 
 					// Start receiving messages
 					m_connection->start();

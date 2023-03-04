@@ -4,7 +4,7 @@
 #include "net/common/base_connection.hpp"
 
 namespace libnetwrk::net::tcp {
-	template <typename command_type, typename storage = libnetwrk::net::common::nothing>
+	template <typename command_type, typename storage = libnetwrk::nothing>
 	class tcp_connection 
 		: public libnetwrk::net::common::base_connection<command_type, storage>
 	{
@@ -12,7 +12,8 @@ namespace libnetwrk::net::tcp {
 			asio::ip::tcp::socket m_socket;
 
 		public:
-			tcp_connection(libnetwrk::net::common::owner owner, asio::ip::tcp::socket socket, context_ptr context, 
+			tcp_connection(libnetwrk::net::common::base_connection<command_type, storage>::owner owner, 
+				asio::ip::tcp::socket socket, context_ptr context,
 				libnetwrk::net::common::tsdeque<libnetwrk::net::owned_message<command_type, storage>>& queue)
 				: libnetwrk::net::common::base_connection<command_type, storage>(owner, context, queue), 
 				m_socket(std::move(socket)) {}
@@ -71,7 +72,7 @@ namespace libnetwrk::net::tcp {
 			}
 	};
 
-	template <typename command_type, typename storage = libnetwrk::net::common::nothing>
+	template <typename command_type, typename storage = libnetwrk::nothing>
 	using tcp_connection_ptr = std::shared_ptr<tcp_connection<command_type, storage>>;
 }
 

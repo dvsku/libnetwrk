@@ -3,6 +3,17 @@
 
 #include <vector>
 #include <string>
+#include <memory>
+
+#include "lib/asio/asio.hpp"
+
+namespace libnetwrk {
+	// Empty struct
+	struct nothing {};
+
+	typedef std::shared_ptr<asio::io_context> context_ptr;
+	typedef std::shared_ptr<asio::ip::tcp::acceptor> acceptor_ptr;
+}
 
 #define BUFFER_		std::vector
 #define BUFFER_U8	std::vector<uint8_t>

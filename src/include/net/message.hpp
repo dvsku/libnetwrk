@@ -2,7 +2,6 @@
 #define LIBNETWRK_NET_MESSAGE_HPP
 
 #include <type_traits>
-#include <memory>
 
 #include "net/common/serialization/type_traits.hpp"
 #include "net/common/serialization/serialize.hpp"
@@ -260,13 +259,11 @@ namespace libnetwrk::net {
             }
     };
 
-    // FORWARD DECLARE
     namespace common {
-        struct nothing;
         template <typename A, typename B> class base_connection;
     }
 
-    template <typename command_type, typename storage = common::nothing>
+    template <typename command_type, typename storage = libnetwrk::nothing>
     class owned_message {
         public:
             message<command_type> m_msg;

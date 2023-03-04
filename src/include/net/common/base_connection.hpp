@@ -1,23 +1,18 @@
 #ifndef LIBNETWRK_NET_COMMON_BASE_CONNECTION_HPP
 #define LIBNETWRK_NET_COMMON_BASE_CONNECTION_HPP
 
-#include "lib/asio/asio.hpp"
-
-typedef std::shared_ptr<asio::io_context> context_ptr;
-typedef std::shared_ptr<asio::ip::tcp::acceptor> acceptor_ptr;
-
-#include "net/message.hpp"
 #include "net/common/containers/tsdeque.hpp"
+#include "net/message.hpp"
+#include "net/definitions.hpp"
 
 namespace libnetwrk::net::common {
-	// Empty struct, used for default connection->connection_data
-	struct nothing {};
-
-	// Connection owner
-	enum class owner { server, client };
-
-	template <typename command_type, typename storage = nothing>
+	template <typename command_type, typename storage = libnetwrk::nothing>
 	class base_connection : public std::enable_shared_from_this<base_connection<command_type, storage>> {
+		public:
+			enum class owner { 
+				server, client 
+			};
+
 		protected:
 			context_ptr m_context;
 
@@ -155,7 +150,7 @@ namespace libnetwrk::net::common {
 			}
 	};
 
-	template <typename command_type, typename storage = nothing> 
+	template <typename command_type, typename storage = libnetwrk::nothing> 
 	using base_connection_ptr = std::shared_ptr<base_connection<command_type, storage>>;
 }
 

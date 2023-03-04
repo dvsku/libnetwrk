@@ -1,6 +1,7 @@
 #ifndef LIBNETWRK_NET_TCP_TCP_SERVER_HPP
 #define LIBNETWRK_NET_TCP_TCP_SERVER_HPP
 
+#include <thread>
 #include <exception>
 
 #include "net/message.hpp"
@@ -9,7 +10,7 @@
 #include "net/definitions.hpp"
 
 namespace libnetwrk::net::tcp {
-	template <typename command_type, typename storage = libnetwrk::net::common::nothing>
+	template <typename command_type, typename storage = libnetwrk::nothing>
 	class tcp_server {
 		protected:
 			context_ptr m_context;
@@ -251,7 +252,7 @@ namespace libnetwrk::net::tcp {
 
 							tcp_connection_ptr<command_type, storage> new_connection =
 								std::make_shared<tcp_connection<command_type, storage>>(
-									libnetwrk::net::common::owner::server,
+									libnetwrk::net::common::base_connection<command_type, storage>::owner::server,
 									std::move(socket), this->context(), m_incoming_messages);
 
 							if (on_client_connect(new_connection)) {
