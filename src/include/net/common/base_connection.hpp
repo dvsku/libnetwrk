@@ -6,7 +6,7 @@
 typedef std::shared_ptr<asio::io_context> context_ptr;
 typedef std::shared_ptr<asio::ip::tcp::acceptor> acceptor_ptr;
 
-#include "net/common/message.hpp"
+#include "net/message.hpp"
 #include "net/common/containers/tsdeque.hpp"
 
 namespace libnetwrk::net::common {

@@ -3,7 +3,7 @@
 
 #include <exception>
 
-#include "net/common/message.hpp"
+#include "net/message.hpp"
 #include "net/common/containers/tsdeque.hpp"
 #include "net/tcp/tcp_connection.hpp"
 #include "net/definitions.hpp"

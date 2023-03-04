@@ -1,4 +1,4 @@
-#include "net/common/message.hpp"
+#include "net/message.hpp"
 
 #include <cassert>
 
