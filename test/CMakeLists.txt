@@ -4,6 +4,17 @@
 ADD_EXECUTABLE(test_message test_message.cpp)
 ADD_TEST(NAME message_create COMMAND test_message 0)
 
+# TEST: TYPE TRAITS
+ADD_EXECUTABLE(test_type_traits test_type_traits.cpp)
+ADD_TEST(NAME type_trait_is_iterable COMMAND test_type_traits 0)
+ADD_TEST(NAME type_trait_is_iterable_standard COMMAND test_type_traits 1)
+
+# TEST: BINARY_SERIALIZER
+ADD_EXECUTABLE(test_binary_serializer test_binary_serializer.cpp)
+ADD_TEST(NAME serialize_deserialize_standard_layout COMMAND test_binary_serializer 0)
+ADD_TEST(NAME serialize_deserialize_standard_layout_containers COMMAND test_binary_serializer 1)
+ADD_TEST(NAME serialize_deserialize_strings COMMAND test_binary_serializer 2)
+
 # TEST: TSDEQUE
 ADD_EXECUTABLE(test_tsdeque test_tsdeque.cpp)
 ADD_TEST(NAME tsdeque_create COMMAND test_tsdeque 0)
@@ -24,8 +35,8 @@ ADD_TEST(NAME buffer_get_range COMMAND test_buffer 1)
 ADD_TEST(NAME buffer_push_back_buffer COMMAND test_buffer 2)
 
 # TEST: SERIALIZABLE
-#ADD_EXECUTABLE(test_serializable test_serializable.cpp)
-#ADD_TEST(NAME serialize_deserialize_custom_struct COMMAND test_serializable 0)
+ADD_EXECUTABLE(test_serializable test_serializable.cpp)
+ADD_TEST(NAME serialize_deserialize_simple_struct COMMAND test_serializable 0)
 
 # TEST: TCP_SERVER
 ADD_EXECUTABLE(test_tcp_server test_tcp_server.cpp)

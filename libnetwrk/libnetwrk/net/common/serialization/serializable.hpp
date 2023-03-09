@@ -2,18 +2,27 @@
 #define LIBNETWRK_NET_COMMON_SERIALIZABLE_HPP
 
 #include "libnetwrk/net/definitions.hpp"
+#include "libnetwrk/net/common/serialization/type_traits.hpp"
 
 namespace libnetwrk::net::common {
+	
+	// Forward declare binary_serializer
+	struct binary_serializer;
+	
+	// Forward declare buffer
+	template<typename serializer>
+	class buffer;
+
 	// Base struct for every user made serializable object
+	template <typename serializer = binary_serializer>
 	struct serializable {
-		// Serializes struct to vector of bytes
-		virtual BUFFER_U8 serialize() const = 0;
+		typedef buffer<serializer> buffer_t;
 
-		// Deserializes a struct from a vector of bytes
-		virtual void deserialize(BUFFER_U8 serialized) = 0;
+		// Serializes struct to buffer
+		virtual buffer_t serialize() const = 0;
 
-		// Returns the size of the struct
-		virtual size_t size() const = 0;
+		// Deserializes a struct from a buffer
+		virtual void deserialize(buffer_t serialized) = 0;
 	};
 }
 

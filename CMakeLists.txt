@@ -24,10 +24,8 @@ ADD_LIBRARY(libnetwrk STATIC
 	"libnetwrk/libnetwrk/net/message.hpp"
 	"libnetwrk/libnetwrk/net/common/base_connection.hpp"
 	"libnetwrk/libnetwrk/net/common/serialization/serializable.hpp"
-	"libnetwrk/libnetwrk/net/common/serialization/serialize.hpp"
 	"libnetwrk/libnetwrk/net/common/serialization/type_traits.hpp"
 	"libnetwrk/libnetwrk/net/common/containers/tsdeque.hpp"
-	"libnetwrk/libnetwrk/utilities/buffers.hpp"
 	"libnetwrk/libnetwrk/net/tcp/tcp_connection.hpp"
 	"libnetwrk/libnetwrk/net/tcp/tcp_server.hpp"
 	"libnetwrk/libnetwrk/net/tcp/tcp_client.hpp")

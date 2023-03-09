@@ -4,6 +4,8 @@
 #include "libnetwrk/net/message.hpp"
 #include "libnetwrk/net/common/containers/buffer.hpp"
 
+#include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
+
 #if defined(LIBNETWRK_SERVER)
 	#if defined(LIBNETWRK_TCP)
 		#include "libnetwrk/net/tcp/tcp_connection.hpp"

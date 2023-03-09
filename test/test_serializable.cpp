@@ -1,44 +1,49 @@
 #include "libnetwrk.hpp"
 
+#include <cassert>
+
 using namespace libnetwrk::net::common;
 
-struct custom_struct : public serializable {
+struct simple_struct : public serializable<binary_serializer> {
 	uint8_t a		= 1;
 	uint16_t b		= 1337;
-	std::string c	= "sErIaLiZaBle TesT";
-	uint32_t d		= 420;
-	uint64_t e		= 69;
-	float f			= 15.34;
-	double g		= 8342.2;
-	bool h			= false;
+	uint32_t c		= 420;
+	uint64_t d		= 69;
+	float e			= 15.34f;
+	double f		= 8342.2;
+	bool g			= false;
 
-	BUFFER_U8 serialize() const override {
-
+	buffer_t serialize() const override {
+		buffer_t buffer;
+		buffer << a << b << c << d << e << f << g;
+		return buffer;
 	}
 
-	void deserialize(BUFFER_U8 serialized) override {
-
+	void deserialize(buffer_t serialized) override {
+		serialized >> a >> b >> c >> d >> e >> f >> g;
 	}
 
-	size_t size() const override {
-
-	}
-
-	bool equals(const custom_struct& obj) {
+	bool equals(const simple_struct& obj) {
 		return a == obj.a && b == obj.b && c == obj.c && d == obj.d && 
-			e == obj.e && f == obj.f && g == obj.g && h == obj.h;
+			e == obj.e && f == obj.f && g == obj.g;
 	}
 };
 
-void serialize_deserialize_custom_struct() {
-	custom_struct cs;
+void serialize_deserialize_simple_struct() {
+	buffer buff;
+	simple_struct ss1{}, ss2{};
+
+	buff = ss1.serialize();
+	ss2.deserialize(buff);
+	
+	assert(ss1.equals(ss2) == true);
 }
 
 int main(int argc, char* argv[]) {
 	if (argc != 2) return -1;
 
 	switch (std::stoi(argv[1])) {
-		case 0: serialize_deserialize_custom_struct();			break;
+		case 0: serialize_deserialize_simple_struct();			break;
 		default: break;
 	}
 

@@ -1,32 +1,39 @@
 #ifndef LIBNETWRK_NET_COMMON_BASE_CONNECTION_HPP
 #define LIBNETWRK_NET_COMMON_BASE_CONNECTION_HPP
 
+#include "libnetwrk/net/definitions.hpp"
 #include "libnetwrk/net/common/containers/tsdeque.hpp"
 #include "libnetwrk/net/message.hpp"
-#include "libnetwrk/net/definitions.hpp"
+#include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
 
 namespace libnetwrk::net::common {
-	template <typename command_type, typename storage = libnetwrk::nothing>
-	class base_connection : public std::enable_shared_from_this<base_connection<command_type, storage>> {
+	enum class connection_owner : unsigned int {
+		server, client
+	};
+
+	template <typename command_type, 
+		typename serializer,
+		typename storage = libnetwrk::nothing>
+	class base_connection 
+		: public std::enable_shared_from_this<base_connection<command_type, serializer, storage>>
+	{
 		public:
-			enum class owner { 
-				server, client 
-			};
+			typedef message<command_type, serializer> message_t;
+			typedef owned_message<command_type, serializer, storage> owned_message_t;
 
 		protected:
 			context_ptr m_context;
 
-			tsdeque<owned_message<command_type, storage>>& m_incoming_messages;
-			tsdeque<message<command_type>> m_outgoing_messages;
+			tsdeque<owned_message_t>& m_incoming_messages;
+			tsdeque<message_t> m_outgoing_messages;
 
-			owner m_owner;
+			connection_owner m_owner;
 			storage m_storage;
 
-			message<command_type> m_temp_message;
+			message_t m_temp_message;
 
 		public:
-			base_connection(owner owner, context_ptr context,
-				tsdeque<owned_message<command_type, storage>>& queue) 
+			base_connection(connection_owner owner, context_ptr context, tsdeque<owned_message_t>& queue)
 				: m_incoming_messages(queue)
 			{
 				m_context = context;
@@ -49,7 +56,7 @@ namespace libnetwrk::net::common {
 
 			virtual bool is_alive() = 0;
 
-			void send(const message<command_type>& msg) {
+			void send(const message_t& msg) {
 				asio::post(*m_context,
 					[this, msg]() {
 						bool was_empty = m_outgoing_messages.empty();
@@ -136,10 +143,10 @@ namespace libnetwrk::net::common {
 			}
 
 			void add_message_to_queue() {
-				owned_message<command_type, storage> owned_message;
+				owned_message_t owned_message;
 				owned_message.m_msg = m_temp_message;
 
-				if (m_owner == owner::server)
+				if (m_owner == connection_owner::server)
 					owned_message.m_client = this->shared_from_this();
 				else
 					owned_message.m_client = nullptr;
@@ -149,9 +156,6 @@ namespace libnetwrk::net::common {
 				read_message_head();
 			}
 	};
-
-	template <typename command_type, typename storage = libnetwrk::nothing> 
-	using base_connection_ptr = std::shared_ptr<base_connection<command_type, storage>>;
 }
 
 #endif

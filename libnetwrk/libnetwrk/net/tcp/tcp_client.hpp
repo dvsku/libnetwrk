@@ -10,13 +10,16 @@
 #include "libnetwrk/net/definitions.hpp"
 
 namespace libnetwrk::net::tcp {
-	template <typename command_type, typename storage = libnetwrk::nothing>
+	template <typename command_type, 
+		typename serializer = libnetwrk::net::common::binary_serializer,
+		typename storage = libnetwrk::nothing>
 	class tcp_client {
 		protected:
-			tcp_connection_ptr<command_type, storage> m_connection;
+			std::shared_ptr<tcp_connection<command_type, serializer, storage>> m_connection;
 			context_ptr m_context;
 
-			libnetwrk::net::common::tsdeque<libnetwrk::net::owned_message<command_type, storage>> m_incoming_messages;
+			libnetwrk::net::common::tsdeque<libnetwrk::net::owned_message<command_type, 
+				serializer, storage>> m_incoming_messages;
 
 			std::thread m_asio_thread;
 			std::thread m_update_thread;
@@ -57,8 +60,8 @@ namespace libnetwrk::net::tcp {
 					socket.connect(ep);
 
 					// Create connection object
-					m_connection = std::make_shared<tcp_connection<command_type>>(
-						libnetwrk::net::common::base_connection<command_type, storage>::owner::client, 
+					m_connection = std::make_shared<tcp_connection<command_type, serializer, storage>>(
+						libnetwrk::net::common::base_connection<command_type, serializer, storage>::owner::client, 
 						std::move(socket), m_context, m_incoming_messages);
 
 					// Start receiving messages
@@ -105,8 +108,8 @@ namespace libnetwrk::net::tcp {
 					socket.connect(ep);
 
 					// Create connection object
-					m_connection = std::make_shared<tcp_connection<command_type>>(
-						libnetwrk::net::common::base_connection<command_type, storage>::owner::client, 
+					m_connection = std::make_shared<tcp_connection<command_type, serializer>>(
+						libnetwrk::net::common::connection_owner::client,
 						std::move(socket), m_context, m_incoming_messages);
 
 					// Start receiving messages
@@ -169,10 +172,11 @@ namespace libnetwrk::net::tcp {
 					if (m_incoming_messages.empty())
 						return false;
 
-					libnetwrk::net::message<command_type> msg = m_incoming_messages.pop_front().m_msg;
+					libnetwrk::net::message<command_type, serializer> msg = m_incoming_messages.pop_front().m_msg;
 					on_message(msg);
 				}
 				catch (const std::exception& e) {
+					VAR_IGNORE(e);
 					//OUTPUT_ERROR("update_one() fail | %s", e.what());
 					return false;
 				}
@@ -184,7 +188,7 @@ namespace libnetwrk::net::tcp {
 				return true;
 			}
 
-			void send(const libnetwrk::net::message<command_type>& message) {
+			void send(const libnetwrk::net::message<command_type, serializer>& message) {
 				if (m_connection != nullptr && m_running) {
 					if (m_connection->is_alive()) {
 						m_connection->send(message);
@@ -197,7 +201,7 @@ namespace libnetwrk::net::tcp {
 			}
 
 		protected:
-			virtual void on_message(libnetwrk::net::message<command_type>& msg) { }
+			virtual void on_message(libnetwrk::net::message<command_type, serializer>& msg) { }
 
 			virtual void on_disconnect() {}
 
@@ -209,7 +213,9 @@ namespace libnetwrk::net::tcp {
 					try {
 						size_t message_count = 0;
 						while (message_count < max_messages && !m_incoming_messages.empty()) {
-							libnetwrk::net::message<command_type> msg = m_incoming_messages.pop_front().m_msg;
+							libnetwrk::net::message<command_type, serializer> msg = 
+								m_incoming_messages.pop_front().m_msg;
+							
 							on_message(msg);
 							message_count++;
 						}

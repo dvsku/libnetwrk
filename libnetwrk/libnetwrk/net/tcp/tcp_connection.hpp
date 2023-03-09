@@ -4,18 +4,23 @@
 #include "libnetwrk/net/common/base_connection.hpp"
 
 namespace libnetwrk::net::tcp {
-	template <typename command_type, typename storage = libnetwrk::nothing>
+	template <typename command_type,
+		typename serializer,
+		typename storage = libnetwrk::nothing>
 	class tcp_connection 
-		: public libnetwrk::net::common::base_connection<command_type, storage>
+		: public libnetwrk::net::common::base_connection<command_type, serializer, storage>
 	{
+		public:
+			typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
+
 		protected:
 			asio::ip::tcp::socket m_socket;
 
 		public:
-			tcp_connection(libnetwrk::net::common::base_connection<command_type, storage>::owner owner, 
+			tcp_connection(libnetwrk::net::common::connection_owner owner,
 				asio::ip::tcp::socket socket, context_ptr context,
-				libnetwrk::net::common::tsdeque<libnetwrk::net::owned_message<command_type, storage>>& queue)
-				: libnetwrk::net::common::base_connection<command_type, storage>(owner, context, queue), 
+				libnetwrk::net::common::tsdeque<owned_message_t>& queue)
+				: libnetwrk::net::common::base_connection<command_type, serializer, storage>(owner, context, queue),
 				m_socket(std::move(socket)) {}
 
 			const std::string remote_address() override {
@@ -64,16 +69,13 @@ namespace libnetwrk::net::tcp {
 			}
 
 			void on_disconnect() override {
-				libnetwrk::net::common::base_connection<command_type, storage>::on_disconnect();
+				libnetwrk::net::common::base_connection<command_type, serializer, storage>::on_disconnect();
 			}
 
 			void on_error(std::error_code ec) override {
-				libnetwrk::net::common::base_connection<command_type, storage>::on_error(ec);
+				libnetwrk::net::common::base_connection<command_type, serializer, storage>::on_error(ec);
 			}
 	};
-
-	template <typename command_type, typename storage = libnetwrk::nothing>
-	using tcp_connection_ptr = std::shared_ptr<tcp_connection<command_type, storage>>;
 }
 
 #endif
