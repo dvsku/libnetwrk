@@ -63,7 +63,8 @@ namespace libnetwrk::net::common {
 			typename std::enable_if<is_serializable<T, binary_serializer>::value, bool>::type = true)
 		{
 			buffer_t serialized = obj.serialize();
-			buffer.push_at(&serialized.size(), sizeof(size_t), offset);
+			size_t size = serialized.size();
+			buffer.push_at(&size, sizeof(size_t), offset);
 			buffer.push_at(serialized, offset + sizeof(size_t));
 		}
 
