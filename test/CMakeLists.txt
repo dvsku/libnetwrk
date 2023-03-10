@@ -14,6 +14,8 @@ ADD_EXECUTABLE(test_binary_serializer test_binary_serializer.cpp)
 ADD_TEST(NAME serialize_deserialize_standard_layout COMMAND test_binary_serializer 0)
 ADD_TEST(NAME serialize_deserialize_standard_layout_containers COMMAND test_binary_serializer 1)
 ADD_TEST(NAME serialize_deserialize_strings COMMAND test_binary_serializer 2)
+ADD_TEST(NAME serialize_deserialize_serializable COMMAND test_binary_serializer 3)
+ADD_TEST(NAME serialize_deserialize_unsupported COMMAND test_binary_serializer 4)
 
 # TEST: TSDEQUE
 ADD_EXECUTABLE(test_tsdeque test_tsdeque.cpp)
@@ -33,6 +35,7 @@ ADD_EXECUTABLE(test_buffer test_buffer.cpp)
 ADD_TEST(NAME buffer_create COMMAND test_buffer 0)
 ADD_TEST(NAME buffer_get_range COMMAND test_buffer 1)
 ADD_TEST(NAME buffer_push_back_buffer COMMAND test_buffer 2)
+ADD_TEST(NAME buffer_push_at COMMAND test_buffer 3)
 
 # TEST: SERIALIZABLE
 ADD_EXECUTABLE(test_serializable test_serializable.cpp)

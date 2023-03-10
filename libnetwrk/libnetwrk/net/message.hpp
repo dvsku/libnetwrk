@@ -26,13 +26,10 @@ namespace libnetwrk::net {
             message_head_t m_head;
             buffer_t m_data;
 
-            message() {
-                m_data.resize(0);
-            }
+            message() {}
 
             message(T command) {
                 m_head.m_command = command;
-                m_data.resize(0);
             }
 
             // Returns the size of the message (head + data)

@@ -9,24 +9,18 @@ void buffer_create() {
 
 void buffer_get_range() {
 	buffer b;
-	b.push_back(1);
-	b.push_back(2);
-	b.push_back(3);
-	b.push_back(4);
-	b.push_back(5);
+	b << uint8_t(1) << uint8_t(2) << uint8_t(3) << uint8_t(4) << uint8_t(5);
 	
-	buffer range = b.get_range(1, 3);
+	buffer range = b.get_range(3);
 	assert(range.size() == 3);
-	assert(range[0] == 2);
-	assert(range[1] == 3);
-	assert(range[2] == 4);
+	assert(range[0] == 1);
+	assert(range[1] == 2);
+	assert(range[2] == 3);
 }
 
 void buffer_push_back_buffer() {
 	buffer b1;
-	b1.push_back(1);
-	b1.push_back(2);
-	b1.push_back(3);
+	b1 << uint8_t(1) << uint8_t(2) << uint8_t(3);
 
 	buffer b2;
 	b2.push_back(b1);
@@ -37,6 +31,21 @@ void buffer_push_back_buffer() {
 	assert(b2[2] == 3);
 }
 
+void buffer_push_at() {
+	buffer b;
+
+	uint32_t i1 = 321, i2 = 8543;
+
+	b.push_at(&i1, sizeof(i1), 0);
+	b.push_at(&i2, sizeof(i2), 0);
+
+	uint32_t* pi1 = (uint32_t*)(b.data());
+	uint32_t* pi2 = (uint32_t*)(b.data() + sizeof(uint32_t));
+
+	assert(i1 == *pi2);
+	assert(i2 == *pi1);
+}
+
 int main(int argc, char* argv[]) {
 	if (argc != 2) return -1;
 
@@ -44,6 +53,7 @@ int main(int argc, char* argv[]) {
 		case 0: buffer_create();			break;
 		case 1: buffer_get_range();			break;
 		case 2: buffer_push_back_buffer();	break;
+		case 3: buffer_push_at();			break;
 		default: break;
 	}
 

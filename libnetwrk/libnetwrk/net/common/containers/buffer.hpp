@@ -21,7 +21,9 @@ namespace libnetwrk::net::common {
 			uint32_t m_offset = 0;
 
 		public:
-			buffer() {}
+			buffer() {
+				m_data.resize(0);
+			}
 
 			buffer(const_iterator first, const_iterator last) {
 				m_data = std::vector<uint8_t>(first, last);
@@ -31,28 +33,8 @@ namespace libnetwrk::net::common {
 			// Element access
 			///////////////////////////////////////////////////////////////////
 
-			uint8_t& operator [] (const size_t pos) {
-				return m_data[pos];
-			}
-
 			const uint8_t& operator [] (const size_t pos) const {
 				return m_data[pos];
-			}
-
-			uint8_t& front() {
-				return m_data.front();
-			}
-
-			const uint8_t& front() const {
-				return m_data.front();
-			}
-
-			uint8_t& back() {
-				return m_data.back();
-			}
-
-			const uint8_t& back() const {
-				return m_data.back();
 			}
 
 			uint8_t* data() {
@@ -63,8 +45,26 @@ namespace libnetwrk::net::common {
 				return m_data.data();
 			}
 
-			buffer_t get_range(size_t start, size_t count) {
-				return buffer_t(m_data.begin() + start, m_data.begin() + start + count);
+			/// <summary>
+			/// Get range from current read offset
+			/// </summary>
+			/// <param name="size"></param>
+			/// <returns></returns>
+			buffer_t get_range(size_t size) {
+				buffer_t buffer(m_data.begin() + m_offset, m_data.begin() + m_offset + size);
+				advance(size);
+				return buffer;
+			}
+
+			/// <summary>
+			/// Get range from current read offset into dst. dst must be large enough to accept the range or
+			/// the behaviour is undefined. 
+			/// </summary>
+			/// <param name="dst">destination addr</param>
+			/// <param name="size">size of range</param>
+			void get_range(void* dst, size_t size) {
+				std::memcpy(dst, m_data.data() + m_offset, size);
+				advance(size);
 			}
 
 			///////////////////////////////////////////////////////////////////
@@ -79,20 +79,8 @@ namespace libnetwrk::net::common {
 				return m_data.size();
 			}
 
-			size_t max_size() const {
-				return m_data.max_size();
-			}
-
-			void reserve(size_t new_capacity) {
-				m_data.reserve(new_capacity);
-			}
-
-			size_t capacity() const {
-				return m_data.capacity();
-			}
-
-			void shrink_to_fit() {
-				m_data.shrink_to_fit();
+			void resize(size_t new_size) {
+				m_data.resize(new_size);
 			}
 
 			///////////////////////////////////////////////////////////////////
@@ -101,10 +89,7 @@ namespace libnetwrk::net::common {
 
 			void clear() {
 				m_data.clear();
-			}
-
-			void push_back(const uint8_t& value) {
-				m_data.push_back(value);
+				m_offset = 0;
 			}
 
 			void push_back(const buffer_t& buffer) {
@@ -113,19 +98,16 @@ namespace libnetwrk::net::common {
 
 			void push_back(const void* src, const size_t size) {
 				uint8_t* ptr = (uint8_t*)src;
-				
-				for (size_t i = 0; i < size; i++) {
-					push_back(*ptr);
-					ptr++;
-				}
+				m_data.insert(end(), ptr, ptr + size);
 			}
 
-			void pop_back() {
-				m_data.pop_back();
+			void push_at(const buffer_t& buffer, const size_t offset) {
+				m_data.insert(begin() + offset, buffer.begin(), buffer.end());
 			}
 
-			void resize(const size_t new_size) {
-				m_data.resize(new_size);
+			void push_at(const void* src, const size_t size, const size_t offset) {
+				uint8_t* ptr = (uint8_t*)src;
+				m_data.insert(begin() + offset, ptr, ptr + size);
 			}
 
 			///////////////////////////////////////////////////////////////////
@@ -149,18 +131,6 @@ namespace libnetwrk::net::common {
 			}
 
 			///////////////////////////////////////////////////////////////////
-			// Offset
-			///////////////////////////////////////////////////////////////////
-
-			const uint32_t offset() {
-				return m_offset;
-			}
-
-			void advance(uint32_t value) {
-				m_offset += value;
-			}
-
-			///////////////////////////////////////////////////////////////////
 			// Serialization
 			///////////////////////////////////////////////////////////////////
 
@@ -178,6 +148,11 @@ namespace libnetwrk::net::common {
 			friend buffer_t& operator >> (buffer_t& buffer, T& obj) {
 				serializer::deserialize(buffer, obj);
 			    return buffer;
+			}
+
+		private:
+			void advance(size_t value) {
+				m_offset += value;
 			}
 	};
 }
