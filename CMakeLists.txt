@@ -17,6 +17,7 @@ ELSE()
 ENDIF()
 
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/libnetwrk")
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/libnetwrk/lib/asio")
 
 ADD_LIBRARY(libnetwrk STATIC 
 	"libnetwrk/libnetwrk.hpp"

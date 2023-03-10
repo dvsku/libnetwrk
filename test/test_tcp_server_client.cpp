@@ -1,6 +1,8 @@
 #include "libnetwrk.hpp"
 
 #include <thread>
+#include <chrono>
+
 #include <cassert>
 
 using namespace libnetwrk::net::tcp;
@@ -66,7 +68,7 @@ class test_service : public tcp_server<commands> {
 				if (process_single_message()) break;
 
 				tries++;
-				Sleep(50);
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			}
 		}
 };
@@ -106,7 +108,7 @@ class test_client : public tcp_client<commands> {
 				if (process_single_message()) break;
 
 				tries++;
-				Sleep(50);
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			}
 		}
 };
