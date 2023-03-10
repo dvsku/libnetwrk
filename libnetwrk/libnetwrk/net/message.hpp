@@ -44,8 +44,8 @@ namespace libnetwrk::net {
             //  SERIALIZE
             ///////////////////////////////////////////////////////////////////
 
-            template <typename T>
-            friend message_t& operator << (message_t& msg, const T& value) {
+            template <typename TObj>
+            friend message_t& operator << (message_t& msg, const TObj& value) {
                 msg.m_data << value;
                 msg.m_head.m_data_len = msg.m_data.size();
                 return msg;
@@ -55,8 +55,8 @@ namespace libnetwrk::net {
             //  DESERIALIZE
             ///////////////////////////////////////////////////////////////////
 
-            template <typename T>
-            friend message_t& operator >> (message_t& msg, T& obj) {
+            template <typename TObj>
+            friend message_t& operator >> (message_t& msg, TObj& obj) {
                 msg.m_data >> obj;
                 return msg;
             }
