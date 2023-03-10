@@ -1,6 +1,6 @@
 ﻿CMAKE_MINIMUM_REQUIRED (VERSION 3.8)
 
-PROJECT (libnetwrk_proj C CXX)
+PROJECT (libnetwrk C CXX)
 
 IF(CMAKE_VERSION VERSION_GREATER 3.12) 
     IF(MSVC)
@@ -19,20 +19,5 @@ ENDIF()
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/libnetwrk")
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/libnetwrk/lib/asio")
 
-ADD_LIBRARY(libnetwrk STATIC 
-	"libnetwrk/libnetwrk.hpp"
-	"libnetwrk/libnetwrk/net/definitions.hpp"
-	"libnetwrk/libnetwrk/net/message.hpp"
-	"libnetwrk/libnetwrk/net/common/base_connection.hpp"
-	"libnetwrk/libnetwrk/net/common/serialization/serializable.hpp"
-	"libnetwrk/libnetwrk/net/common/serialization/type_traits.hpp"
-	"libnetwrk/libnetwrk/net/common/containers/tsdeque.hpp"
-	"libnetwrk/libnetwrk/net/tcp/tcp_connection.hpp"
-	"libnetwrk/libnetwrk/net/tcp/tcp_server.hpp"
-	"libnetwrk/libnetwrk/net/tcp/tcp_client.hpp")
-
-SET_TARGET_PROPERTIES(libnetwrk PROPERTIES LINKER_LANGUAGE CXX)
-
 ENABLE_TESTING()
-
-ADD_SUBDIRECTORY ("test")
+ADD_SUBDIRECTORY("test")
