@@ -5,7 +5,7 @@
       <img src="https://img.shields.io/github/actions/workflow/status/dvsku/libnetwrk/build.yml?branch=main"/>
     </a>
     <a href="#">
-      <img src="https://img.shields.io/github/actions/workflow/status/dvsku/libnetwrk/tests.yml?branch=main"/>
+      <img src="https://img.shields.io/github/actions/workflow/status/dvsku/libnetwrk/tests.yml?branch=main&label=tests"/>
     </a>
     <a href="#">
       <img src="https://img.shields.io/github/downloads/dvsku/libnetwrk/total"/>
