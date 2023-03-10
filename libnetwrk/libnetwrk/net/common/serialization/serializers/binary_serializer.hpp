@@ -14,6 +14,7 @@
 
 #include "libnetwrk/net/macros.hpp"
 #include "libnetwrk/net/common/containers/buffer.hpp"
+#include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
 #include "libnetwrk/net/common/serialization/type_traits.hpp"
 
 namespace libnetwrk::net::common {
@@ -119,7 +120,7 @@ namespace libnetwrk::net::common {
 			deserialize(buffer, size);
 
 			if (size > N)
-				throw std::exception();
+				throw libnetwrk::net::common::libnetwrk_exception();
 
 			for (size_t i = 0; i < size; i++) {
 				T element{};
