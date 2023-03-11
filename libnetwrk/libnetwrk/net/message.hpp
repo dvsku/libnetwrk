@@ -9,38 +9,37 @@
 #include "libnetwrk/net/definitions.hpp"
 
 namespace libnetwrk::net {
-    template <typename T> struct message_head {
-        T m_command{};
+    template <typename command_type> struct message_head {
+        command_type m_command{};
         uint32_t m_data_len;
 
         message_head() : m_data_len(0) {}
     };
     
-    template <typename T, typename serializer = libnetwrk::net::common::binary_serializer>
+    template <typename command_type, 
+        typename serializer = libnetwrk::net::common::binary_serializer>
     class message {
         public:
-            typedef message_head<T> message_head_t;
+            typedef message_head<command_type> message_head_t;
             typedef libnetwrk::net::common::buffer<serializer> buffer_t;
-            typedef message<T, serializer> message_t;
+            typedef message<command_type, serializer> message_t;
 
             message_head_t m_head;
             buffer_t m_data;
 
             message() {}
 
-            message(T command) {
+            message(command_type command) {
                 m_head.m_command = command;
-            }
-
-            // Returns the size of the message (head + data)
-            size_t size_of() const {
-                return sizeof(message_head_t) + m_data.size();
             }
 
             ///////////////////////////////////////////////////////////////////
             //  SERIALIZE
             ///////////////////////////////////////////////////////////////////
 
+            /// <summary>
+            /// Add object to message
+            /// </summary>
             template <typename TObj>
             friend message_t& operator << (message_t& msg, const TObj& value) {
                 msg.m_data << value;
@@ -52,6 +51,9 @@ namespace libnetwrk::net {
             //  DESERIALIZE
             ///////////////////////////////////////////////////////////////////
 
+            /// <summary>
+            /// Remove object from message
+            /// </summary>
             template <typename TObj>
             friend message_t& operator >> (message_t& msg, TObj& obj) {
                 msg.m_data >> obj;

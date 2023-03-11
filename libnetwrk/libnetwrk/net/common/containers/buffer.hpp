@@ -143,6 +143,9 @@ namespace libnetwrk::net::common {
 			// Serialization
 			///////////////////////////////////////////////////////////////////
 
+			/// <summary>
+			/// Serialize obj
+			/// </summary>
 			template <typename T>
 			friend buffer_t& operator << (buffer_t& buffer, const T& value) {
 				serializer::serialize(buffer, value);
@@ -153,6 +156,9 @@ namespace libnetwrk::net::common {
 			// Deserialization
 			///////////////////////////////////////////////////////////////////
 
+			/// <summary>
+			/// Deserialize obj
+			/// </summary>
 			template <typename T>
 			friend buffer_t& operator >> (buffer_t& buffer, T& obj) {
 				serializer::deserialize(buffer, obj);
