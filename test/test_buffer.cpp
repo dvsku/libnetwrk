@@ -4,8 +4,12 @@
 using namespace libnetwrk::net::common;
 
 void buffer_create() {
-	buffer buffer;
-	assert(buffer.size() == 0);
+	buffer b1;
+	assert(b1.size() == 0);
+
+	std::vector<uint8_t> v({ 1, 2, 3, 4, 5, 6 });
+	buffer b2(v.begin(), v.end());
+	assert(b2.size() == 6);
 }
 
 void buffer_get_range() {
@@ -17,6 +21,12 @@ void buffer_get_range() {
 	assert(range[0] == 1);
 	assert(range[1] == 2);
 	assert(range[2] == 3);
+
+	uint8_t c1 = 0, c2 = 0;
+	b.get_range(&c1, sizeof(uint8_t));
+	b.get_range(&c2, sizeof(uint8_t));
+	assert(c1 == 4);
+	assert(c2 == 5);
 }
 
 void buffer_get_range_exception() {
@@ -41,18 +51,34 @@ void buffer_push_back_buffer() {
 	assert(b2[0] == 1);
 	assert(b2[1] == 2);
 	assert(b2[2] == 3);
+
+	uint8_t ui = 24;
+	b2.push_back(&ui, sizeof(uint8_t));
+	assert(b2[3] == 24);
 }
 
 void buffer_push_at() {
-	buffer b;
+	buffer b1, b2, b3, b4;
 
 	uint32_t i1 = 321, i2 = 8543;
 
-	b.push_at(&i1, sizeof(i1), 0);
-	b.push_at(&i2, sizeof(i2), 0);
+	b1.push_at(&i1, sizeof(i1), 0);
+	b1.push_at(&i2, sizeof(i2), 0);
 
-	uint32_t* pi1 = (uint32_t*)(b.data());
-	uint32_t* pi2 = (uint32_t*)(b.data() + sizeof(uint32_t));
+	uint32_t* pi1 = (uint32_t*)(b1.data());
+	uint32_t* pi2 = (uint32_t*)(b1.data() + sizeof(uint32_t));
+
+	assert(i1 == *pi2);
+	assert(i2 == *pi1);
+
+	b2.push_back(&i1, sizeof(uint32_t));
+	b3.push_back(&i2, sizeof(uint32_t));
+
+	b4.push_at(b2, 0);
+	b4.push_at(b3, 0);
+
+	pi1 = (uint32_t*)(b4.data());
+	pi2 = (uint32_t*)(b4.data() + sizeof(uint32_t));
 
 	assert(i1 == *pi2);
 	assert(i2 == *pi1);
