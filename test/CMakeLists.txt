@@ -36,6 +36,7 @@ ADD_TEST(NAME buffer_create COMMAND test_buffer 0)
 ADD_TEST(NAME buffer_get_range COMMAND test_buffer 1)
 ADD_TEST(NAME buffer_push_back_buffer COMMAND test_buffer 2)
 ADD_TEST(NAME buffer_push_at COMMAND test_buffer 3)
+ADD_TEST(NAME buffer_get_range_exception COMMAND test_buffer 4)
 
 # TEST: SERIALIZABLE
 ADD_EXECUTABLE(test_serializable test_serializable.cpp)

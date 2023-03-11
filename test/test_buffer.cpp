@@ -1,4 +1,5 @@
 #include "libnetwrk.hpp"
+#include "utilities_assert.hpp"
 
 using namespace libnetwrk::net::common;
 
@@ -16,6 +17,17 @@ void buffer_get_range() {
 	assert(range[0] == 1);
 	assert(range[1] == 2);
 	assert(range[2] == 3);
+}
+
+void buffer_get_range_exception() {
+	buffer b1;
+	int i1 = 253, i2 = 0;
+	ASSERT_THROWS(b1.get_range(sizeof(int)));
+	ASSERT_THROWS(b1.get_range(&i2, sizeof(int)));
+
+	buffer b2; b2 << i1;
+	b2.get_range(&i1, sizeof(int));
+	ASSERT_THROWS(b2.get_range(sizeof(char)));
 }
 
 void buffer_push_back_buffer() {
@@ -50,10 +62,11 @@ int main(int argc, char* argv[]) {
 	if (argc != 2) return -1;
 
 	switch (std::stoi(argv[1])) {
-		case 0: buffer_create();			break;
-		case 1: buffer_get_range();			break;
-		case 2: buffer_push_back_buffer();	break;
-		case 3: buffer_push_at();			break;
+		case 0: buffer_create();				break;
+		case 1: buffer_get_range();				break;
+		case 2: buffer_push_back_buffer();		break;
+		case 3: buffer_push_at();				break;
+		case 4: buffer_get_range_exception();	break;
 		default: break;
 	}
 

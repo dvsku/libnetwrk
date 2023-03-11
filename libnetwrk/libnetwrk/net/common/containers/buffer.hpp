@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "libnetwrk/net/common/serialization/type_traits.hpp"
+#include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
 
 namespace libnetwrk::net::common {
 	// Forward declare
@@ -49,11 +50,15 @@ namespace libnetwrk::net::common {
 			/// Get range from current read offset
 			/// </summary>
 			/// <param name="size"></param>
-			/// <returns></returns>
+			/// <exception cref="libnetwrk_exception">thrown when accessing data out of bounds</exception>
+			/// <returns>buffer with requested data</returns>
 			buffer_t get_range(size_t size) {
-				buffer_t buffer(m_data.begin() + m_offset, m_data.begin() + m_offset + size);
+				if (m_offset + size > m_data.size())
+					throw libnetwrk_exception("out of bounds, buffer doesn't have more data");
+
+				buffer_t b(m_data.begin() + m_offset, m_data.begin() + m_offset + size);
 				advance(size);
-				return buffer;
+				return b;
 			}
 
 			/// <summary>
@@ -62,7 +67,11 @@ namespace libnetwrk::net::common {
 			/// </summary>
 			/// <param name="dst">destination addr</param>
 			/// <param name="size">size of range</param>
+			/// <exception cref="libnetwrk_exception">thrown when accessing data out of bounds</exception>
 			void get_range(void* dst, size_t size) {
+				if (m_offset + size > m_data.size())
+					throw libnetwrk_exception("out of bounds, buffer doesn't have more data");
+
 				std::memcpy(dst, m_data.data() + m_offset, size);
 				advance(size);
 			}
