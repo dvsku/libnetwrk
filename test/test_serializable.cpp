@@ -40,11 +40,14 @@ void serialize_deserialize_simple_struct() {
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 2) return -1;
-
-	switch (std::stoi(argv[1])) {
-		case 0: serialize_deserialize_simple_struct();			break;
-		default: break;
+	if (argc != 2) {
+		serialize_deserialize_simple_struct();
+	}
+	else {
+		switch (std::stoi(argv[1])) {
+			case 0: serialize_deserialize_simple_struct();			break;
+			default: break;
+		}
 	}
 
 	return 0;

@@ -22,12 +22,16 @@ void run_all_tests() {
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 2) return -1;
-
-	switch (std::stoi(argv[1])) {
-		case 0: tcp_client_create();			break;
-		case 1: tcp_client_connect_fail();		break;
-		default: break;
+	if (argc != 2) {
+		tcp_client_create();
+		tcp_client_connect_fail();
+	}
+	else {
+		switch (std::stoi(argv[1])) {
+			case 0: tcp_client_create();			break;
+			case 1: tcp_client_connect_fail();		break;
+			default: break;
+		}
 	}
 
 	return 0;

@@ -196,15 +196,22 @@ void service_broadcast() {
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 2) return -1;
-
-	switch (std::stoi(argv[1])) {
-		case 0: service_connect();			break;
-		case 1: service_client_hello();		break;
-		case 2: service_echo();				break;
-		case 3: service_ping_pong();		break;
-		case 4: service_broadcast();		break;
-		default: break;
+	if (argc != 2) {
+		service_connect();
+		service_client_hello();
+		service_echo();
+		service_ping_pong();
+		service_broadcast();
+	}
+	else {
+		switch (std::stoi(argv[1])) {
+			case 0: service_connect();			break;
+			case 1: service_client_hello();		break;
+			case 2: service_echo();				break;
+			case 3: service_ping_pong();		break;
+			case 4: service_broadcast();		break;
+			default: break;
+		}
 	}
 
 	return 0;

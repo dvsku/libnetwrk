@@ -85,15 +85,22 @@ void buffer_push_at() {
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 2) return -1;
-
-	switch (std::stoi(argv[1])) {
-		case 0: buffer_create();				break;
-		case 1: buffer_get_range();				break;
-		case 2: buffer_push_back_buffer();		break;
-		case 3: buffer_push_at();				break;
-		case 4: buffer_get_range_exception();	break;
-		default: break;
+	if (argc != 2) {
+		buffer_create();
+		buffer_get_range();
+		buffer_push_back_buffer();
+		buffer_push_at();
+		buffer_get_range_exception();
+	}
+	else {
+		switch (std::stoi(argv[1])) {
+			case 0: buffer_create();				break;
+			case 1: buffer_get_range();				break;
+			case 2: buffer_push_back_buffer();		break;
+			case 3: buffer_push_at();				break;
+			case 4: buffer_get_range_exception();	break;
+			default: break;
+		}
 	}
 
 	return 0;

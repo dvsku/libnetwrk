@@ -12,11 +12,14 @@ void message_create() {
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 2) return -1;
-
-	switch (std::stoi(argv[1])) {
-		case 0: message_create();			break;
-		default: break;
+	if (argc != 2) {
+		message_create();
+	}
+	else {
+		switch (std::stoi(argv[1])) {
+			case 0: message_create();			break;
+			default: break;
+		}
 	}
 
 	return 0;

@@ -37,14 +37,20 @@ void tcp_server_stop() {
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 2) return -1;
-
-	switch (std::stoi(argv[1])) {
-		case 0: tcp_server_create();				break;
-		case 1: tcp_server_start_async();			break;
-		case 2: tcp_server_start_async_twice();		break;
-		case 3: tcp_server_stop();					break;
-		default: break;
+	if (argc != 2) {
+		tcp_server_create();
+		tcp_server_start_async();
+		tcp_server_start_async_twice();
+		tcp_server_stop();
+	}
+	else {
+		switch (std::stoi(argv[1])) {
+			case 0: tcp_server_create();				break;
+			case 1: tcp_server_start_async();			break;
+			case 2: tcp_server_start_async_twice();		break;
+			case 3: tcp_server_stop();					break;
+			default: break;
+		}
 	}
 
 	return 0;

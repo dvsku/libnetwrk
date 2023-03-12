@@ -174,15 +174,22 @@ void serialize_deserialize_unsupported() {
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 2) return -1;
-
-	switch (std::stoi(argv[1])) {
-		case 0: serialize_deserialize_standard_layout();				break;
-		case 1: serialize_deserialize_standard_layout_containers();		break;
-		case 2: serialize_deserialize_strings();						break;
-		case 3: serialize_deserialize_serializable();					break;
-		case 4: serialize_deserialize_unsupported();					break;
-		default: break;
+	if (argc != 2) {
+		serialize_deserialize_standard_layout();
+		serialize_deserialize_standard_layout_containers();
+		serialize_deserialize_strings();
+		serialize_deserialize_serializable();
+		serialize_deserialize_unsupported();
+	}
+	else {
+		switch (std::stoi(argv[1])) {
+			case 0: serialize_deserialize_standard_layout();				break;
+			case 1: serialize_deserialize_standard_layout_containers();		break;
+			case 2: serialize_deserialize_strings();						break;
+			case 3: serialize_deserialize_serializable();					break;
+			case 4: serialize_deserialize_unsupported();					break;
+			default: break;
+		}
 	}
 
 	return 0;
