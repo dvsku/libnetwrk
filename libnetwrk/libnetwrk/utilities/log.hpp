@@ -33,11 +33,11 @@
 
 namespace libnetwrk {
 	enum class log_severity : unsigned char {
-		none			= 0x01,		// does not log
-		informational	= 0x02,		// logs only info
-		warning			= 0x03,		// logs info and warnings
-		error			= 0x04,		// logs info, warnings and errors
-		verbose			= 0x05		// logs info, warnings and errors with additional details
+		none			= 0x00,		// does not log
+		informational	= 0x01,		// logs only info
+		warning			= 0x02,		// logs info and warnings
+		error			= 0x03,		// logs info, warnings and errors
+		verbose			= 0x04		// logs info, warnings and errors with additional details
 	};
 
 	struct log_settings {
@@ -124,7 +124,7 @@ namespace libnetwrk {
 
 				// Copy time and prefix to str
 				int i = LIBNETWRK_SNPRINTF(str.data(), size, "[%s %s] ",
-					time_buffer, m_prefixes[(unsigned int)severity]);
+					time_buffer, m_prefixes[(unsigned int)severity - 1]);
 				
 				// __SNPRINTF failed to encode time_buffer and prefix
 				if (i == -1)
