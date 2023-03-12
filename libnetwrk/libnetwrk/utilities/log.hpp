@@ -132,7 +132,7 @@ namespace libnetwrk {
 						"failed to log message. encoding error occurred.");
 				
 				// Buffer not large enough
-				if (i >= size)
+				if ((size_t)i >= size)
 					return format(str, size * 2, severity, fmt, args);
 
 				// Format fmt to str
@@ -144,7 +144,7 @@ namespace libnetwrk {
 						"failed to log message. encoding error occurred.");
 
 				// Buffer not large enough
-				if (i >= size)
+				if ((size_t)i >= size)
 					return format(str, size * 2, severity, fmt, args);
 			}
 
