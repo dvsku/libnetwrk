@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "asio.hpp"
+#include "libnetwrk/utilities/log.hpp"
 
 namespace libnetwrk {
 	// Empty struct
