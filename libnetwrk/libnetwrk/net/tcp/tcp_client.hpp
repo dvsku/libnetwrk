@@ -32,8 +32,7 @@ namespace libnetwrk::net::tcp {
 					m_context = std::make_shared<asio::io_context>(1);
 				}
 				catch (const std::exception& e) {
-					VAR_IGNORE(e);
-					//OUTPUT_ERROR("failed to create tcp_client | %s", e.what());
+					LIBNETWRK_ERROR("failed to create tcp_client | %s", e.what());
 				}
 			}
 
@@ -72,20 +71,19 @@ namespace libnetwrk::net::tcp {
 
 					m_running = true;
 
-					//OUTPUT_INFO("connected to %s:%d", host, port);
+					LIBNETWRK_INFO("connected to %s:%d", host, port);
 
 					// Start processing received messages
 					if (process_messages)
 						do_process_messages();
 				}
 				catch (const std::exception& e) {
-					VAR_IGNORE(e);
-					//OUTPUT_ERROR("failed to connect | %s", e.what());
+					LIBNETWRK_ERROR("failed to connect | %s", e.what());
 					stop();
 					return false;
 				}
 				catch (...) {
-					//OUTPUT_ERROR("failed to connect | fatal error");
+					LIBNETWRK_ERROR("failed to connect | fatal error");
 					stop();
 					return false;
 				}
@@ -120,20 +118,19 @@ namespace libnetwrk::net::tcp {
 
 					m_running = true;
 
-					//OUTPUT_INFO("connected to %s:%d", host, port);
+					LIBNETWRK_INFO("connected to %s:%d", host, port);
 
 					// Start processing received messages
 					if (process_messages)
 						m_update_thread = std::thread([&] { do_process_messages(); });
 				}
 				catch (const std::exception& e) {
-					VAR_IGNORE(e);
-					//OUTPUT_ERROR("failed to connect | %s", e.what());
+					LIBNETWRK_ERROR("failed to connect | %s", e.what());
 					stop();
 					return false;
 				}
 				catch (...) {
-					//OUTPUT_ERROR("failed to connect | fatal error");
+					LIBNETWRK_ERROR("failed to connect | fatal error");
 					stop();
 					return false;
 				}
@@ -160,7 +157,7 @@ namespace libnetwrk::net::tcp {
 				if (m_update_thread.joinable())
 					m_update_thread.join();
 
-				//OUTPUT_INFO("tcp_client stopped");
+				LIBNETWRK_INFO("tcp_client stopped");
 			}
 
 			/// <summary>
@@ -176,12 +173,11 @@ namespace libnetwrk::net::tcp {
 					on_message(msg);
 				}
 				catch (const std::exception& e) {
-					VAR_IGNORE(e);
-					//OUTPUT_ERROR("update_one() fail | %s", e.what());
+					LIBNETWRK_ERROR("process_single_message() fail | %s", e.what());
 					return false;
 				}
 				catch (...) {
-					//OUTPUT_ERROR("update_one() fail | undefined reason");
+					LIBNETWRK_ERROR("process_single_message() fail | undefined reason");
 					return false;
 				}
 
@@ -221,11 +217,10 @@ namespace libnetwrk::net::tcp {
 						}
 					}
 					catch (const std::exception& e) {
-						VAR_IGNORE(e);
-						//OUTPUT_ERROR("do_update() fail | %s", e.what());
+						LIBNETWRK_ERROR("do_process_messages() fail | %s", e.what());
 					}
 					catch (...) {
-						//OUTPUT_ERROR("do_update() fail | undefined reason");
+						LIBNETWRK_ERROR("do_process_messages() fail | undefined reason");
 					}
 				}
 			}

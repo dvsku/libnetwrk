@@ -78,11 +78,11 @@ namespace libnetwrk::net::common {
 			virtual void write_message_body() = 0;
 
 			virtual void on_disconnect() {
-				//OUTPUT_INFO("client disconnected");
+				LIBNETWRK_INFO("client disconnected");
 			}
 
 			virtual void on_error(std::error_code ec) {
-				//OUTPUT_ERROR("failed during read/write | %s", ec.message().c_str());
+				LIBNETWRK_ERROR("failed during read/write | %s", ec.message().c_str());
 			}
 
 			void read_message_head_callback(std::error_code ec, std::size_t len) {

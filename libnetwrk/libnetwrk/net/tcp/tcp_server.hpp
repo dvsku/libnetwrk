@@ -41,8 +41,7 @@ namespace libnetwrk::net::tcp {
 					m_context = std::make_shared<asio::io_context>(1);
 				}
 				catch (const std::exception& e) {
-					VAR_IGNORE(e);
-					//OUTPUT_ERROR("failed to create tcp_service | %s", e.what());
+					LIBNETWRK_ERROR("failed to create tcp_service | %s", e.what());
 				}
 			};
 
@@ -75,19 +74,19 @@ namespace libnetwrk::net::tcp {
 
 					m_running = true;
 
-					//OUTPUT_INFO("listening for connections on %s:%d", host, port);
+					LIBNETWRK_INFO("listening for connections on %s:%d", host, port);
 
 					// Start processing received messages
 					if (process_messages)
 						do_process_messages();
 				}
 				catch (const std::exception& e) {
-					//OUTPUT_ERROR("failed to start listening | %s", e.what());
+					LIBNETWRK_ERROR("failed to start listening | %s", e.what());
 					stop();
 					return false;
 				}
 				catch (...) {
-					//OUTPUT_ERROR("failed to start listening | fatal error");
+					LIBNETWRK_ERROR("failed to start listening | fatal error");
 					stop();
 					return false;
 				}
@@ -112,20 +111,19 @@ namespace libnetwrk::net::tcp {
 
 					m_running = true;
 
-					//OUTPUT_INFO("listening for connections on %s:%d", host, port);
+					LIBNETWRK_INFO("listening for connections on %s:%d", host, port);
 
 					// Start processing received messages
 					if (process_messages)
 						m_update_thread = std::thread([&] { do_process_messages(); });
 				}
 				catch (const std::exception& e) {
-					VAR_IGNORE(e);
-					//OUTPUT_ERROR("failed to start listening | %s", e.what());
+					LIBNETWRK_ERROR("failed to start listening | %s", e.what());
 					stop();
 					return false;
 				}
 				catch (...) {
-					//OUTPUT_ERROR("failed to start listening | fatal error");
+					LIBNETWRK_ERROR("failed to start listening | fatal error");
 					stop();
 					return false;
 				}
@@ -152,7 +150,7 @@ namespace libnetwrk::net::tcp {
 				if (m_update_thread.joinable())
 					m_update_thread.join();
 
-				//OUTPUT_INFO("tcp service stopped");
+				LIBNETWRK_INFO("tcp service stopped");
 			}
 
 			/// <summary>
@@ -170,12 +168,11 @@ namespace libnetwrk::net::tcp {
 					on_message(msg);
 				}
 				catch (const std::exception& e) {
-					VAR_IGNORE(e);
-					//OUTPUT_ERROR("update_one() fail | %s", e.what());
+					LIBNETWRK_ERROR("process_single_message() fail | %s", e.what());
 					return false;
 				}
 				catch (...) {
-					//OUTPUT_ERROR("update_one() fail | undefined reason");
+					LIBNETWRK_ERROR("process_single_message() fail | undefined reason");
 					return false;
 				}
 
@@ -260,8 +257,9 @@ namespace libnetwrk::net::tcp {
 				m_acceptor->async_accept(
 					[this](std::error_code ec, asio::ip::tcp::socket socket) {
 						if (!ec) {
-							/*OUTPUT_INFO("attempted connection from %s:%d", socket.remote_endpoint().address().to_string().c_str(),
-								socket.remote_endpoint().port());*/
+							LIBNETWRK_VERBOSE("attempted connection from %s:%d", 
+								socket.remote_endpoint().address().to_string().c_str(),
+								socket.remote_endpoint().port());
 
 							tcp_connection_t_ptr new_connection =
 								std::make_shared<tcp_connection_t>(
@@ -272,19 +270,20 @@ namespace libnetwrk::net::tcp {
 								m_connections.push_back(new_connection);
 								m_connections.back()->start();
 
-								/*OUTPUT_INFO("connection success from %s:%d", m_connections.back()->get_remote_address().c_str(),
-									m_connections.back()->get_remote_port());*/
+								LIBNETWRK_INFO("connection success from %s:%d", 
+									m_connections.back()->remote_address().c_str(),
+									m_connections.back()->remote_port());
 							}
 							else {
-								/*OUTPUT_WARNING("connection denied");*/
+								LIBNETWRK_WARNING("connection denied");
 							}
 						}
 						else if (ec == asio::error::operation_aborted) {
-							/*OUTPUT_INFO("listening stopped");*/
+							LIBNETWRK_INFO("listening stopped");
 							return;
 						}
 						else {
-							/*OUTPUT_ERROR("failed to accept connection | %s", ec.message().c_str());*/
+							LIBNETWRK_ERROR("failed to accept connection | %s", ec.message().c_str());
 						}
 
 						do_accept();
