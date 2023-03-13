@@ -58,75 +58,21 @@ namespace libnetwrk::net::tcp {
 			}
 
 			bool start(const char* host, const unsigned short port, const bool process_messages = true) {
-				if (m_running)
-					return false;
+				if (!_start(host, port)) return false;
 
-				try {
-					// Create ASIO acceptor
-					m_acceptor = std::make_shared<asio::ip::tcp::acceptor>
-						(*m_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
-					
-					// Start listening for and accepting connections
-					do_accept();
-
-					// Start ASIO context
-					m_asio_thread = std::thread([&] { start_context(); });
-
-					m_running = true;
-
-					LIBNETWRK_INFO("listening for connections on %s:%d", host, port);
-
-					// Start processing received messages
-					if (process_messages)
-						do_process_messages();
-				}
-				catch (const std::exception& e) {
-					LIBNETWRK_ERROR("failed to start listening | %s", e.what());
-					stop();
-					return false;
-				}
-				catch (...) {
-					LIBNETWRK_ERROR("failed to start listening | fatal error");
-					stop();
-					return false;
-				}
+				// Start processing received messages
+				if (process_messages)
+					do_process_messages();
 
 				return true;
 			}
 
 			bool start_async(const char* host, const unsigned short port, const bool process_messages = true) {
-				if (m_running)
-					return false;
+				if (!_start(host, port)) return false;
 
-				try {
-					// Create ASIO acceptor
-					m_acceptor = std::make_shared<asio::ip::tcp::acceptor>
-						(*m_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
-
-					// Start listening for and accepting connections
-					do_accept();
-
-					// Start ASIO context
-					m_asio_thread = std::thread([&] { start_context(); });
-
-					m_running = true;
-
-					LIBNETWRK_INFO("listening for connections on %s:%d", host, port);
-
-					// Start processing received messages
-					if (process_messages)
-						m_update_thread = std::thread([&] { do_process_messages(); });
-				}
-				catch (const std::exception& e) {
-					LIBNETWRK_ERROR("failed to start listening | %s", e.what());
-					stop();
-					return false;
-				}
-				catch (...) {
-					LIBNETWRK_ERROR("failed to start listening | fatal error");
-					stop();
-					return false;
-				}
+				// Start processing received messages
+				if (process_messages)
+					m_update_thread = std::thread([&] { do_process_messages(); });
 
 				return true;
 			}
@@ -249,8 +195,37 @@ namespace libnetwrk::net::tcp {
 			}
 
 		private:
-			void start_context() {
-				m_context->run();
+			bool _start(const char* host, const unsigned short port) {
+				if (m_running)
+					return false;
+
+				try {
+					// Create ASIO acceptor
+					m_acceptor = std::make_shared<asio::ip::tcp::acceptor>
+						(*m_context, asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
+
+					// Start listening for and accepting connections
+					do_accept();
+
+					// Start ASIO context
+					m_asio_thread = std::thread([&] { m_context->run(); });
+
+					m_running = true;
+
+					LIBNETWRK_INFO("listening for connections on %s:%d", host, port);
+				}
+				catch (const std::exception& e) {
+					LIBNETWRK_ERROR("failed to start listening | %s", e.what());
+					stop();
+					return false;
+				}
+				catch (...) {
+					LIBNETWRK_ERROR("failed to start listening | fatal error");
+					stop();
+					return false;
+				}
+
+				return true;
 			}
 
 			void do_accept() {

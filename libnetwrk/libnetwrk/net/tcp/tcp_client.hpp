@@ -45,95 +45,21 @@ namespace libnetwrk::net::tcp {
 			}
 
 			bool connect(const char* host, const unsigned short port, const bool process_messages = true) {
-				if (m_running)
-					return false;
+				if (!_connect(host, port)) return false;
 
-				try {
-					// Create ASIO endpoint
-					asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
-
-					// Create ASIO socket
-					asio::ip::tcp::socket socket(*m_context, ep.protocol());
-
-					// Connect
-					socket.connect(ep);
-
-					// Create connection object
-					m_connection = std::make_shared<tcp_connection<command_type, serializer, storage>>(
-						libnetwrk::net::common::base_connection<command_type, serializer, storage>::owner::client, 
-						std::move(socket), m_context, m_incoming_messages);
-
-					// Start receiving messages
-					m_connection->start();
-
-					// Start ASIO context
-					m_asio_thread = std::thread([&] { m_context->run(); });
-
-					m_running = true;
-
-					LIBNETWRK_INFO("connected to %s:%d", host, port);
-
-					// Start processing received messages
-					if (process_messages)
-						do_process_messages();
-				}
-				catch (const std::exception& e) {
-					LIBNETWRK_ERROR("failed to connect | %s", e.what());
-					stop();
-					return false;
-				}
-				catch (...) {
-					LIBNETWRK_ERROR("failed to connect | fatal error");
-					stop();
-					return false;
-				}
+				// Start processing received messages
+				if (process_messages)
+					do_process_messages();
 
 				return true;
 			}
 
 			bool connect_async(const char* host, const unsigned short port, const bool process_messages = true) {
-				if (m_running)
-					return false;
+				if (!_connect(host, port)) return false;
 
-				try {
-					// Create ASIO endpoint
-					asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
-
-					// Create ASIO socket
-					asio::ip::tcp::socket socket(*m_context, ep.protocol());
-
-					// Connect
-					socket.connect(ep);
-
-					// Create connection object
-					m_connection = std::make_shared<tcp_connection<command_type, serializer>>(
-						libnetwrk::net::common::connection_owner::client,
-						std::move(socket), m_context, m_incoming_messages);
-
-					// Start receiving messages
-					m_connection->start();
-
-					// Start ASIO context
-					m_asio_thread = std::thread([&] { m_context->run(); });
-
-					m_running = true;
-
-					LIBNETWRK_INFO("connected to %s:%d", host, port);
-
-					// Start processing received messages
-					if (process_messages)
-						m_update_thread = std::thread([&] { do_process_messages(); });
-				}
-				catch (const std::exception& e) {
-					LIBNETWRK_ERROR("failed to connect | %s", e.what());
-					stop();
-					return false;
-				}
-				catch (...) {
-					LIBNETWRK_ERROR("failed to connect | fatal error");
-					stop();
-					return false;
-				}
+				// Start processing received messages
+				if (process_messages)
+					m_update_thread = std::thread([&] { do_process_messages(); });
 
 				return true;
 			}
@@ -202,6 +128,49 @@ namespace libnetwrk::net::tcp {
 			virtual void on_disconnect() {}
 
 		private:
+			bool _connect(const char* host, const unsigned short port) {
+				if (m_running)
+					return false;
+
+				try {
+					// Create ASIO endpoint
+					asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
+
+					// Create ASIO socket
+					asio::ip::tcp::socket socket(*m_context, ep.protocol());
+
+					// Connect
+					socket.connect(ep);
+
+					// Create connection object
+					m_connection = std::make_shared<tcp_connection<command_type, serializer, storage>>(
+						libnetwrk::net::common::connection_owner::client,
+						std::move(socket), m_context, m_incoming_messages);
+
+					// Start receiving messages
+					m_connection->start();
+
+					// Start ASIO context
+					m_asio_thread = std::thread([&] { m_context->run(); });
+
+					m_running = true;
+
+					LIBNETWRK_INFO("connected to %s:%d", host, port);
+				}
+				catch (const std::exception& e) {
+					LIBNETWRK_ERROR("failed to connect | %s", e.what());
+					stop();
+					return false;
+				}
+				catch (...) {
+					LIBNETWRK_ERROR("failed to connect | fatal error");
+					stop();
+					return false;
+				}
+
+				return true;
+			}
+
 			void do_process_messages(size_t max_messages = -1) {
 				while (m_running) {
 					m_incoming_messages.wait();
