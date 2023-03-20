@@ -146,6 +146,8 @@ namespace libnetwrk {
 				// Buffer not large enough
 				if ((size_t)i >= size)
 					return format(str, size * 2, severity, fmt, args);
+
+				str.erase(std::find(str.begin(), str.end(), '\0'), str.end());
 			}
 
 			void print(const std::string& str) {
