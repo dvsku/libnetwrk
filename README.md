@@ -20,18 +20,15 @@
 </div></br></br>
 
 ## About
-Based heavily on <a href="https://www.youtube.com/@javidx9">javidx9</a>'s work with networking. Relies on included ASIO library for all IO operations. <br/> Recommended for use on small personal projects as it's not heavily tested.
+Based heavily on <a href="https://www.youtube.com/@javidx9">javidx9</a>'s work with networking. Relies on embedded ASIO 1.14.0 library. <br/> Recommended for use on small personal projects as it's not heavily tested.
 
 ## Requirements
 - c++17 or later compiler
 
 ## Usage
 - Copy libnetwrk folder to your project
-- Include ``libnetwrk`` and ``libnetwrk/lib/asio`` directories in your project
+- Include ``libnetwrk`` directories in your project
 - Include ``libnetwrk.hpp``
-
-## Dependencies
-- Embedded ASIO 1.14.0 library
 
 ## Limitations
 - currently only supports TCP
