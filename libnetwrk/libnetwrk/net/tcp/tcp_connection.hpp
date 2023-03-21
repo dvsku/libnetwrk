@@ -40,6 +40,20 @@ namespace libnetwrk::net::tcp {
 			}
 
 		protected:
+			void read_verification_message() override {
+				if (this->m_owner == libnetwrk::net::common::connection_owner::server) {
+					asio::async_read(m_socket, asio::buffer(&this->m_verification_code, sizeof(uint32_t)),
+						std::bind(&tcp_connection::read_verification_message_callback,
+							this, std::placeholders::_1, std::placeholders::_2));
+				}
+				else {
+					std::error_code ec;
+					size_t written = asio::read(m_socket,
+						asio::buffer(&this->m_verification_code, sizeof(uint32_t)), ec);
+					this->read_verification_message_callback(ec, written);
+				}
+			}
+
 			void read_message_head() override {
 				asio::async_read(m_socket, asio::buffer(&this->m_temp_message.m_head, 
 					sizeof(libnetwrk::net::message_head<command_type>)),
@@ -52,6 +66,20 @@ namespace libnetwrk::net::tcp {
 					this->m_temp_message.m_head.m_data_len),
 					std::bind(&tcp_connection::read_message_body_callback, 
 						this, std::placeholders::_1, std::placeholders::_2));
+			}
+
+			void write_verification_message() override {
+				if (this->m_owner == libnetwrk::net::common::connection_owner::server) {
+					asio::async_write(m_socket, asio::buffer(&this->m_verification_code, sizeof(uint32_t)),
+						std::bind(&tcp_connection::write_verification_message_callback,
+							this, std::placeholders::_1, std::placeholders::_2));
+				}
+				else {
+					std::error_code ec;
+					size_t written = asio::write(m_socket, 
+						asio::buffer(&this->m_verification_code, sizeof(uint32_t)), ec);
+					this->write_verification_message_callback(ec, written);
+				}
 			}
 
 			void write_message_head() override {
