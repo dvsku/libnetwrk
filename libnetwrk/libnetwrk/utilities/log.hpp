@@ -148,10 +148,11 @@ namespace libnetwrk {
 					return format(str, size * 2, severity, fmt, args);
 
 				str.erase(std::find(str.begin(), str.end(), '\0'), str.end());
+				str.append(1, '\n');
 			}
 
 			void print(const std::string& str) {
-				std::cout << str << std::endl;
+				std::cout << str;
 			}
 
 			void write(const std::string& str) {
@@ -171,7 +172,7 @@ namespace libnetwrk {
 
 				std::ofstream out;
 				out.open(file_name.c_str(), std::ios_base::app);
-				out << str << '\n';
+				out << str;
 			}
 	};
 }
