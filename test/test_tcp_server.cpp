@@ -13,21 +13,21 @@ void tcp_server_create() {
 void tcp_server_start_async() {
 	tcp_server<int> server;
 	
-	assert(server.start_async("127.0.0.1", 21205) == true);
+	assert(server.start("127.0.0.1", 21205) == true);
 	assert(server.running() == true);
 }
 
 void tcp_server_start_async_twice() {
 	tcp_server<int> server;
 
-	assert(server.start_async("127.0.0.1", 21205) == true);
-	assert(server.start_async("127.0.0.1", 21205) == false);
+	assert(server.start("127.0.0.1", 21205) == true);
+	assert(server.start("127.0.0.1", 21205) == false);
 	assert(server.running() == true);
 }
 
 void tcp_server_stop() {
 	tcp_server<int> server;
-	server.start_async("127.0.0.1", 21205);
+	server.start("127.0.0.1", 21205);
 
 	assert(server.running() == true);
 

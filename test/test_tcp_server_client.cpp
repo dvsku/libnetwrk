@@ -54,18 +54,18 @@ class test_service : public tcp_server<commands> {
 			}
 		}
 
-		bool on_client_connect(tcp_connection_t_ptr client) override {
+		bool on_client_connect(base_connection_t_ptr client) override {
 			return true;
 		}
 
-		void on_client_disconnect(tcp_connection_t_ptr client) override {
+		void on_client_disconnect(base_connection_t_ptr client) override {
 
 		}
 
 		void wait_for_msg(const int timeout = 30) {
 			int tries = 0;
 			while (tries < timeout) {
-				if (process_single_message()) break;
+				if (process_message()) break;
 
 				tries++;
 				std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -115,7 +115,7 @@ class test_client : public tcp_client<commands> {
 
 void service_connect() {
 	test_service server;
-	server.start_async("127.0.0.1", 21205);
+	server.start("127.0.0.1", 21205);
 
 	test_client client;
 	bool connected = client.connect_async("127.0.0.1", 21205);
@@ -125,7 +125,7 @@ void service_connect() {
 
 void service_client_hello() {
 	test_service server;
-	server.start_async("127.0.0.1", 21205, false);
+	server.start("127.0.0.1", 21205);
 
 	test_client client;
 	client.connect_async("127.0.0.1", 21205);
@@ -139,7 +139,7 @@ void service_client_hello() {
 
 void service_echo() {
 	test_service server;
-	server.start_async("127.0.0.1", 21205, false);
+	server.start("127.0.0.1", 21205);
 
 	test_client client;
 	client.connect_async("127.0.0.1", 21205, false);
@@ -156,7 +156,7 @@ void service_echo() {
 
 void service_ping_pong() {
 	test_service server;
-	server.start_async("127.0.0.1", 21205, false);
+	server.start("127.0.0.1", 21205);
 
 	test_client client;
 	client.connect_async("127.0.0.1", 21205, false);
@@ -174,7 +174,7 @@ void service_ping_pong() {
 
 void service_broadcast() {
 	test_service server;
-	server.start_async("127.0.0.1", 21205, false);
+	server.start("127.0.0.1", 21205);
 
 	test_client client1;
 	assert(client1.connect_async("127.0.0.1", 21205, false) == true);

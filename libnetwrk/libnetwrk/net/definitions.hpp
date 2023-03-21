@@ -14,6 +14,11 @@ namespace libnetwrk {
 
 	typedef std::shared_ptr<asio::io_context> context_ptr;
 	typedef std::shared_ptr<asio::ip::tcp::acceptor> acceptor_ptr;
+
+	enum class endpoint : unsigned int {
+		localhost,
+		v4
+	};
 }
 
 // use to suppress unreferenced local variable warnings
