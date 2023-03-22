@@ -7,13 +7,13 @@ using namespace libnetwrk::net::tcp;
 void tcp_client_create() {
 	tcp_client<int> client;
 
-	assert(client.running() == false);
+	assert(client.connected() == false);
 }
 
 void tcp_client_connect_fail() {
 	tcp_client<int> client;
 
-	assert(client.connect_async("127.0.0.1", 21205) == false);
+	assert(client.connect("127.0.0.1", 21205) == false);
 }
 
 void run_all_tests() {

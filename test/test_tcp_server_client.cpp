@@ -118,7 +118,7 @@ void service_connect() {
 	server.start("127.0.0.1", 21205);
 
 	test_client client;
-	bool connected = client.connect_async("127.0.0.1", 21205);
+	bool connected = client.connect("127.0.0.1", 21205);
 
 	assert(connected == true);
 }
@@ -128,7 +128,7 @@ void service_client_hello() {
 	server.start("127.0.0.1", 21205);
 
 	test_client client;
-	client.connect_async("127.0.0.1", 21205);
+	client.connect("127.0.0.1", 21205);
 
 	message<commands> msg(commands::c2s_hello);
 	client.send(msg);
@@ -142,7 +142,7 @@ void service_echo() {
 	server.start("127.0.0.1", 21205);
 
 	test_client client;
-	client.connect_async("127.0.0.1", 21205, false);
+	client.connect("127.0.0.1", 21205);
 
 	message<commands> msg(commands::c2s_echo);
 	client.send(msg);
@@ -159,7 +159,7 @@ void service_ping_pong() {
 	server.start("127.0.0.1", 21205);
 
 	test_client client;
-	client.connect_async("127.0.0.1", 21205, false);
+	client.connect("127.0.0.1", 21205);
 
 	message<commands> msg(commands::c2s_ping);
 	msg << std::string("PiNg");
@@ -177,10 +177,10 @@ void service_broadcast() {
 	server.start("127.0.0.1", 21205);
 
 	test_client client1;
-	assert(client1.connect_async("127.0.0.1", 21205, false) == true);
+	assert(client1.connect("127.0.0.1", 21205) == true);
 
 	test_client client2;
-	assert(client2.connect_async("127.0.0.1", 21205, false) == true);
+	assert(client2.connect("127.0.0.1", 21205) == true);
 
 	message<commands> msg(commands::c2s_broadcast);
 	client1.send(msg);

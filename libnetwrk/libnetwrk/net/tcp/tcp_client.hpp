@@ -27,10 +27,10 @@ namespace libnetwrk::net::tcp {
 
 			libnetwrk::net::common::tsdeque<owned_message_t> m_incoming_messages;
 
-			std::thread m_asio_thread;
-			std::thread m_update_thread;
+			std::thread m_context_thread;
+			std::thread m_process_messages_thread;
 
-			bool m_running = false;
+			bool m_connected = false;
 
 		public:
 			tcp_client() {
@@ -46,32 +46,29 @@ namespace libnetwrk::net::tcp {
 				stop();
 			}
 
-			bool running() {
-				return m_running;
+			/// <summary>
+			/// Client status
+			/// </summary>
+			/// <returns>true if connected, false if disconnected</returns>
+			bool connected() {
+				return m_connected;
 			}
 
-			bool connect(const char* host, const unsigned short port, const bool process_messages = true) {
-				if (!_connect(host, port)) return false;
-
-				// Start processing received messages
-				if (process_messages)
-					do_process_messages();
-
-				return true;
+			/// <summary>
+			/// Connect to TCP server
+			/// </summary>
+			/// <param name="host">: IPv4 address</param>
+			/// <param name="port">: port</param>
+			/// <returns>true if connected, false if not</returns>
+			bool connect(const char* host, const unsigned short port) {
+				return _connect(host, port);
 			}
 
-			bool connect_async(const char* host, const unsigned short port, const bool process_messages = true) {
-				if (!_connect(host, port)) return false;
-
-				// Start processing received messages
-				if (process_messages)
-					m_update_thread = std::thread([&] { do_process_messages(); });
-
-				return true;
-			}
-
+			/// <summary>
+			/// Stop the client and clean up
+			/// </summary>
 			void stop() {
-				m_running = false;
+				m_connected = false;
 
 				if (m_context)
 					if (!m_context->stopped())
@@ -83,11 +80,11 @@ namespace libnetwrk::net::tcp {
 
 				m_incoming_messages.cancel_wait();
 
-				if (m_asio_thread.joinable())
-					m_asio_thread.join();
+				if (m_context_thread.joinable())
+					m_context_thread.join();
 
-				if (m_update_thread.joinable())
-					m_update_thread.join();
+				if (m_process_messages_thread.joinable())
+					m_process_messages_thread.join();
 
 				LIBNETWRK_INFO("tcp_client stopped");
 			}
@@ -116,8 +113,27 @@ namespace libnetwrk::net::tcp {
 				return true;
 			}
 
+			/// <summary>
+			/// Process messages while client is connected. This is a blocking function.
+			/// </summary>
+			void process_messages() {
+				_process_messages();
+			}
+
+			/// <summary>
+			/// Process messages while client is connected. 
+			/// This function runs asynchronously until the client stops.
+			/// </summary>
+			void process_messages_async() {
+				m_process_messages_thread = std::thread([&] { _process_messages(); });
+			}
+
+			/// <summary>
+			/// Send a message
+			/// </summary>
+			/// <param name="message">: message to send</param>
 			void send(const message_t& message) {
-				if (m_connection != nullptr && m_running) {
+				if (m_connection != nullptr && m_connected) {
 					if (m_connection->is_alive()) {
 						m_connection->send(message);
 					}
@@ -135,7 +151,7 @@ namespace libnetwrk::net::tcp {
 
 		private:
 			bool _connect(const char* host, const unsigned short port) {
-				if (m_running)
+				if (m_connected)
 					return false;
 
 				try {
@@ -157,9 +173,9 @@ namespace libnetwrk::net::tcp {
 					m_connection->start();
 
 					// Start ASIO context
-					m_asio_thread = std::thread([&] { m_context->run(); });
+					m_context_thread = std::thread([&] { m_context->run(); });
 
-					m_running = true;
+					m_connected = true;
 
 					LIBNETWRK_INFO("connected to %s:%d", host, port);
 				}
@@ -177,8 +193,8 @@ namespace libnetwrk::net::tcp {
 				return true;
 			}
 
-			void do_process_messages(size_t max_messages = -1) {
-				while (m_running) {
+			void _process_messages(size_t max_messages = -1) {
+				while (m_connected) {
 					m_incoming_messages.wait();
 
 					try {

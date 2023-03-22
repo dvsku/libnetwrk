@@ -47,10 +47,17 @@ namespace libnetwrk::net::common {
 				m_verification_code = 0;
 			};
 
+			/// <summary>
+			/// Get connection storage
+			/// </summary>
+			/// <returns>storage</returns>
 			storage& get_storage() {
 				return m_storage;
 			}
 
+			/// <summary>
+			/// Start reading connection messages 
+			/// </summary>
 			void start() {
 				if (m_owner == connection_owner::server) {
 					m_verification_code = generate_verification_code();
@@ -70,6 +77,10 @@ namespace libnetwrk::net::common {
 
 			virtual bool is_alive() = 0;
 
+			/// <summary>
+			/// Send message
+			/// </summary>
+			/// <param name="msg">: message to send</param>
 			void send(const message_t& msg) {
 				asio::post(*m_context,
 					[this, msg]() {

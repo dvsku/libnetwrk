@@ -19,6 +19,9 @@ namespace libnetwrk::net::common {
 			typedef base_connection<command_type, serializer, storage> base_connection_t;
 			typedef std::shared_ptr<base_connection_t> base_connection_t_ptr;
 
+			// function with signature: bool f(const storage&)
+			typedef std::function<bool(const storage&)> send_condition;
+
 		protected:
 			std::string m_name;
 			bool m_running = false;
@@ -43,18 +46,38 @@ namespace libnetwrk::net::common {
 				}
 			}
 
+			/// <summary>
+			/// Get ASIO io_context
+			/// </summary>
+			/// <returns>pointer to ASIO io_context</returns>
 			context_ptr context() {
 				return this->m_context;
 			}
 
+			/// <summary>
+			/// Get server status
+			/// </summary>
+			/// <returns>true if running, false if stopped</returns>
 			bool running() {
 				return m_running;
 			}
 
+			/// <summary>
+			/// Start server
+			/// </summary>
+			/// <param name="host">: IPv4 address</param>
+			/// <param name="port">: port</param>
+			/// <returns>true if started, false if failed to start</returns>
 			bool start(const char* host, const unsigned short port) {
 				return _start(host, port);
 			}
 
+			/// <summary>
+			/// Start server
+			/// </summary>
+			/// <param name="ep">: endpoint -> localhost (loopback) or v4 (all IPv4 adaptors)</param>
+			/// <param name="port">: port</param>
+			/// <returns>true if started, false if failed to start</returns>
 			bool start(libnetwrk::endpoint ep, const unsigned short port) {
 				switch (ep) {
 					case libnetwrk::endpoint::localhost:	return start("127.0.0.1", port);
@@ -63,6 +86,10 @@ namespace libnetwrk::net::common {
 				}
 			}
 
+			/// <summary>
+			/// Queue up a function to run
+			/// </summary>
+			/// <param name="lambda">: function to run</param>
 			void queue_async_job(std::function<void()> const& lambda) {
 				asio::post(*(this->m_context), lambda);
 			}
@@ -93,14 +120,26 @@ namespace libnetwrk::net::common {
 				return true;
 			}
 
+			/// <summary>
+			/// Process messages while server is running. This is a blocking function.
+			/// </summary>
 			void process_messages() {
 				_process_messages();
 			}
 
+			/// <summary>
+			/// Process messages while server is running. 
+			/// This function runs asynchronously until the server stops.
+			/// </summary>
 			void process_messages_async() {
 				m_process_messages_thread = std::thread([&] { _process_messages(); });
 			}
 
+			/// <summary>
+			/// Send a message to client
+			/// </summary>
+			/// <param name="client">: client to send to</param>
+			/// <param name="msg">: message to send</param>
 			void send(base_connection_t& client, const message_t& msg) {
 				if (client && client->is_alive()) {
 					client->send(msg);
@@ -114,6 +153,10 @@ namespace libnetwrk::net::common {
 				}
 			}
 
+			/// <summary>
+			/// Send a message to all clients
+			/// </summary>
+			/// <param name="msg">: message to send</param>
 			void send_all(const message_t& msg) {
 				bool has_invalid_clients = false;
 
@@ -133,12 +176,17 @@ namespace libnetwrk::net::common {
 						m_connections.end(), nullptr), m_connections.end());
 			}
 
-			void send_all(const message_t& msg, std::function<bool(const storage&)> predicate) {
+			/// <summary>
+			/// Send a message to all clients
+			/// </summary>
+			/// <param name="msg">: message to send</param>
+			/// <param name="condition">: condition for sending to client</param>
+			void send_all(const message_t& msg, send_condition condition) {
 				bool has_invalid_clients = false;
 
 				for (auto& client : m_connections) {
 					if (client && client->is_alive()) {
-						if (predicate(client->connection_data()))
+						if (condition(client->connection_data()))
 							client->send(msg);
 					}
 					else {
@@ -153,6 +201,9 @@ namespace libnetwrk::net::common {
 						m_connections.end(), nullptr), m_connections.end());
 			}
 
+			/// <summary>
+			/// Stop server
+			/// </summary>
 			virtual void stop() {
 				m_running = false;
 

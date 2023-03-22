@@ -36,6 +36,9 @@ namespace libnetwrk::net::tcp {
 				stop();
 			}
 
+			/// <summary>
+			/// Stop server
+			/// </summary>
 			void stop() override {
 				if (m_acceptor)
 					if (m_acceptor->is_open())

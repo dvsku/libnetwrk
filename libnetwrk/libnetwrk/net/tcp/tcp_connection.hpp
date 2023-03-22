@@ -23,18 +23,31 @@ namespace libnetwrk::net::tcp {
 				: libnetwrk::net::common::base_connection<command_type, serializer, storage>(owner, context, queue),
 				m_socket(std::move(socket)) {}
 
+			/// <summary>
+			/// Get IPv4 address
+			/// </summary>
 			const std::string remote_address() override {
 				return m_socket.remote_endpoint().address().to_string();
 			}
 
+			/// <summary>
+			/// Get port
+			/// </summary>
 			const unsigned short remote_port() override {
 				return m_socket.remote_endpoint().port();
 			}
 
+			/// <summary>
+			/// Close connection
+			/// </summary>
 			void stop() override {
 				m_socket.close();
 			}
 
+			/// <summary>
+			/// Get connection status
+			/// </summary>
+			/// <returns>true if open, false if closed</returns>
 			bool is_alive() override {
 				return m_socket.is_open();
 			}
