@@ -21,7 +21,7 @@
 	template<typename TKey, typename TValue>												\
 	static void deserialize(buffer_t& buffer, type<TKey, TValue>& container)				\
 
-#ifdef SERIALIZER_UNSUPPORTED_THROW_EXCEPTION
+#ifdef LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
 	#include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
 
 	// Defines unsupported serialize and deserialize functions for containers that have a type.
