@@ -77,8 +77,9 @@ namespace libnetwrk::net::common {
 			template <typename foreach_statement>
 			void foreach(foreach_statement statement) {
 				#ifdef LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
-					throw libnetwrk::net::common::libnetwrk_exception(
-						"tslist::foreach statement signature must be: void f(T&)");
+					if(!libnetwrk::net::is_signature<foreach_statement, void, T&>)
+						throw libnetwrk::net::common::libnetwrk_exception(
+							"tslist::foreach statement signature must be: void f(T&)");
 				#else
 					static_assert(libnetwrk::net::is_signature<foreach_statement, void, T&>,
 						"tslist::foreach statement signature must be: void f(T&)");
