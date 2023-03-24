@@ -28,7 +28,7 @@
             cpputExceptionThrown_ = true;                               \
         }                                                               \
                                                                         \
-        assert(cpputExceptionThrown_ == true);                          \
+        assert(cpputExceptionThrown_ == false);                          \
         break;                                                          \
     } while (false);                                                    \
 }
