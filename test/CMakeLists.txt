@@ -30,6 +30,20 @@ ADD_TEST(NAME tsdeque_clear COMMAND test_tsdeque 7)
 ADD_TEST(NAME tsdeque_empty COMMAND test_tsdeque 8)
 ADD_TEST(NAME tsdeque_count COMMAND test_tsdeque 9)
 
+# TEST: TSLIST
+ADD_EXECUTABLE(test_tslist test_tslist.cpp)
+ADD_TEST(NAME tslist_create COMMAND test_tslist 0)
+ADD_TEST(NAME tslist_push_front COMMAND test_tslist 1)
+ADD_TEST(NAME tslist_push_back COMMAND test_tslist 2)
+ADD_TEST(NAME tslist_front COMMAND test_tslist 3)
+ADD_TEST(NAME tslist_back COMMAND test_tslist 4)
+ADD_TEST(NAME tslist_pop_front COMMAND test_tslist 5)
+ADD_TEST(NAME tslist_pop_back COMMAND test_tslist 6)
+ADD_TEST(NAME tslist_clear COMMAND test_tslist 7)
+ADD_TEST(NAME tslist_empty COMMAND test_tslist 8)
+ADD_TEST(NAME tslist_count COMMAND test_tslist 9)
+ADD_TEST(NAME tslist_foreach COMMAND test_tslist 10)
+
 # TEST: BUFFER
 ADD_EXECUTABLE(test_buffer test_buffer.cpp)
 ADD_TEST(NAME buffer_create COMMAND test_buffer 0)
