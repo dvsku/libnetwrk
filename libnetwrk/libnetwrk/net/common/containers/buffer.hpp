@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "libnetwrk/net/common/serialization/type_traits.hpp"
+#include "libnetwrk/net/type_traits.hpp"
 #include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
 
 namespace libnetwrk::net::common {

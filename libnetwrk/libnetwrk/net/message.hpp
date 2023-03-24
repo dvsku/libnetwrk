@@ -5,7 +5,7 @@
 
 #include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
 #include "libnetwrk/net/common/containers/buffer.hpp"
-#include "libnetwrk/net/common/serialization/type_traits.hpp"
+#include "libnetwrk/net/type_traits.hpp"
 #include "libnetwrk/net/definitions.hpp"
 
 namespace libnetwrk::net {

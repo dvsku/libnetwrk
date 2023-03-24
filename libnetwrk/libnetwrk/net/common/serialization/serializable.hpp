@@ -2,7 +2,7 @@
 #define LIBNETWRK_NET_COMMON_SERIALIZABLE_HPP
 
 #include "libnetwrk/net/definitions.hpp"
-#include "libnetwrk/net/common/serialization/type_traits.hpp"
+#include "libnetwrk/net/type_traits.hpp"
 
 namespace libnetwrk::net::common {
 	

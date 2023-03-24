@@ -15,7 +15,7 @@
 #include "libnetwrk/net/macros.hpp"
 #include "libnetwrk/net/common/containers/buffer.hpp"
 #include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
-#include "libnetwrk/net/common/serialization/type_traits.hpp"
+#include "libnetwrk/net/type_traits.hpp"
 
 namespace libnetwrk::net::common {
 	struct binary_serializer {
@@ -52,7 +52,7 @@ namespace libnetwrk::net::common {
 
 		template <typename T>
 		static void serialize(buffer_t& buffer, const T& obj,
-			typename std::enable_if<is_serializable<T, binary_serializer>::value, bool>::type = true) 
+			typename std::enable_if<is_serializable<T, binary_serializer>, bool>::type = true) 
 		{
 			buffer_t serialized = obj.serialize();
 			serialize(buffer, serialized.size());
@@ -61,7 +61,7 @@ namespace libnetwrk::net::common {
 
 		template <typename T>
 		static void serialize(buffer_t& buffer, const T& obj, const size_t offset,
-			typename std::enable_if<is_serializable<T, binary_serializer>::value, bool>::type = true)
+			typename std::enable_if<is_serializable<T, binary_serializer>, bool>::type = true)
 		{
 			buffer_t serialized = obj.serialize();
 			size_t size = serialized.size();
@@ -71,7 +71,7 @@ namespace libnetwrk::net::common {
 
 		template <typename T>
 		static void deserialize(buffer_t& buffer, T& obj,
-			typename std::enable_if<is_serializable<T, binary_serializer>::value, bool>::type = true)
+			typename std::enable_if<is_serializable<T, binary_serializer>, bool>::type = true)
 		{
 			size_t size = 0;
 			deserialize(buffer, size);
