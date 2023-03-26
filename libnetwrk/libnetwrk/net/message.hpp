@@ -40,6 +40,7 @@ namespace libnetwrk::net {
                 head.m_command = command_type{};
                 head.m_data_len = 0;
             }
+            return *this;
         };
         
         ///////////////////////////////////////////////////////////////////////
