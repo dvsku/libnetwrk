@@ -816,6 +816,78 @@ void t_commands_double() {
 	assert(client.pong == "pOnG");
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// std::string
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string commands_string[] = { "c2s_ping", "s2c_pong" };
+
+class string_server : public tcp_server<std::string> {
+	public:
+		string_server() : tcp_server() {}
+
+		std::string ping = "";
+
+		void on_message(owned_message_t& msg) override {
+			if (msg.m_msg.m_head.m_command == commands_string[0]) {
+				msg.m_msg >> ping;
+				message_t response(commands_string[1]);
+				response << std::string("pOnG");
+				msg.m_client->send(response);
+			}
+		}
+
+		void wait_for_msg(const int timeout = 30) {
+			int tries = 0;
+			while (tries < timeout) {
+				if (process_message()) break;
+
+				tries++;
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			}
+		}
+};
+
+class string_client : public tcp_client<std::string> {
+	public:
+		string_client() : tcp_client() {}
+
+		std::string pong = "";
+
+		void on_message(message_t& msg) override {
+			if (msg.m_head.m_command == commands_string[1])
+				msg >> pong;
+		}
+
+		void wait_for_msg(const int timeout = 30) {
+			int tries = 0;
+			while (tries < timeout) {
+				if (process_single_message()) break;
+
+				tries++;
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			}
+		}
+};
+
+void t_commands_string() {
+	string_server server;
+	server.start("127.0.0.1", 21205);
+
+	string_client client;
+	client.connect("127.0.0.1", 21205);
+
+	string_client::message_t msg(commands_string[0]);
+	msg << std::string("PiNg");
+	client.send(msg);
+
+	server.wait_for_msg();
+	assert(server.ping == "PiNg");
+
+	client.wait_for_msg();
+	assert(client.pong == "pOnG");
+}
+
 int main(int argc, char* argv[]) {
 	if (argc != 2) {
 		t_commands_uint8();
@@ -828,6 +900,7 @@ int main(int argc, char* argv[]) {
 		t_commands_int64();
 		t_commands_float();
 		t_commands_double();
+		t_commands_string();
 	}
 	else {
 		switch (std::stoi(argv[1])) {
@@ -841,6 +914,7 @@ int main(int argc, char* argv[]) {
 			case 7: t_commands_int64();			break;	
 			case 8: t_commands_float();			break;
 			case 9: t_commands_double();		break;
+			case 10: t_commands_string();		break;
 			default: break;
 		}
 	}
