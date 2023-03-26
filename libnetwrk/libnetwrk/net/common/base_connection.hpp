@@ -21,13 +21,14 @@ namespace libnetwrk::net::common {
 	{
 		public:
 			typedef message<command_type, serializer> message_t;
+			typedef std::shared_ptr<message_t> message_t_ptr;
 			typedef owned_message<command_type, serializer, storage> owned_message_t;
 
 		protected:
 			context_ptr m_context;
 
 			tsdeque<owned_message_t>& m_incoming_messages;
-			tsdeque<message_t> m_outgoing_messages;
+			tsdeque<message_t_ptr> m_outgoing_messages;
 
 			connection_owner m_owner;
 			storage m_storage;
@@ -80,17 +81,25 @@ namespace libnetwrk::net::common {
 			/// <summary>
 			/// Send message
 			/// </summary>
-			/// <param name="msg">: message to send</param>
-			void send(const message_t& msg) {
-				asio::post(*m_context,
-					[this, msg]() {
-						bool was_empty = m_outgoing_messages.empty();
-						m_outgoing_messages.push_back(msg);
+			/// <param name="message">ptr to message</param>
+			void send(const message_t_ptr& message) {
+				asio::post(*m_context, [this, message]() {
+					bool was_empty = m_outgoing_messages.empty();
+					m_outgoing_messages.push_back(message);
 
-						if (was_empty)
-							write_message_head();
-					}
-				);
+					if (was_empty)
+						write_message_head();
+				});
+			}
+
+			/// <summary>
+			/// Send message. 
+			/// Message object after sending should be considered in an undefined state and
+			/// shouldn't be used further without reassigning.
+			/// </summary>
+			/// <param name="message">: message to send</param>
+			void send(message_t& message) {
+				send(std::make_shared<message_t>(std::move(message)));
 			}
 
 		protected:
@@ -177,7 +186,7 @@ namespace libnetwrk::net::common {
 
 			void write_message_head_callback(std::error_code ec, std::size_t len) {
 				if (!ec) {
-					if (m_outgoing_messages.front().m_data.size() > 0) {
+					if (m_outgoing_messages.front()->m_data.size() > 0) {
 						write_message_body();
 					}
 					else {

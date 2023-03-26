@@ -96,15 +96,17 @@ namespace libnetwrk::net::tcp {
 			}
 
 			void write_message_head() override {
-				asio::async_write(m_socket, asio::buffer(&this->m_outgoing_messages.front().m_head, 
-					sizeof(libnetwrk::net::message_head<command_type>)),
+				asio::async_write(m_socket, 
+					asio::buffer(&this->m_outgoing_messages.front()->m_head, 
+						sizeof(libnetwrk::net::message_head<command_type>)),
 					std::bind(&tcp_connection::write_message_head_callback, 
 						this, std::placeholders::_1, std::placeholders::_2));
 			}
 
 			void write_message_body() override {
-				asio::async_write(m_socket, asio::buffer(this->m_outgoing_messages.front().m_data.data(),
-					this->m_outgoing_messages.front().m_data.size()),
+				asio::async_write(m_socket, 
+					asio::buffer(this->m_outgoing_messages.front()->m_data.data(),
+						this->m_outgoing_messages.front()->m_data.size()),
 					std::bind(&tcp_connection::write_message_body_callback, 
 						this, std::placeholders::_1, std::placeholders::_2));
 			}

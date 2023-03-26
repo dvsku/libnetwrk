@@ -16,6 +16,7 @@ namespace libnetwrk::net::tcp {
 	class tcp_client {
 		public:
 			typedef libnetwrk::net::message<command_type, serializer> message_t;
+			typedef std::shared_ptr<message_t> message_t_ptr;
 			typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
 
 			typedef tcp_connection<command_type, serializer, storage> tcp_connection_t;
@@ -132,10 +133,10 @@ namespace libnetwrk::net::tcp {
 			/// Send a message
 			/// </summary>
 			/// <param name="message">: message to send</param>
-			void send(const message_t& message) {
-				if (m_connection != nullptr && m_connected) {
+			void send(message_t& message) {
+				if (m_connection && m_connected) {
 					if (m_connection->is_alive()) {
-						m_connection->send(message);
+						m_connection->send(std::make_shared<message_t>(std::move(message)));
 					}
 					else {
 						on_disconnect();

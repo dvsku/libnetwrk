@@ -14,6 +14,7 @@ namespace libnetwrk::net::common {
 	class base_server {
 		public:
 			typedef libnetwrk::net::message<command_type, serializer> message_t;
+			typedef std::shared_ptr<message_t> message_t_ptr;
 			typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
 
 			typedef base_connection<command_type, serializer, storage> base_connection_t;
@@ -136,69 +137,44 @@ namespace libnetwrk::net::common {
 			}
 
 			/// <summary>
-			/// Send a message to client
+			/// Send a message to client.
+			/// Message object after sending should be considered in an undefined state and
+			/// shouldn't be used further without reassigning.
 			/// </summary>
 			/// <param name="client">: client to send to</param>
-			/// <param name="msg">: message to send</param>
-			void send(base_connection_t& client, const message_t& msg) {
-				if (client && client->is_alive()) {
-					client->send(msg);
-				}
-				else {
-					on_client_disconnect(client);
-					client.reset();
-
-					m_connections.erase(std::remove(m_connections.begin(),
-						m_connections.end(), client), m_connections.end());
-				}
+			/// <param name="message">: message to send</param>
+			void send(base_connection_t_ptr& client, message_t& message) {
+				_send(client, std::make_shared<message_t>(std::move(message)));
 			}
 
 			/// <summary>
-			/// Send a message to all clients
+			/// Send a message to all clients.
+			/// Message object after sending should be considered in an undefined state and
+			/// shouldn't be used further without reassigning.
 			/// </summary>
-			/// <param name="msg">: message to send</param>
-			void send_all(const message_t& msg) {
-				bool has_invalid_clients = false;
-
-				for (auto& client : m_connections) {
-					if (client && client->is_alive()) {
-						client->send(msg);
-					}
-					else {
-						on_client_disconnect(client);
-						client.reset();
-						has_invalid_clients = true;
-					}
-				}
-
-				if (has_invalid_clients)
-					m_connections.erase(std::remove(m_connections.begin(),
-						m_connections.end(), nullptr), m_connections.end());
+			/// <param name="message">: message to send</param>
+			void send_all(message_t& message) {
+				message_t_ptr ptr = std::make_shared<message_t>(std::move(message));
+				
+				for (auto& client : m_connections)
+					_send(client, ptr);
 			}
 
 			/// <summary>
-			/// Send a message to all clients
+			/// Send a message to clients that satisfy the condition.
+			/// Message object after sending should be considered in an undefined state and
+			/// shouldn't be used further without reassigning.
 			/// </summary>
-			/// <param name="msg">: message to send</param>
+			/// <param name="message">: message to send</param>
 			/// <param name="condition">: condition for sending to client</param>
-			void send_all(const message_t& msg, send_condition condition) {
-				bool has_invalid_clients = false;
+			void send_all(message_t& message, send_condition condition) {
+				message_t_ptr ptr = std::make_shared<message_t>(std::move(message));
 
 				for (auto& client : m_connections) {
-					if (client && client->is_alive()) {
-						if (condition(client->connection_data()))
-							client->send(msg);
-					}
-					else {
-						on_client_disconnect(client);
-						client.reset();
-						has_invalid_clients = true;
-					}
+					if (client)
+						if (condition(client->get_storage()))
+							_send(client, ptr);
 				}
-
-				if (has_invalid_clients)
-					m_connections.erase(std::remove(m_connections.begin(),
-						m_connections.end(), nullptr), m_connections.end());
 			}
 
 			/// <summary>
@@ -240,6 +216,16 @@ namespace libnetwrk::net::common {
 			virtual void _accept() = 0;
 
 		private:
+			void _send(base_connection_t_ptr& client, const message_t_ptr& message) {
+				if (client && client->is_alive()) {
+					client->send(message);
+				}
+				else {
+					on_client_disconnect(client);
+					client.reset();
+				}
+			}
+
 			void _process_messages(size_t max_messages = -1) {
 				while (m_running) {
 					m_incoming_messages.wait();
