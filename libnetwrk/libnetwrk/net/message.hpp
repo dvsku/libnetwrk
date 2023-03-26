@@ -10,10 +10,34 @@
 
 namespace libnetwrk::net {
     template <typename command_type> struct message_head {
+        typedef message_head<command_type> message_head_t;
+
         command_type m_command{};
         uint32_t m_data_len;
 
         message_head() : m_data_len(0) {}
+
+        message_head(const message_head_t& head) = default;
+        message_head_t& operator= (const message_head_t& head) = default;
+
+        message_head(message_head_t&& head) noexcept {
+            m_command = head.m_command;
+            m_data_len = head.m_data_len;
+
+            head.m_command = command_type{};
+            head.m_data_len = 0;
+        };
+
+        message_head_t& operator= (message_head_t&& head) noexcept {
+            if (this != &head) {
+                m_command = head.m_command;
+                m_data_len = head.m_data_len;
+
+                head.m_command = command_type{};
+                head.m_data_len = 0;
+            }
+        };
+        
     };
     
     template <typename command_type, 
@@ -32,6 +56,12 @@ namespace libnetwrk::net {
             message(command_type command) {
                 m_head.m_command = command;
             }
+
+            message(const message_t& msg) = default;
+            message(message_t&& msg) = default;
+
+            message_t& operator= (const message_t& msg) = default;
+            message_t& operator= (message_t&& msg) = default;
 
             ///////////////////////////////////////////////////////////////////
             //  SERIALIZE
