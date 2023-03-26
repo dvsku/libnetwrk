@@ -4,21 +4,18 @@
 
 using namespace libnetwrk::net::tcp;
 
-void tcp_client_create() {
-	tcp_client<int> client;
+enum class commands : int {
+	hello,
+};
 
-	ASSERT(client.connected() == false);
+void tcp_client_create() {
+	ASSERT_NOT_THROWS_CTOR(tcp_client<commands> client);
+	ASSERT(!client.connected());
 }
 
 void tcp_client_connect_fail() {
-	tcp_client<int> client;
-
-	ASSERT(client.connect("127.0.0.1", 21205) == false);
-}
-
-void run_all_tests() {
-	tcp_client_create();
-	tcp_client_connect_fail();
+	ASSERT_NOT_THROWS_CTOR(tcp_client<commands> client);
+	ASSERT(!client.connect("127.0.0.1", 21205));
 }
 
 int main(int argc, char* argv[]) {

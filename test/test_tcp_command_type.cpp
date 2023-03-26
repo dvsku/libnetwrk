@@ -74,13 +74,13 @@ public:
 };
 
 void t_commands_uint8() {
-	uint8_server server;
+	ASSERT_NOT_THROWS_CTOR(uint8_server server);
 	server.start("127.0.0.1", 21205);
 
-	uint8_client client;
+	ASSERT_NOT_THROWS_CTOR(uint8_client client);
 	client.connect("127.0.0.1", 21205);
 
-	uint8_client::message_t msg(uint8_client::cmd_t::c2s_ping);
+	ASSERT_NOT_THROWS_CTOR(uint8_client::message_t msg(uint8_client::cmd_t::c2s_ping));
 	msg << std::string("PiNg");
 	client.send(msg);
 
@@ -157,13 +157,13 @@ class uint16_client : public tcp_client<commands_uint16> {
 };
 
 void t_commands_uint16() {
-	uint16_server server;
+	ASSERT_NOT_THROWS_CTOR(uint16_server server);
 	server.start("127.0.0.1", 21205);
 
-	uint16_client client;
+	ASSERT_NOT_THROWS_CTOR(uint16_client client);
 	client.connect("127.0.0.1", 21205);
 
-	uint16_client::message_t msg(uint16_client::cmd_t::c2s_ping);
+	ASSERT_NOT_THROWS_CTOR(uint16_client::message_t msg(uint16_client::cmd_t::c2s_ping));
 	msg << std::string("PiNg");
 	client.send(msg);
 
@@ -240,13 +240,13 @@ class uint32_client : public tcp_client<commands_uint32> {
 };
 
 void t_commands_uint32() {
-	uint32_server server;
+	ASSERT_NOT_THROWS_CTOR(uint32_server server);
 	server.start("127.0.0.1", 21205);
 
-	uint32_client client;
+	ASSERT_NOT_THROWS_CTOR(uint32_client client);
 	client.connect("127.0.0.1", 21205);
 
-	uint32_client::message_t msg(uint32_client::cmd_t::c2s_ping);
+	ASSERT_NOT_THROWS_CTOR(uint32_client::message_t msg(uint32_client::cmd_t::c2s_ping));
 	msg << std::string("PiNg");
 	client.send(msg);
 
@@ -323,13 +323,13 @@ class uint64_client : public tcp_client<commands_uint64> {
 };
 
 void t_commands_uint64() {
-	uint64_server server;
+	ASSERT_NOT_THROWS_CTOR(uint64_server server);
 	server.start("127.0.0.1", 21205);
 
-	uint64_client client;
+	ASSERT_NOT_THROWS_CTOR(uint64_client client);
 	client.connect("127.0.0.1", 21205);
 
-	uint64_client::message_t msg(uint64_client::cmd_t::c2s_ping);
+	ASSERT_NOT_THROWS_CTOR(uint64_client::message_t msg(uint64_client::cmd_t::c2s_ping));
 	msg << std::string("PiNg");
 	client.send(msg);
 
@@ -406,13 +406,13 @@ class int8_client : public tcp_client<commands_int8> {
 };
 
 void t_commands_int8() {
-	int8_server server;
+	ASSERT_NOT_THROWS_CTOR(int8_server server);
 	server.start("127.0.0.1", 21205);
 
-	int8_client client;
+	ASSERT_NOT_THROWS_CTOR(int8_client client);
 	client.connect("127.0.0.1", 21205);
 
-	int8_client::message_t msg(int8_client::cmd_t::c2s_ping);
+	ASSERT_NOT_THROWS_CTOR(int8_client::message_t msg(int8_client::cmd_t::c2s_ping));
 	msg << std::string("PiNg");
 	client.send(msg);
 
@@ -489,13 +489,13 @@ class int16_client : public tcp_client<commands_int16> {
 };
 
 void t_commands_int16() {
-	int16_server server;
+	ASSERT_NOT_THROWS_CTOR(int16_server server);
 	server.start("127.0.0.1", 21205);
 
-	int16_client client;
+	ASSERT_NOT_THROWS_CTOR(int16_client client);
 	client.connect("127.0.0.1", 21205);
 
-	int16_client::message_t msg(int16_client::cmd_t::c2s_ping);
+	ASSERT_NOT_THROWS_CTOR(int16_client::message_t msg(int16_client::cmd_t::c2s_ping));
 	msg << std::string("PiNg");
 	client.send(msg);
 
@@ -572,13 +572,13 @@ class int32_client : public tcp_client<commands_int32> {
 };
 
 void t_commands_int32() {
-	int32_server server;
+	ASSERT_NOT_THROWS_CTOR(int32_server server);
 	server.start("127.0.0.1", 21205);
 
-	int32_client client;
+	ASSERT_NOT_THROWS_CTOR(int32_client client);
 	client.connect("127.0.0.1", 21205);
 
-	int32_client::message_t msg(int32_client::cmd_t::c2s_ping);
+	ASSERT_NOT_THROWS_CTOR(int32_client::message_t msg(int32_client::cmd_t::c2s_ping));
 	msg << std::string("PiNg");
 	client.send(msg);
 
@@ -655,13 +655,13 @@ class int64_client : public tcp_client<commands_int64> {
 };
 
 void t_commands_int64() {
-	int64_server server;
+	ASSERT_NOT_THROWS_CTOR(int64_server server);
 	server.start("127.0.0.1", 21205);
 
-	int64_client client;
+	ASSERT_NOT_THROWS_CTOR(int64_client client);
 	client.connect("127.0.0.1", 21205);
 
-	int64_client::message_t msg(int64_client::cmd_t::c2s_ping);
+	ASSERT_NOT_THROWS_CTOR(int64_client::message_t msg(int64_client::cmd_t::c2s_ping));
 	msg << std::string("PiNg");
 	client.send(msg);
 
@@ -727,21 +727,9 @@ class float_client : public tcp_client<float> {
 };
 
 void t_commands_float() {
-	float_server server;
-	server.start("127.0.0.1", 21205);
-
-	float_client client;
-	client.connect("127.0.0.1", 21205);
-
-	float_client::message_t msg(commands_float[0]);
-	msg << std::string("PiNg");
-	client.send(msg);
-
-	server.wait_for_msg();
-	ASSERT(server.ping == "PiNg");
-
-	client.wait_for_msg();
-	ASSERT(client.pong == "pOnG");
+	ASSERT_THROWS(float_server server);
+	ASSERT_THROWS(float_client client);
+	ASSERT_THROWS(float_client::message_t msg(commands_float[0]));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -799,21 +787,9 @@ class double_client : public tcp_client<double> {
 };
 
 void t_commands_double() {
-	double_server server;
-	server.start("127.0.0.1", 21205);
-
-	double_client client;
-	client.connect("127.0.0.1", 21205);
-
-	double_client::message_t msg(commands_double[0]);
-	msg << std::string("PiNg");
-	client.send(msg);
-
-	server.wait_for_msg();
-	ASSERT(server.ping == "PiNg");
-
-	client.wait_for_msg();
-	ASSERT(client.pong == "pOnG");
+	ASSERT_THROWS(double_server server);
+	ASSERT_THROWS(double_client client);
+	ASSERT_THROWS(double_client::message_t msg(commands_double[0]));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -871,21 +847,9 @@ class string_client : public tcp_client<std::string> {
 };
 
 void t_commands_string() {
-	string_server server;
-	server.start("127.0.0.1", 21205);
-
-	string_client client;
-	client.connect("127.0.0.1", 21205);
-
-	string_client::message_t msg(commands_string[0]);
-	msg << std::string("PiNg");
-	client.send(msg);
-
-	server.wait_for_msg();
-	ASSERT(server.ping == "PiNg");
-
-	client.wait_for_msg();
-	ASSERT(client.pong == "pOnG");
+	ASSERT_THROWS(string_server server);
+	ASSERT_THROWS(string_client client);
+	ASSERT_THROWS(string_client::message_t msg(commands_string[0]));
 }
 
 int main(int argc, char* argv[]) {

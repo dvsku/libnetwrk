@@ -1,6 +1,5 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
 #include "libnetwrk.hpp"
-
 #include "utilities_assert.hpp"
 
 using namespace libnetwrk::net::common;
@@ -37,28 +36,28 @@ void serialize_deserialize_standard_layout() {
 
 	int i1 = 156, i2 = 0;
 	buffer << i1 >> i2;
-	assert(i1 == i2);
+	ASSERT(i1 == i2);
 
 	bool b1 = true, b2 = false;
 	buffer << b1; 
 	buffer >> b2;
-	assert(b1 == b2);
+	ASSERT(b1 == b2);
 
 	char c1 = 69, c2 = 0;
 	buffer << c1 >> c2;
-	assert(c1 == c2);
+	ASSERT(c1 == c2);
 
 	float f1 = 69.420f, f2 = 0.0f;
 	buffer << f1 >> f2;
-	assert(f1 == f2);
+	ASSERT(f1 == f2);
 
 	double d1 = 420.69, d2 = 0;
 	buffer << d1 >> d2;
-	assert(d1 == d2);
+	ASSERT(d1 == d2);
 
 	wchar_t w1 = 256, w2 = 0;
 	buffer << w1 >> w2;
-	assert(w1 == w2);
+	ASSERT(w1 == w2);
 }
 
 void serialize_deserialize_standard_layout_containers() {
@@ -67,8 +66,8 @@ void serialize_deserialize_standard_layout_containers() {
 	std::vector<int> v2;
 
 	buffer << v1 >> v2;
-	assert(v1.size() == v2.size());
-	assert(v1 == v2);
+	ASSERT(v1.size() == v2.size());
+	ASSERT(v1 == v2);
 
 	buffer.clear();
 
@@ -76,8 +75,8 @@ void serialize_deserialize_standard_layout_containers() {
 	std::deque<int> dq2;
 
 	buffer << dq1 >> dq2;
-	assert(dq1.size() == dq2.size());
-	assert(dq1 == dq2);
+	ASSERT(dq1.size() == dq2.size());
+	ASSERT(dq1 == dq2);
 
 	buffer.clear();
 
@@ -85,7 +84,7 @@ void serialize_deserialize_standard_layout_containers() {
 	std::forward_list<int> fl2;
 
 	buffer << fl1 >> fl2;
-	assert(fl1 == fl2);
+	ASSERT(fl1 == fl2);
 
 	buffer.clear();
 
@@ -93,14 +92,14 @@ void serialize_deserialize_standard_layout_containers() {
 	std::list<int> l2;
 
 	buffer << l1 >> l2;
-	assert(l1.size() == l2.size());
-	assert(l1 == l2);
+	ASSERT(l1.size() == l2.size());
+	ASSERT(l1 == l2);
 
 	std::array<int, 6> ar1({ 123, 534, 346, 5432, 242, 735 });
 	std::array<int, 6> ar2{};
 
 	buffer << ar1 >> ar2;
-	assert(ar1 == ar2);
+	ASSERT(ar1 == ar2);
 }
 
 void serialize_deserialize_serializable() {
@@ -110,13 +109,13 @@ void serialize_deserialize_serializable() {
 
 	buffer buffer;
 	buffer << ss1 >> ss3;
-	assert(ss1.equals(ss3));
+	ASSERT(ss1.equals(ss3));
 
 	buffer.clear();
 
 	buffer << ss1 << ss2 >> ss4 >> ss5;
-	assert(ss1.equals(ss4));
-	assert(ss2.equals(ss5));
+	ASSERT(ss1.equals(ss4));
+	ASSERT(ss2.equals(ss5));
 }
 
 void serialize_deserialize_strings() {
@@ -126,14 +125,14 @@ void serialize_deserialize_strings() {
 	std::string s2;
 
 	buffer << s1 >> s2;
-	assert(s1 == s2);
+	ASSERT(s1 == s2);
 
 	std::vector<std::string> vs1({ "nxnuNoeuLN", "XjTfSs5loB", "UWp8hsoW5s", "O0c7byqKfj", "CzAXjEObB0" });
 	std::vector<std::string> vs2;
 
 	buffer << vs1 >> vs2;
 	for (size_t i = 0; i < vs1.size(); i++)
-		assert(vs1[i] == vs2[i]);
+		ASSERT(vs1[i] == vs2[i]);
 }
 
 void serialize_deserialize_unsupported() {

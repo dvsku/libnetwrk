@@ -59,9 +59,11 @@ ADD_TEST(NAME serialize_deserialize_simple_struct COMMAND test_serializable 0)
 # TEST: TCP_SERVER
 ADD_EXECUTABLE(test_tcp_server test_tcp_server.cpp)
 ADD_TEST(NAME tcp_server_create COMMAND test_tcp_server 0)
-ADD_TEST(NAME tcp_server_start_async COMMAND test_tcp_server 1)
-ADD_TEST(NAME tcp_server_start_async_twice COMMAND test_tcp_server 2)
-ADD_TEST(NAME tcp_server_stop COMMAND test_tcp_server 3)
+ADD_TEST(NAME tcp_server_start_ip COMMAND test_tcp_server 1)
+ADD_TEST(NAME tcp_server_start_endpoint_localhost COMMAND test_tcp_server 2)
+ADD_TEST(NAME tcp_server_start_endpoint_v4 COMMAND test_tcp_server 3)
+ADD_TEST(NAME tcp_server_start_twice COMMAND test_tcp_server 4)
+ADD_TEST(NAME tcp_server_stop COMMAND test_tcp_server 5)
 
 # TEST: TCP_CLIENT
 ADD_EXECUTABLE(test_tcp_client test_tcp_client.cpp)
