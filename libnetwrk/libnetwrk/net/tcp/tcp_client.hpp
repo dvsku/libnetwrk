@@ -22,6 +22,8 @@ namespace libnetwrk::net::tcp {
 			typedef tcp_connection<command_type, serializer, storage> tcp_connection_t;
 			typedef std::shared_ptr<tcp_connection_t> tcp_connection_t_ptr;
 
+			typedef command_type cmd_t;
+
 		protected:
 			tcp_connection_t_ptr m_connection;
 			context_ptr m_context;
