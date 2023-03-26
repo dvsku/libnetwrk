@@ -1,6 +1,10 @@
 #ifndef LIBNETWRK_NET_MACROS_HPP
 #define LIBNETWRK_NET_MACROS_HPP
 
+#ifdef LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
+	#include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
+#endif
+
 // Define supported serialize function for container that has a type.
 #define SERIALIZER_SUPPORTED_SERIALIZE_SINGLE(type)											\
 	template<typename TValue>																\
@@ -22,8 +26,15 @@
 	static void deserialize(buffer_t& buffer, type<TKey, TValue>& container)				\
 
 #ifdef LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
-	#include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
+	#define LIBNETWRK_STATIC_ASSERT_OR_THROW(expression, err_msg)							\
+	if(!expression)																			\
+		throw libnetwrk::net::common::libnetwrk_exception(err_msg);
+#else
+	#define LIBNETWRK_STATIC_ASSERT_OR_THROW(expression, err_msg)							\
+	static_assert(expression, err_msg);
+#endif
 
+#ifdef LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
 	// Defines unsupported serialize and deserialize functions for containers that have a type.
 	// Functions will throw an exception during runtime if called.
 	// Useful for testing, not recommended for use outside of tests.
