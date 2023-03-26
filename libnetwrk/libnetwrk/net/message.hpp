@@ -9,8 +9,11 @@
 #include "libnetwrk/net/definitions.hpp"
 
 namespace libnetwrk::net {
-    template <typename command_type> struct message_head {
-        typedef message_head<command_type> message_head_t;
+    template <typename command_type,
+        typename serializer = libnetwrk::net::common::binary_serializer>
+    struct message_head : public libnetwrk::net::common::serializable<serializer> {
+        typedef message_head<command_type, serializer> message_head_t;
+        typedef libnetwrk::net::common::buffer<serializer> buffer_t;
 
         command_type m_command{};
         uint32_t m_data_len;
@@ -38,6 +41,19 @@ namespace libnetwrk::net {
             }
         };
         
+        ///////////////////////////////////////////////////////////////////////
+        // Serializable
+        ///////////////////////////////////////////////////////////////////////
+
+        buffer_t serialize() const override {
+            buffer_t buffer;
+            buffer << m_command << m_data_len;
+            return buffer;
+        }
+
+        void deserialize(buffer_t serialized) override {
+            serialized >> m_command >> m_data_len;
+        }
     };
     
     template <typename command_type, 
@@ -49,12 +65,15 @@ namespace libnetwrk::net {
             typedef message<command_type, serializer> message_t;
 
             message_head_t m_head;
-            buffer_t m_data;
+            buffer_t m_head_data, m_data;
 
-            message() {}
+            message() {
+                m_head_data.resize(m_head.serialize().size());
+            }
 
             message(command_type command) {
                 m_head.m_command = command;
+                m_head_data.resize(m_head.serialize().size());
             }
 
             message(const message_t& msg) = default;

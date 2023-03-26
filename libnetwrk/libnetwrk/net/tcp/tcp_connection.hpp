@@ -68,8 +68,9 @@ namespace libnetwrk::net::tcp {
 			}
 
 			void read_message_head() override {
-				asio::async_read(m_socket, asio::buffer(&this->m_temp_message.m_head, 
-					sizeof(libnetwrk::net::message_head<command_type>)),
+				asio::async_read(m_socket, 
+					asio::buffer(this->m_temp_message.m_head_data.data(),
+						this->m_temp_message.m_head_data.size()),
 					std::bind(&tcp_connection::read_message_head_callback, 
 						this, std::placeholders::_1, std::placeholders::_2));
 			}
@@ -96,9 +97,12 @@ namespace libnetwrk::net::tcp {
 			}
 
 			void write_message_head() override {
+				this->m_outgoing_messages.front()->m_head_data =
+					this->m_outgoing_messages.front()->m_head.serialize();
+				
 				asio::async_write(m_socket, 
-					asio::buffer(&this->m_outgoing_messages.front()->m_head, 
-						sizeof(libnetwrk::net::message_head<command_type>)),
+					asio::buffer(this->m_outgoing_messages.front()->m_head_data.data(),
+						this->m_outgoing_messages.front()->m_head_data.size()),
 					std::bind(&tcp_connection::write_message_head_callback, 
 						this, std::placeholders::_1, std::placeholders::_2));
 			}

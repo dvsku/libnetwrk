@@ -147,6 +147,8 @@ namespace libnetwrk::net::common {
 
 			void read_message_head_callback(std::error_code ec, std::size_t len) {
 				if (!ec) {
+					m_temp_message.m_head.deserialize(m_temp_message.m_head_data);
+
 					// MESSAGE HAS A BODY
 					if (m_temp_message.m_head.m_data_len > 0) {
 						m_temp_message.m_data.resize(m_temp_message.m_head.m_data_len);
