@@ -1,14 +1,13 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
 #include "libnetwrk.hpp"
-
-#include <cassert>
+#include "utilities_assert.hpp"
 
 using namespace libnetwrk::net::common;
 
 void tsdeque_create() {
 	tsdeque<int> deque;
 	
-	assert(deque.count() == 0);
+	ASSERT(deque.count() == 0);
 }
 
 void tsdeque_push_front() {
@@ -17,9 +16,9 @@ void tsdeque_push_front() {
 	deque.push_front(0);
 	deque.push_front(2);
 
-	assert(deque.pop_front() == 2);
-	assert(deque.pop_front() == 0);
-	assert(deque.pop_front() == 1);
+	ASSERT(deque.pop_front() == 2);
+	ASSERT(deque.pop_front() == 0);
+	ASSERT(deque.pop_front() == 1);
 }
 
 void tsdeque_push_back() {
@@ -28,9 +27,9 @@ void tsdeque_push_back() {
 	deque.push_back(0);
 	deque.push_back(2);
 
-	assert(deque.pop_front() == 1);
-	assert(deque.pop_front() == 0);
-	assert(deque.pop_front() == 2);
+	ASSERT(deque.pop_front() == 1);
+	ASSERT(deque.pop_front() == 0);
+	ASSERT(deque.pop_front() == 2);
 }
 
 void tsdeque_front() {
@@ -39,7 +38,7 @@ void tsdeque_front() {
 	deque.push_back(0);
 	deque.push_back(2);
 	
-	assert(deque.front() == 1);
+	ASSERT(deque.front() == 1);
 }
 
 void tsdeque_back() {
@@ -48,7 +47,7 @@ void tsdeque_back() {
 	deque.push_back(0);
 	deque.push_back(2);
 	
-	assert(deque.back() == 2);
+	ASSERT(deque.back() == 2);
 }
 
 void tsdeque_pop_front() {
@@ -58,8 +57,8 @@ void tsdeque_pop_front() {
 	deque.push_back(2);
 	int i = deque.pop_front();
 
-	assert(i == 1);
-	assert(deque.front() == 0);
+	ASSERT(i == 1);
+	ASSERT(deque.front() == 0);
 }
 
 void tsdeque_pop_back() {
@@ -69,8 +68,8 @@ void tsdeque_pop_back() {
 	deque.push_back(2);
 	int i = deque.pop_back();
 
-	assert(i == 2);
-	assert(deque.back() == 0);
+	ASSERT(i == 2);
+	ASSERT(deque.back() == 0);
 }
 
 void tsdeque_clear() {
@@ -80,7 +79,7 @@ void tsdeque_clear() {
 	deque.push_back(2);
 	deque.clear();
 
-	assert(deque.empty() == true);
+	ASSERT(deque.empty() == true);
 }
 
 void tsdeque_empty() {
@@ -89,11 +88,11 @@ void tsdeque_empty() {
 	deque.push_back(0);
 	deque.push_back(2);
 
-	assert(deque.empty() == false);
+	ASSERT(deque.empty() == false);
 
 	deque.clear();
 
-	assert(deque.empty() == true);
+	ASSERT(deque.empty() == true);
 }
 
 void tsdeque_count() {
@@ -102,7 +101,7 @@ void tsdeque_count() {
 	deque.push_back(0);
 	deque.push_back(2);
 
-	assert(deque.count() == 3);
+	ASSERT(deque.count() == 3);
 }
 
 int main(int argc, char* argv[]) {

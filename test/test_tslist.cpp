@@ -7,7 +7,7 @@ using namespace libnetwrk::net::common;
 void tslist_create() {
 	tslist<int> list;
 
-	assert(list.count() == 0);
+	ASSERT(list.count() == 0);
 }
 
 void tslist_push_front() {
@@ -16,9 +16,9 @@ void tslist_push_front() {
 	list.push_front(0);
 	list.push_front(2);
 
-	assert(list.pop_front() == 2);
-	assert(list.pop_front() == 0);
-	assert(list.pop_front() == 1);
+	ASSERT(list.pop_front() == 2);
+	ASSERT(list.pop_front() == 0);
+	ASSERT(list.pop_front() == 1);
 }
 
 void tslist_push_back() {
@@ -27,9 +27,9 @@ void tslist_push_back() {
 	list.push_back(0);
 	list.push_back(2);
 
-	assert(list.pop_front() == 1);
-	assert(list.pop_front() == 0);
-	assert(list.pop_front() == 2);
+	ASSERT(list.pop_front() == 1);
+	ASSERT(list.pop_front() == 0);
+	ASSERT(list.pop_front() == 2);
 }
 
 void tslist_front() {
@@ -38,7 +38,7 @@ void tslist_front() {
 	list.push_back(0);
 	list.push_back(2);
 
-	assert(list.front() == 1);
+	ASSERT(list.front() == 1);
 }
 
 void tslist_back() {
@@ -47,7 +47,7 @@ void tslist_back() {
 	list.push_back(0);
 	list.push_back(2);
 
-	assert(list.back() == 2);
+	ASSERT(list.back() == 2);
 }
 
 void tslist_pop_front() {
@@ -57,8 +57,8 @@ void tslist_pop_front() {
 	list.push_back(2);
 	int i = list.pop_front();
 
-	assert(i == 1);
-	assert(list.front() == 0);
+	ASSERT(i == 1);
+	ASSERT(list.front() == 0);
 }
 
 void tslist_pop_back() {
@@ -68,8 +68,8 @@ void tslist_pop_back() {
 	list.push_back(2);
 	int i = list.pop_back();
 
-	assert(i == 2);
-	assert(list.back() == 0);
+	ASSERT(i == 2);
+	ASSERT(list.back() == 0);
 }
 
 void tslist_clear() {
@@ -79,7 +79,7 @@ void tslist_clear() {
 	list.push_back(2);
 	list.clear();
 
-	assert(list.empty() == true);
+	ASSERT(list.empty() == true);
 }
 
 void tslist_empty() {
@@ -88,11 +88,11 @@ void tslist_empty() {
 	list.push_back(0);
 	list.push_back(2);
 
-	assert(list.empty() == false);
+	ASSERT(list.empty() == false);
 
 	list.clear();
 
-	assert(list.empty() == true);
+	ASSERT(list.empty() == true);
 }
 
 void tslist_count() {
@@ -101,7 +101,7 @@ void tslist_count() {
 	list.push_back(0);
 	list.push_back(2);
 
-	assert(list.count() == 3);
+	ASSERT(list.count() == 3);
 }
 
 void tslist_foreach() {
@@ -126,9 +126,9 @@ void tslist_foreach() {
 		i++;
 	});
 
-	assert(list.pop_front() == 2);
-	assert(list.pop_front() == 1);
-	assert(list.pop_front() == 3);
+	ASSERT(list.pop_front() == 2);
+	ASSERT(list.pop_front() == 1);
+	ASSERT(list.pop_front() == 3);
 
 	return;
 }

@@ -1,20 +1,19 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
 #include "libnetwrk.hpp"
-
-#include <cassert>
+#include "utilities_assert.hpp"
 
 using namespace libnetwrk::net::tcp;
 
 void tcp_client_create() {
 	tcp_client<int> client;
 
-	assert(client.connected() == false);
+	ASSERT(client.connected() == false);
 }
 
 void tcp_client_connect_fail() {
 	tcp_client<int> client;
 
-	assert(client.connect("127.0.0.1", 21205) == false);
+	ASSERT(client.connect("127.0.0.1", 21205) == false);
 }
 
 void run_all_tests() {

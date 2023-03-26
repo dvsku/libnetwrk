@@ -1,40 +1,39 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
 #include "libnetwrk.hpp"
-
-#include <cassert>
+#include "utilities_assert.hpp"
 
 using namespace libnetwrk::net::tcp;
 
 void tcp_server_create() {
 	tcp_server<int> server;
 
-	assert(server.running() == false);
+	ASSERT(server.running() == false);
 }
 
 void tcp_server_start_async() {
 	tcp_server<int> server;
 	
-	assert(server.start("127.0.0.1", 21205) == true);
-	assert(server.running() == true);
+	ASSERT(server.start("127.0.0.1", 21205) == true);
+	ASSERT(server.running() == true);
 }
 
 void tcp_server_start_async_twice() {
 	tcp_server<int> server;
 
-	assert(server.start("127.0.0.1", 21205) == true);
-	assert(server.start("127.0.0.1", 21205) == false);
-	assert(server.running() == true);
+	ASSERT(server.start("127.0.0.1", 21205) == true);
+	ASSERT(server.start("127.0.0.1", 21205) == false);
+	ASSERT(server.running() == true);
 }
 
 void tcp_server_stop() {
 	tcp_server<int> server;
 	server.start("127.0.0.1", 21205);
 
-	assert(server.running() == true);
+	ASSERT(server.running() == true);
 
 	server.stop();
 
-	assert(server.running() == false);
+	ASSERT(server.running() == false);
 }
 
 int main(int argc, char* argv[]) {

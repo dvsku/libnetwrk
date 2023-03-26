@@ -1,7 +1,6 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
 #include "libnetwrk.hpp"
-
-#include <cassert>
+#include "utilities_assert.hpp"
 
 using namespace libnetwrk::net::common;
 
@@ -37,7 +36,7 @@ void serialize_deserialize_simple_struct() {
 	buff = ss1.serialize();
 	ss2.deserialize(buff);
 	
-	assert(ss1.equals(ss2) == true);
+	ASSERT(ss1.equals(ss2));
 }
 
 int main(int argc, char* argv[]) {

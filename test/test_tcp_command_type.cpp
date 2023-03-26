@@ -1,10 +1,9 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
 #include "libnetwrk.hpp"
+#include "utilities_assert.hpp"
 
 #include <thread>
 #include <chrono>
-
-#include <cassert>
 
 using namespace libnetwrk::net::tcp;
 using namespace libnetwrk::net;
@@ -86,10 +85,10 @@ void t_commands_uint8() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,10 +168,10 @@ void t_commands_uint16() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -252,10 +251,10 @@ void t_commands_uint32() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -335,10 +334,10 @@ void t_commands_uint64() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -418,10 +417,10 @@ void t_commands_int8() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -501,10 +500,10 @@ void t_commands_int16() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -584,10 +583,10 @@ void t_commands_int32() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -667,10 +666,10 @@ void t_commands_int64() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -739,10 +738,10 @@ void t_commands_float() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -811,10 +810,10 @@ void t_commands_double() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -883,10 +882,10 @@ void t_commands_string() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 int main(int argc, char* argv[]) {

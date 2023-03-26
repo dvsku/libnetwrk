@@ -1,10 +1,9 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
 #include "libnetwrk.hpp"
+#include "utilities_assert.hpp"
 
 #include <thread>
 #include <chrono>
-
-#include <cassert>
 
 using namespace libnetwrk::net::tcp;
 using namespace libnetwrk::net;
@@ -121,7 +120,7 @@ void service_connect() {
 	test_client client;
 	bool connected = client.connect("127.0.0.1", 21205);
 
-	assert(connected == true);
+	ASSERT(connected == true);
 }
 
 void service_client_hello() {
@@ -135,7 +134,7 @@ void service_client_hello() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.client_said_hello == true);
+	ASSERT(server.client_said_hello == true);
 }
 
 void service_echo() {
@@ -149,10 +148,10 @@ void service_echo() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.client_said_echo == true);
+	ASSERT(server.client_said_echo == true);
 
 	client.wait_for_msg();
-	assert(client.server_said_echo == true);
+	ASSERT(client.server_said_echo == true);
 }
 
 void service_ping_pong() {
@@ -167,10 +166,10 @@ void service_ping_pong() {
 	client.send(msg);
 
 	server.wait_for_msg();
-	assert(server.ping == "PiNg");
+	ASSERT(server.ping == "PiNg");
 
 	client.wait_for_msg();
-	assert(client.pong == "pOnG");
+	ASSERT(client.pong == "pOnG");
 }
 
 void service_broadcast() {
@@ -178,22 +177,22 @@ void service_broadcast() {
 	server.start("127.0.0.1", 21205);
 
 	test_client client1;
-	assert(client1.connect("127.0.0.1", 21205) == true);
+	ASSERT(client1.connect("127.0.0.1", 21205) == true);
 
 	test_client client2;
-	assert(client2.connect("127.0.0.1", 21205) == true);
+	ASSERT(client2.connect("127.0.0.1", 21205) == true);
 
 	message<commands> msg(commands::c2s_broadcast);
 	client1.send(msg);
 
 	server.wait_for_msg();
-	assert(server.client_said_broadcast == true);
+	ASSERT(server.client_said_broadcast == true);
 
 	client1.wait_for_msg();
-	assert(client1.server_said_broadcast == true);
+	ASSERT(client1.server_said_broadcast == true);
 
 	client2.wait_for_msg();
-	assert(client2.server_said_broadcast == true);
+	ASSERT(client2.server_said_broadcast == true);
 }
 
 int main(int argc, char* argv[]) {
