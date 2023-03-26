@@ -7,6 +7,7 @@
 #include "libnetwrk/net/common/containers/buffer.hpp"
 #include "libnetwrk/net/type_traits.hpp"
 #include "libnetwrk/net/definitions.hpp"
+#include "libnetwrk/net/macros.hpp"
 
 namespace libnetwrk::net {
     template <typename command_type,
@@ -68,10 +69,16 @@ namespace libnetwrk::net {
             buffer_t m_head_data, m_data;
 
             message() {
+                LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
+                    "message command_type template arg can only be an enum");
+
                 m_head_data.resize(m_head.serialize().size());
             }
 
             message(command_type command) {
+                LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
+                    "message command_type template arg can only be an enum");
+
                 m_head.m_command = command;
                 m_head_data.resize(m_head.serialize().size());
             }

@@ -3,11 +3,13 @@
 
 #include <thread>
 #include <exception>
+#include <type_traits>
 
 #include "libnetwrk/net/message.hpp"
 #include "libnetwrk/net/common/containers/tsdeque.hpp"
 #include "libnetwrk/net/tcp/tcp_connection.hpp"
 #include "libnetwrk/net/definitions.hpp"
+#include "libnetwrk/net/macros.hpp"
 
 namespace libnetwrk::net::tcp {
 	template <typename command_type, 
@@ -37,6 +39,9 @@ namespace libnetwrk::net::tcp {
 
 		public:
 			tcp_client() {
+				LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
+					"client command_type template arg can only be an enum");
+
 				try {
 					m_context = std::make_shared<asio::io_context>(1);
 				}

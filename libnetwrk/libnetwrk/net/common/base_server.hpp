@@ -1,7 +1,10 @@
 #ifndef LIBNETWRK_NET_COMMON_BASE_SERVER_HPP
 #define LIBNETWRK_NET_COMMON_BASE_SERVER_HPP
 
+#include <type_traits>
+
 #include "libnetwrk/net/definitions.hpp"
+#include "libnetwrk/net/macros.hpp"
 #include "libnetwrk/net/message.hpp"
 #include "libnetwrk/net/common/containers/tsdeque.hpp"
 #include "libnetwrk/net/common/base_connection.hpp"
@@ -37,6 +40,9 @@ namespace libnetwrk::net::common {
 
 		public:
 			base_server(const std::string& name = "base server") {
+				LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
+					"server command_type template arg can only be an enum");
+
 				m_name = name;
 
 				try {
