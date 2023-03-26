@@ -2,10 +2,7 @@
   <h1>libnetwrk</h1>
     <p>
     <a href="#">
-      <img src="https://img.shields.io/github/actions/workflow/status/dvsku/libnetwrk/build.yml?branch=main"/>
-    </a>
-    <a href="#">
-      <img src="https://img.shields.io/github/actions/workflow/status/dvsku/libnetwrk/tests.yml?branch=main&label=tests"/>
+      <img src="https://img.shields.io/github/actions/workflow/status/dvsku/libnetwrk/build.yml?branch=main&label=build%20and%20tests"/>
     </a>
     <a href="#">
       <img src="https://img.shields.io/github/downloads/dvsku/libnetwrk/total"/>
