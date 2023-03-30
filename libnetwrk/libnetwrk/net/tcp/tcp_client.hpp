@@ -3,12 +3,8 @@
 
 #include <thread>
 #include <exception>
-#include <type_traits>
 
 #include "libnetwrk/net/definitions.hpp"
-#include "libnetwrk/net/message.hpp"
-#include "libnetwrk/net/macros.hpp"
-#include "libnetwrk/net/common/containers/tsdeque.hpp"
 #include "libnetwrk/net/common/base_client.hpp"
 #include "libnetwrk/net/tcp/tcp_connection.hpp"
 

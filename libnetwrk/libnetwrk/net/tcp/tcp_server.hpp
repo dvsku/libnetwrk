@@ -7,7 +7,6 @@
 #include "libnetwrk/net/definitions.hpp"
 #include "libnetwrk/net/common/base_server.hpp"
 #include "libnetwrk/net/tcp/tcp_connection.hpp"
-#include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
 
 namespace libnetwrk::net::tcp {
 	template <typename command_type, 
@@ -22,12 +21,13 @@ namespace libnetwrk::net::tcp {
 
 			typedef libnetwrk::net::common::base_connection<command_type, serializer, storage> base_connection_t;
 			typedef std::shared_ptr<base_connection_t> base_connection_t_ptr;
-			typedef tcp_connection<command_type, serializer, storage> tcp_connection_t;
-			typedef std::shared_ptr<tcp_connection_t> tcp_connection_t_ptr;
+			typedef base_connection_t_ptr client_ptr;
 
 			typedef command_type cmd_t;
 
 		private:
+			typedef tcp_connection<command_type, serializer, storage> tcp_connection_t;
+			typedef std::shared_ptr<tcp_connection_t> tcp_connection_t_ptr;
 			typedef libnetwrk::net::common::base_server<command_type, serializer, storage> base;
 
 		protected:
@@ -53,17 +53,13 @@ namespace libnetwrk::net::tcp {
 			}
 
 		protected:
-			virtual void on_message(owned_message_t& msg) override {
-				return;
-			}
+			virtual void on_message(owned_message_t& msg) override {}
 
-			virtual bool on_client_connect(base_connection_t_ptr client) override {
+			virtual bool on_client_connect(client_ptr client) override {
 				return true;
 			}
 
-			virtual void on_client_disconnect(base_connection_t_ptr client) override {
-				return;
-			}
+			virtual void on_client_disconnect(client_ptr client) override {}
 
 			bool _start(const char* host, const unsigned short port) override {
 				try {

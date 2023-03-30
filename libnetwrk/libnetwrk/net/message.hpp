@@ -131,9 +131,10 @@ namespace libnetwrk::net {
             typedef message<command_type, serializer> message_t;
             typedef libnetwrk::net::common::base_connection<command_type, serializer, storage> base_connection_t;
             typedef std::shared_ptr<base_connection_t> base_connection_t_ptr;
+            typedef base_connection_t_ptr client_ptr;
 
             message_t m_msg;
-            base_connection_t_ptr m_client;
+            client_ptr m_client;
     };
 }
 

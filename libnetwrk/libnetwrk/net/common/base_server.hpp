@@ -22,6 +22,7 @@ namespace libnetwrk::net::common {
 
 			typedef base_connection<command_type, serializer, storage> base_connection_t;
 			typedef std::shared_ptr<base_connection_t> base_connection_t_ptr;
+			typedef base_connection_t_ptr client_ptr;
 
 			// function with signature: bool f(const storage&)
 			typedef std::function<bool(const storage&)> send_condition;
@@ -143,7 +144,7 @@ namespace libnetwrk::net::common {
 			/// </summary>
 			/// <param name="client">: client to send to</param>
 			/// <param name="message">: message to send</param>
-			void send(base_connection_t_ptr& client, message_t& message) {
+			void send(client_ptr& client, message_t& message) {
 				_send(client, std::make_shared<message_t>(std::move(message)));
 			}
 
@@ -199,24 +200,20 @@ namespace libnetwrk::net::common {
 			};
 
 		protected:
-			virtual void on_message(owned_message_t& msg) {
-				return;
-			}
+			virtual void on_message(owned_message_t& msg) {}
 
-			virtual bool on_client_connect(base_connection_t_ptr client) {
+			virtual bool on_client_connect(client_ptr client) {
 				return true;
 			}
 
-			virtual void on_client_disconnect(base_connection_t_ptr client) {
-				return;
-			}
+			virtual void on_client_disconnect(client_ptr client) {}
 
 			virtual bool _start(const char* host, const unsigned short port) = 0;
 
 			virtual void _accept() = 0;
 
 		private:
-			void _send(base_connection_t_ptr& client, const message_t_ptr& message) {
+			void _send(client_ptr& client, const message_t_ptr& message) {
 				if (client && client->is_alive()) {
 					client->send(message);
 				}
