@@ -24,8 +24,8 @@ namespace libnetwrk::net::common {
 			typedef std::shared_ptr<base_connection_t> base_connection_t_ptr;
 			typedef base_connection_t_ptr client_ptr;
 
-			// function with signature: bool f(const storage&)
-			typedef std::function<bool(const storage&)> send_condition;
+			// function with signature: bool f(const client_ptr&)
+			typedef std::function<bool(const client_ptr&)> send_condition;
 
 		protected:
 			std::string m_name;
@@ -173,7 +173,7 @@ namespace libnetwrk::net::common {
 
 				for (auto& client : m_connections) {
 					if (client)
-						if (condition(client->get_storage()))
+						if (condition(client))
 							_send(client, ptr);
 				}
 			}
