@@ -38,14 +38,7 @@ namespace libnetwrk::net::common {
 				LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
 					"client command_type template arg can only be an enum");
 				
-				m_name = name;
-
-				try {
-					m_context = std::make_shared<asio::io_context>(1);
-				}
-				catch (const std::exception& e) {
-					LIBNETWRK_ERROR("failed to create tcp_client | %s", e.what());
-				}
+				m_name = name;	
 			}
 
 			virtual ~base_client() {
@@ -58,6 +51,17 @@ namespace libnetwrk::net::common {
 			/// <returns>true if connected, false if disconnected</returns>
 			bool connected() {
 				return m_connected;
+			}
+
+			/// <summary>
+			/// Connect to TCP server
+			/// </summary>
+			/// <param name="host">: IPv4 address</param>
+			/// <param name="port">: port</param>
+			/// <returns>true if connected, false if not</returns>
+			bool connect(const char* host, const unsigned short port) {
+				if (m_connected) return false;
+				return _connect(host, port);
 			}
 
 			/// <summary>
@@ -83,16 +87,6 @@ namespace libnetwrk::net::common {
 					m_process_messages_thread.join();
 
 				LIBNETWRK_INFO("%s stopped", m_name.c_str());
-			}
-
-			/// <summary>
-			/// Connect to TCP server
-			/// </summary>
-			/// <param name="host">: IPv4 address</param>
-			/// <param name="port">: port</param>
-			/// <returns>true if connected, false if not</returns>
-			bool connect(const char* host, const unsigned short port) {
-				return _connect(host, port);
 			}
 
 			/// <summary>

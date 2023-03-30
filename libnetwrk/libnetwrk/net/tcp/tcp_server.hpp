@@ -27,6 +27,9 @@ namespace libnetwrk::net::tcp {
 
 			typedef command_type cmd_t;
 
+		private:
+			typedef libnetwrk::net::common::base_server<command_type, serializer, storage> base;
+
 		protected:
 			acceptor_ptr m_acceptor;
 
@@ -46,7 +49,7 @@ namespace libnetwrk::net::tcp {
 					if (m_acceptor->is_open())
 						m_acceptor->close();
 
-				libnetwrk::net::common::base_server<command_type, serializer, storage>::stop();
+				base::stop();
 			}
 
 		protected:
@@ -63,21 +66,21 @@ namespace libnetwrk::net::tcp {
 			}
 
 			bool _start(const char* host, const unsigned short port) override {
-				if (this->m_running)
-					return false;
-
 				try {
+					// Create ASIO context
+					base::m_context = std::make_shared<asio::io_context>(1);
+
 					// Create ASIO acceptor
 					m_acceptor = std::make_shared<asio::ip::tcp::acceptor>
-						(*(this->m_context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
+						(*(base::m_context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
 
 					// Start listening for and accepting connections
 					_accept();
 
 					// Start ASIO context
-					this->m_context_thread = std::thread([&] { this->m_context->run(); });
+					base::m_context_thread = std::thread([this] { base::m_context->run(); });
 
-					this->m_running = true;
+					base::m_running = true;
 
 					LIBNETWRK_INFO("listening for connections on %s:%d", host, port);
 				}
@@ -106,15 +109,15 @@ namespace libnetwrk::net::tcp {
 							tcp_connection_t_ptr new_connection =
 								std::make_shared<tcp_connection_t>(
 									libnetwrk::net::common::connection_owner::server,
-									std::move(socket), this->context(), this->m_incoming_messages);
+									std::move(socket), base::context(), base::m_incoming_messages);
 
 							if (on_client_connect(new_connection)) {
-								this->m_connections.push_back(new_connection);
-								this->m_connections.back()->start();
+								base::m_connections.push_back(new_connection);
+								base::m_connections.back()->start();
 
 								LIBNETWRK_INFO("connection success from %s:%d", 
-									this->m_connections.back()->remote_address().c_str(),
-									this->m_connections.back()->remote_port());
+									base::m_connections.back()->remote_address().c_str(),
+									base::m_connections.back()->remote_port());
 							}
 							else {
 								LIBNETWRK_WARNING("connection denied");

@@ -44,13 +44,6 @@ namespace libnetwrk::net::common {
 					"server command_type template arg can only be an enum");
 
 				m_name = name;
-
-				try {
-					m_context = std::make_shared<asio::io_context>(1);
-				}
-				catch (const std::exception& e) {
-					LIBNETWRK_ERROR("failed to create %s | %s", m_name.c_str(), e.what());
-				}
 			}
 
 			/// <summary>
@@ -76,6 +69,7 @@ namespace libnetwrk::net::common {
 			/// <param name="port">: port</param>
 			/// <returns>true if started, false if failed to start</returns>
 			bool start(const char* host, const unsigned short port) {
+				if (m_running) return false;
 				return _start(host, port);
 			}
 

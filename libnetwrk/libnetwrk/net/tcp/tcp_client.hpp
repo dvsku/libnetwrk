@@ -43,10 +43,10 @@ namespace libnetwrk::net::tcp {
 
 		private:
 			bool _connect(const char* host, const unsigned short port) override {
-				if (base::m_connected)
-					return false;
-
 				try {
+					// Create ASIO context
+					base::m_context = std::make_shared<asio::io_context>(1);
+
 					// Create ASIO endpoint
 					asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
 
@@ -65,7 +65,7 @@ namespace libnetwrk::net::tcp {
 					base::m_connection->start();
 
 					// Start ASIO context
-					base::m_context_thread = std::thread([&] { base::m_context->run(); });
+					base::m_context_thread = std::thread([this] { base::m_context->run(); });
 
 					base::m_connected = true;
 
