@@ -33,3 +33,9 @@
 
 .vs/
 out/
+
+test/
+examples/
+.github/
+CMakeLists.txt
+CMakeSettings.json
