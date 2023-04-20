@@ -34,6 +34,10 @@ namespace libnetwrk::net::common {
 			// Element access
 			///////////////////////////////////////////////////////////////////
 
+			std::vector<uint8_t>& container() {
+				return m_data;
+			}
+
 			const uint8_t& operator [] (const size_t pos) const {
 				return m_data[pos];
 			}
