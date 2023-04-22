@@ -203,10 +203,6 @@ namespace libnetwrk::net::common {
 		protected:
 			virtual void on_message(owned_message_t& msg) {}
 
-			virtual bool on_client_connect(client_ptr client) {
-				return true;
-			}
-
 			virtual void on_client_disconnect(client_ptr client) {}
 
 			virtual bool _start(const char* host, const unsigned short port) = 0;

@@ -54,14 +54,6 @@ class test_service : public tcp_server<commands> {
 			}
 		}
 
-		bool on_client_connect(base_connection_t_ptr client) override {
-			return true;
-		}
-
-		void on_client_disconnect(base_connection_t_ptr client) override {
-
-		}
-
 		void wait_for_msg(const int timeout = 30) {
 			int tries = 0;
 			while (tries < timeout) {

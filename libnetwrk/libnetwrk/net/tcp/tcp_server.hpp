@@ -55,9 +55,11 @@ namespace libnetwrk::net::tcp {
 		protected:
 			virtual void on_message(owned_message_t& msg) override {}
 
-			virtual bool on_client_connect(client_ptr client) override {
+			virtual bool on_before_client_connect(client_ptr client) {
 				return true;
 			}
+
+			virtual void on_client_connect(client_ptr client) {}
 
 			virtual void on_client_disconnect(client_ptr client) override {}
 
@@ -107,10 +109,11 @@ namespace libnetwrk::net::tcp {
 									libnetwrk::net::common::connection_owner::server,
 									std::move(socket), base::context(), base::m_incoming_messages);
 
-							if (on_client_connect(new_connection)) {
+							if (on_before_client_connect(new_connection)) {
 								base::m_connections.push_back(new_connection);
 								base::m_connections.back()->id() = ++base::m_id_counter;
 								base::m_connections.back()->start();
+								on_client_connect(new_connection);
 
 								LIBNETWRK_INFO("connection success from %s:%d", 
 									base::m_connections.back()->remote_address().c_str(),
