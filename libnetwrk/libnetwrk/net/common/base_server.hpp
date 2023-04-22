@@ -30,6 +30,7 @@ namespace libnetwrk::net::common {
 		protected:
 			std::string m_name;
 			bool m_running = false;
+			uint64_t m_id_counter = 0;
 
 			context_ptr m_context;
 			libnetwrk::net::common::tsdeque<owned_message_t> m_incoming_messages;
