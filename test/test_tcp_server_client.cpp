@@ -71,6 +71,10 @@ class test_service : public tcp_server<commands> {
 				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			}
 		}
+
+		bool is_correct_id(uint32_t index, uint64_t id) {
+			return m_connections[index]->id() == id;
+		}
 };
 
 class test_client : public tcp_client<commands> {
@@ -181,6 +185,9 @@ void service_broadcast() {
 
 	test_client client2;
 	ASSERT(client2.connect("127.0.0.1", 21205) == true);
+
+	ASSERT(server.is_correct_id(0, 1));
+	ASSERT(server.is_correct_id(1, 2));
 
 	message<commands> msg(commands::c2s_broadcast);
 	client1.send(msg);

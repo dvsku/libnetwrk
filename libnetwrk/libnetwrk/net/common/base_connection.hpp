@@ -35,6 +35,8 @@ namespace libnetwrk::net::common {
 
 			message_t m_temp_message;
 
+			uint64_t m_id;
+
 			uint32_t m_verification_ans;		// Correct verification answer, server only
 			uint32_t m_verification_code;
 
@@ -54,6 +56,13 @@ namespace libnetwrk::net::common {
 			/// <returns>storage</returns>
 			storage& get_storage() {
 				return m_storage;
+			}
+
+			/// <summary>
+			/// Get connection id
+			/// </summary>
+			uint64_t& id() {
+				return m_id;
 			}
 
 			/// <summary>

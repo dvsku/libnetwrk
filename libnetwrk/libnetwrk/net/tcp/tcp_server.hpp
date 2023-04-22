@@ -109,6 +109,7 @@ namespace libnetwrk::net::tcp {
 
 							if (on_client_connect(new_connection)) {
 								base::m_connections.push_back(new_connection);
+								base::m_connections.back()->id() = ++base::m_id_counter;
 								base::m_connections.back()->start();
 
 								LIBNETWRK_INFO("connection success from %s:%d", 
