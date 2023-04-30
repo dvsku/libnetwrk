@@ -2,6 +2,7 @@
 #define LIBNETWRK_NET_MESSAGE_HPP
 
 #include <type_traits>
+#include <chrono>
 
 #include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
 #include "libnetwrk/net/common/containers/buffer.hpp"
@@ -17,9 +18,11 @@ namespace libnetwrk::net {
         typedef libnetwrk::net::common::buffer<serializer> buffer_t;
 
         command_type m_command{};
-        uint32_t m_data_len;
+        uint32_t m_data_len = 0;
+        uint64_t m_send_timestamp = 0;
+        uint64_t m_receive_timestamp = 0;
 
-        message_head() : m_data_len(0) {}
+        message_head() {}
 
         message_head(const message_head_t& head) = default;
         message_head_t& operator= (const message_head_t& head) = default;
@@ -27,18 +30,26 @@ namespace libnetwrk::net {
         message_head(message_head_t&& head) noexcept {
             m_command = head.m_command;
             m_data_len = head.m_data_len;
+            m_send_timestamp = head.m_send_timestamp;
+            m_receive_timestamp = head.m_receive_timestamp;
 
             head.m_command = command_type{};
             head.m_data_len = 0;
+            head.m_send_timestamp = 0;
+            head.m_receive_timestamp = 0;
         };
 
         message_head_t& operator= (message_head_t&& head) noexcept {
             if (this != &head) {
                 m_command = head.m_command;
                 m_data_len = head.m_data_len;
+                m_send_timestamp = head.m_send_timestamp;
+                m_receive_timestamp = head.m_receive_timestamp;
 
                 head.m_command = command_type{};
                 head.m_data_len = 0;
+                head.m_send_timestamp = 0;
+                head.m_receive_timestamp = 0;
             }
             return *this;
         };
@@ -49,12 +60,12 @@ namespace libnetwrk::net {
 
         buffer_t serialize() const override {
             buffer_t buffer;
-            buffer << m_command << m_data_len;
+            buffer << m_command << m_send_timestamp << m_data_len;
             return buffer;
         }
 
         void deserialize(buffer_t serialized) override {
-            serialized >> m_command >> m_data_len;
+            serialized >> m_command >> m_send_timestamp >> m_data_len;
         }
     };
     
@@ -89,6 +100,11 @@ namespace libnetwrk::net {
 
             message_t& operator= (const message_t& msg) = default;
             message_t& operator= (message_t&& msg) = default;
+
+            std::chrono::milliseconds latency() {
+                return std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::milliseconds(m_head.m_send_timestamp) - std::chrono::milliseconds(m_head.m_receive_timestamp));
+            }
 
             ///////////////////////////////////////////////////////////////////
             //  SERIALIZE
