@@ -97,6 +97,9 @@ namespace libnetwrk::net::tcp {
 			}
 
 			void write_message_head() override {
+				this->m_outgoing_messages.front()->m_head.m_send_timestamp =
+					std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
 				this->m_outgoing_messages.front()->m_head_data =
 					this->m_outgoing_messages.front()->m_head.serialize();
 				

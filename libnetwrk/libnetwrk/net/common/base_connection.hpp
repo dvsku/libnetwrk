@@ -160,6 +160,9 @@ namespace libnetwrk::net::common {
 				if (!ec) {
 					m_temp_message.m_head.deserialize(m_temp_message.m_head_data);
 
+					m_temp_message.m_head.m_receive_timestamp =
+						std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
 					// MESSAGE HAS A BODY
 					if (m_temp_message.m_head.m_data_len > 0) {
 						m_temp_message.m_data.resize(m_temp_message.m_head.m_data_len);
