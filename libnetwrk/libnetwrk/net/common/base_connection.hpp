@@ -83,7 +83,7 @@ namespace libnetwrk::net::common {
 
 			virtual const unsigned short remote_port() = 0;
 
-			virtual void stop() = 0;
+			virtual void stop() {};
 
 			virtual bool is_alive() = 0;
 
@@ -125,10 +125,12 @@ namespace libnetwrk::net::common {
 			virtual void write_message_body() = 0;
 
 			virtual void on_disconnect() {
+				stop();
 				LIBNETWRK_INFO("client disconnected");
 			}
 
 			virtual void on_error(std::error_code ec) {
+				stop();
 				LIBNETWRK_ERROR("failed during read/write | %s", ec.message().c_str());
 			}
 
