@@ -102,7 +102,7 @@ namespace libnetwrk::net {
             message_t& operator= (message_t&& msg) = default;
 
             /// <summary>
-            /// Get milliseconds it took from sending to receiving.
+            /// Get milliseconds it took from sending the message to receiving the message.
             /// </summary>
             std::chrono::milliseconds latency() {
                 return std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -110,11 +110,11 @@ namespace libnetwrk::net {
             }
 
             /// <summary>
-            /// Get milliseconds it took from sending to a relative timestamp.
+            /// Get milliseconds it took from receiving the message to a relative timestamp.
             /// </summary>
             std::chrono::milliseconds latency(uint64_t timestamp) {
                 return std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::milliseconds(m_head.m_send_timestamp) - std::chrono::milliseconds(timestamp));
+                    std::chrono::milliseconds(m_head.m_receive_timestamp) - std::chrono::milliseconds(timestamp));
             }
 
             ///////////////////////////////////////////////////////////////////
