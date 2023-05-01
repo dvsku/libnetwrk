@@ -19,7 +19,7 @@ namespace libnetwrk::net::common {
 
 		protected:
 			std::vector<uint8_t> m_data;
-			uint32_t m_offset = 0;
+			size_t m_offset = 0;
 
 		public:
 			buffer() {
