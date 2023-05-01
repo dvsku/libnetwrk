@@ -36,6 +36,7 @@ namespace libnetwrk::net::common {
 			libnetwrk::net::common::tsdeque<owned_message_t> m_incoming_messages;
 
 			std::deque<base_connection_t_ptr> m_connections;
+			std::mutex m_connections_mutex;
 
 			std::thread m_context_thread;
 			std::thread m_process_messages_thread;
@@ -158,6 +159,7 @@ namespace libnetwrk::net::common {
 			void send_all(message_t& message) {
 				message_t_ptr ptr = std::make_shared<message_t>(std::move(message));
 				
+				libnetwrk_guard guard(m_connections_mutex);
 				for (auto& client : m_connections)
 					_send(client, ptr);
 			}
@@ -172,6 +174,7 @@ namespace libnetwrk::net::common {
 			void send_all(message_t& message, send_condition condition) {
 				message_t_ptr ptr = std::make_shared<message_t>(std::move(message));
 
+				libnetwrk_guard guard(m_connections_mutex);
 				for (auto& client : m_connections) {
 					if (client)
 						if (condition(client))

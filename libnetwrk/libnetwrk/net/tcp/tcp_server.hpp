@@ -110,6 +110,8 @@ namespace libnetwrk::net::tcp {
 									std::move(socket), base::context(), base::m_incoming_messages);
 
 							if (on_before_client_connect(new_connection)) {
+								libnetwrk_guard guard(base::m_connections_mutex);
+
 								base::m_connections.push_back(new_connection);
 								base::m_connections.back()->id() = ++base::m_id_counter;
 								base::m_connections.back()->start();
