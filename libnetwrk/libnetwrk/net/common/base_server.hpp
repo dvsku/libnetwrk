@@ -49,6 +49,8 @@ namespace libnetwrk::net::common {
 				m_name = name;
 			}
 
+			virtual ~base_server() {}
+
 			/// <summary>
 			/// Get ASIO io_context
 			/// </summary>
@@ -186,6 +188,8 @@ namespace libnetwrk::net::common {
 			/// Stop server
 			/// </summary>
 			virtual void stop() {
+				if (!m_running) return;
+
 				m_running = false;
 
 				if (m_context)

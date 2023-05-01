@@ -69,12 +69,12 @@ namespace libnetwrk::net::tcp {
 				}
 				catch (const std::exception& e) {
 					LIBNETWRK_ERROR("failed to connect | %s", e.what());
-					base::stop();
+					base::teardown();
 					return false;
 				}
 				catch (...) {
 					LIBNETWRK_ERROR("failed to connect | fatal error");
-					base::stop();
+					base::teardown();
 					return false;
 				}
 

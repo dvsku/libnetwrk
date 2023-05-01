@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
 		client.send(msg);
 	}
 
-	client.stop();
+	client.disconnect();
 
 	return 0;
 }

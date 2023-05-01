@@ -42,7 +42,7 @@ namespace libnetwrk::net::common {
 			}
 
 			virtual ~base_client() {
-				stop();
+				disconnect();
 			}
 
 			/// <summary>
@@ -65,28 +65,15 @@ namespace libnetwrk::net::common {
 			}
 
 			/// <summary>
-			/// Stop the client and clean up
+			/// Disconnect the client and clean up
 			/// </summary>
-			void stop() {
+			void disconnect() {
+				if (!m_connected) return;
+
 				m_connected = false;
+				teardown();
 
-				if (m_context)
-					if (!m_context->stopped())
-						m_context->stop();
-
-				if (m_connection)
-					if (m_connection->is_alive())
-						m_connection->stop();
-
-				m_incoming_messages.cancel_wait();
-
-				if (m_context_thread.joinable())
-					m_context_thread.join();
-
-				if (m_process_messages_thread.joinable())
-					m_process_messages_thread.join();
-
-				LIBNETWRK_INFO("%s stopped", m_name.c_str());
+				LIBNETWRK_INFO("%s disconnected", m_name.c_str());
 			}
 
 			/// <summary>
@@ -139,7 +126,7 @@ namespace libnetwrk::net::common {
 					}
 					else {
 						on_disconnect();
-						stop();
+						disconnect();
 					}
 				}
 			}
@@ -148,6 +135,24 @@ namespace libnetwrk::net::common {
 			virtual void on_message(message_t& msg) {}
 
 			virtual void on_disconnect() {}
+
+			void teardown() {
+				if (m_context)
+					if (!m_context->stopped())
+						m_context->stop();
+
+				if (m_connection)
+					if (m_connection->is_alive())
+						m_connection->stop();
+
+				m_incoming_messages.cancel_wait();
+
+				if (m_context_thread.joinable())
+					m_context_thread.join();
+
+				if (m_process_messages_thread.joinable())
+					m_process_messages_thread.join();
+			}
 
 			virtual bool _connect(const char* host, const unsigned short port) {
 				return false;
