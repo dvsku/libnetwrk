@@ -65,7 +65,11 @@ class test_service : public tcp_server<commands> {
 		}
 
 		bool is_correct_id(uint32_t index, uint64_t id) {
-			return m_connections[index]->id() == id;
+			if (index > m_connections.size() - 1) return false;
+
+			auto front = m_connections.begin();
+			std::advance(front, index);
+			return (*front)->id() == id;
 		}
 };
 

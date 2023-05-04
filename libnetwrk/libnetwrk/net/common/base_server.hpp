@@ -2,6 +2,7 @@
 #define LIBNETWRK_NET_COMMON_BASE_SERVER_HPP
 
 #include <type_traits>
+#include <list>
 
 #include "libnetwrk/net/definitions.hpp"
 #include "libnetwrk/net/macros.hpp"
@@ -35,7 +36,7 @@ namespace libnetwrk::net::common {
 			context_ptr m_context;
 			libnetwrk::net::common::tsdeque<owned_message_t> m_incoming_messages;
 
-			std::deque<base_connection_t_ptr> m_connections;
+			std::list<base_connection_t_ptr> m_connections;
 			std::mutex m_connections_mutex;
 
 			std::thread m_context_thread;
