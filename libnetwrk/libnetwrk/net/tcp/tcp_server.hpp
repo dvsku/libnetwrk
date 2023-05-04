@@ -61,7 +61,9 @@ namespace libnetwrk::net::tcp {
 
 			virtual void on_client_connect(client_ptr client) {}
 
-			virtual void on_client_disconnect(client_ptr client) override {}
+			virtual void on_client_disconnect(client_ptr client) override {
+				base::on_client_disconnect(client);
+			}
 
 			bool _start(const char* host, const unsigned short port) override {
 				try {

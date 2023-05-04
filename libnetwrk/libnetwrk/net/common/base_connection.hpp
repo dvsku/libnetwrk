@@ -126,7 +126,6 @@ namespace libnetwrk::net::common {
 
 			virtual void on_disconnect() {
 				stop();
-				LIBNETWRK_INFO("client disconnected");
 			}
 
 			virtual void on_error(std::error_code ec) {

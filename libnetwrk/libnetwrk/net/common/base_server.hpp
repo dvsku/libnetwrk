@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include <list>
+#include <chrono>
 
 #include "libnetwrk/net/definitions.hpp"
 #include "libnetwrk/net/macros.hpp"
@@ -42,6 +43,10 @@ namespace libnetwrk::net::common {
 			std::thread m_context_thread;
 			std::thread m_process_messages_thread;
 
+		private:
+			std::thread m_gc_thread;
+			std::condition_variable m_gc_cv;
+
 		public:
 			base_server(const std::string& name = "base server") {
 				LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
@@ -76,7 +81,12 @@ namespace libnetwrk::net::common {
 			/// <returns>true if started, false if failed to start</returns>
 			bool start(const char* host, const unsigned short port) {
 				if (m_running) return false;
-				return _start(host, port);
+				bool started = _start(host, port);
+
+				if(started)
+					m_gc_thread = std::thread([this] { _gc(); });
+
+				return started;
 			}
 
 			/// <summary>
@@ -205,13 +215,20 @@ namespace libnetwrk::net::common {
 				if (m_process_messages_thread.joinable())
 					m_process_messages_thread.join();
 
+				m_gc_cv.notify_all();
+
+				if (m_gc_thread.joinable())
+					m_gc_thread.join();
+
 				LIBNETWRK_INFO("%s stopped", m_name.c_str());
 			};
 
 		protected:
 			virtual void on_message(owned_message_t& msg) {}
 
-			virtual void on_client_disconnect(client_ptr client) {}
+			virtual void on_client_disconnect(client_ptr client) {
+				LIBNETWRK_INFO("client disconnected");
+			}
 
 			virtual bool _start(const char* host, const unsigned short port) = 0;
 
@@ -219,13 +236,8 @@ namespace libnetwrk::net::common {
 
 		private:
 			void _send(client_ptr& client, const message_t_ptr& message) {
-				if (client && client->is_alive()) {
+				if (client && client->is_alive())
 					client->send(message);
-				}
-				else {
-					on_client_disconnect(client);
-					client.reset();
-				}
 			}
 
 			void _process_messages(size_t max_messages = -1) {
@@ -237,6 +249,28 @@ namespace libnetwrk::net::common {
 						on_message(msg);
 						message_count++;
 					}
+				}
+			}
+
+			void _gc() {
+				while (m_running) {
+					std::unique_lock<std::mutex> guard(m_connections_mutex);
+					
+					auto count = m_connections.remove_if([this](auto& client) {
+						if (client == nullptr) return true;
+
+						if (!client->is_alive()) {
+							on_client_disconnect(client);
+							return true;
+						}
+						
+						return false;
+					});
+
+					if (count)
+						LIBNETWRK_INFO("gc tc: %d rc: %d", m_connections.size(), count);
+
+					m_gc_cv.wait_for(guard, std::chrono::seconds(15));
 				}
 			}
 	};
