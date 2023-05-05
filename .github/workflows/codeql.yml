@@ -1,10 +1,7 @@
-name: "CodeQL"
+name: "codeql"
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   analyze:
