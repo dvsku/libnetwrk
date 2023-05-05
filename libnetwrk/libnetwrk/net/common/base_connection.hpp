@@ -24,22 +24,27 @@ namespace libnetwrk::net::common {
 			typedef base_context<command_type, serializer, storage> base_context_t;
 
 		protected:
+			base_context_t& m_parent_context;
 			tsdeque<message_t_ptr> m_outgoing_messages;
 
+			uint64_t m_id;
 			storage m_storage;
 
 			message_t m_temp_message;
 
-			uint64_t m_id;
-
 			uint32_t m_verification_ans = 0;		// Correct verification answer, server only
 			uint32_t m_verification_code = 0;
 
-			base_context_t& m_parent_context;
-
 		public:
+			base_connection() = delete;
+			base_connection(const base_connection&) = delete;
+			base_connection(base_connection&&) = default;
+
 			base_connection(base_context_t& parent_context) 
 				: m_parent_context(parent_context) {}
+
+			base_connection& operator= (const base_connection&) = delete;
+			base_connection& operator= (base_connection&&) = default;
 
 			/// <summary>
 			/// Get connection storage
@@ -114,8 +119,6 @@ namespace libnetwrk::net::common {
 			virtual void write_message_head() = 0;
 
 			virtual void write_message_body() = 0;
-
-			
 
 			void read_verification_message_callback(std::error_code ec, std::size_t len) {
 				if (!ec) {

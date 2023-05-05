@@ -46,10 +46,17 @@ namespace libnetwrk::net::common {
 			std::condition_variable m_gc_cv;
 
 		public:
+			base_server() = delete;
+			base_server(const base_server&) = delete;
+			base_server(base_server&&) = default;
+
 			base_server(const std::string& name = "base server") : base_context_t(name, connection_owner::server) {
 				LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
 					"server command_type template arg can only be an enum");
 			}
+
+			base_server& operator= (const base_server&) = delete;
+			base_server& operator= (base_server&&) = default;
 
 			virtual ~base_server() {}
 

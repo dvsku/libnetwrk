@@ -32,10 +32,17 @@ namespace libnetwrk::net::common {
 			std::thread m_process_messages_thread;
 
 		public:
+			base_client() = delete;
+			base_client(const base_client&) = delete;
+			base_client(base_client&&) = default;
+
 			base_client(const std::string& name = "base client") : base_context_t(name, connection_owner::client) {
 				LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
 					"client command_type template arg can only be an enum");
 			}
+
+			base_client& operator= (const base_client&) = delete;
+			base_client& operator= (base_client&&) = default;
 
 			virtual ~base_client() {
 				disconnect();
