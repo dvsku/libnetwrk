@@ -4,15 +4,12 @@
 #include <random>
 
 #include "libnetwrk/net/definitions.hpp"
+#include "libnetwrk/net/common/base_context.hpp"
 #include "libnetwrk/net/common/containers/tsdeque.hpp"
 #include "libnetwrk/net/message.hpp"
 #include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
 
 namespace libnetwrk::net::common {
-	enum class connection_owner : unsigned int {
-		server, client
-	};
-
 	template <typename command_type, 
 		typename serializer,
 		typename storage = libnetwrk::nothing>
@@ -20,35 +17,34 @@ namespace libnetwrk::net::common {
 		: public std::enable_shared_from_this<base_connection<command_type, serializer, storage>>
 	{
 		public:
-			typedef message<command_type, serializer> message_t;
-			typedef std::shared_ptr<message_t> message_t_ptr;
-			typedef owned_message<command_type, serializer, storage> owned_message_t;
+			typedef message<command_type, serializer>					message_t;
+			typedef std::shared_ptr<message_t>							message_t_ptr;
+			typedef owned_message<command_type, serializer, storage>	owned_message_t;
+
+			typedef base_context<command_type, serializer, storage> base_context_t;
 
 		protected:
-			context_ptr m_context;
-
-			tsdeque<owned_message_t>& m_incoming_messages;
+			base_context_t& m_parent_context;
 			tsdeque<message_t_ptr> m_outgoing_messages;
 
-			connection_owner m_owner;
+			uint64_t m_id;
 			storage m_storage;
 
 			message_t m_temp_message;
 
-			uint64_t m_id;
-
-			uint32_t m_verification_ans;		// Correct verification answer, server only
-			uint32_t m_verification_code;
+			uint32_t m_verification_ans = 0;		// Correct verification answer, server only
+			uint32_t m_verification_code = 0;
 
 		public:
-			base_connection(connection_owner owner, context_ptr context, tsdeque<owned_message_t>& queue)
-				: m_incoming_messages(queue)
-			{
-				m_context = context;
-				m_owner = owner;
-				m_verification_ans = 0;
-				m_verification_code = 0;
-			};
+			base_connection() = delete;
+			base_connection(const base_connection&) = delete;
+			base_connection(base_connection&&) = default;
+
+			base_connection(base_context_t& parent_context) 
+				: m_parent_context(parent_context) {}
+
+			base_connection& operator= (const base_connection&) = delete;
+			base_connection& operator= (base_connection&&) = default;
 
 			/// <summary>
 			/// Get connection storage
@@ -69,7 +65,7 @@ namespace libnetwrk::net::common {
 			/// Start reading connection messages 
 			/// </summary>
 			void start() {
-				if (m_owner == connection_owner::server) {
+				if (m_parent_context.m_owner == connection_owner::server) {
 					m_verification_code = generate_verification_code();
 					m_verification_ans	= generate_verification_answer(m_verification_code);
 					write_verification_message();
@@ -92,7 +88,7 @@ namespace libnetwrk::net::common {
 			/// </summary>
 			/// <param name="message">ptr to message</param>
 			void send(const message_t_ptr& message) {
-				asio::post(*m_context, [this, message]() {
+				asio::post(*m_parent_context.m_context, [this, message]() {
 					bool was_empty = m_outgoing_messages.empty();
 					m_outgoing_messages.push_back(message);
 
@@ -124,19 +120,9 @@ namespace libnetwrk::net::common {
 
 			virtual void write_message_body() = 0;
 
-			virtual void on_disconnect() {
-				stop();
-				LIBNETWRK_INFO("client disconnected");
-			}
-
-			virtual void on_error(std::error_code ec) {
-				stop();
-				LIBNETWRK_ERROR("failed during read/write | %s", ec.message().c_str());
-			}
-
 			void read_verification_message_callback(std::error_code ec, std::size_t len) {
 				if (!ec) {
-					if (m_owner == connection_owner::server) {
+					if (m_parent_context.m_owner == connection_owner::server) {
 						if (m_verification_code == m_verification_ans) {
 							read_message_head();
 						}
@@ -189,7 +175,7 @@ namespace libnetwrk::net::common {
 
 			void write_verification_message_callback(std::error_code ec, std::size_t len) {
 				if (!ec) {
-					if (m_owner == connection_owner::server)
+					if (m_parent_context.m_owner == connection_owner::server)
 						read_verification_message();
 					else
 						read_message_head();
@@ -235,17 +221,26 @@ namespace libnetwrk::net::common {
 				owned_message_t owned_message;
 				owned_message.m_msg = m_temp_message;
 
-				if (m_owner == connection_owner::server)
+				if (m_parent_context.m_owner == connection_owner::server)
 					owned_message.m_client = this->shared_from_this();
 				else
 					owned_message.m_client = nullptr;
 
-				m_incoming_messages.push_back(owned_message);
+				m_parent_context.m_incoming_messages.push_back(owned_message);
 
 				read_message_head();
 			}
 
 		private:
+			void on_disconnect() {
+				stop();
+			}
+
+			void on_error(std::error_code ec) {
+				stop();
+				LIBNETWRK_ERROR("failed during read/write | %s", ec.message().c_str());
+			}
+
 			uint32_t generate_verification_code() {
 				std::random_device seed;
 				std::default_random_engine generator(seed());

@@ -14,10 +14,16 @@ namespace libnetwrk {
 
 	typedef std::shared_ptr<asio::io_context> context_ptr;
 	typedef std::shared_ptr<asio::ip::tcp::acceptor> acceptor_ptr;
+	typedef std::lock_guard<std::mutex> libnetwrk_guard;
 
 	enum class endpoint : unsigned int {
 		localhost,
 		v4
+	};
+
+	enum class connection_owner : unsigned int {
+		server, 
+		client
 	};
 }
 

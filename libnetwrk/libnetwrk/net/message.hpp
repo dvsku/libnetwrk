@@ -18,7 +18,7 @@ namespace libnetwrk::net {
         typedef libnetwrk::net::common::buffer<serializer> buffer_t;
 
         command_type m_command{};
-        uint32_t m_data_len = 0;
+        size_t m_data_len = 0;
         uint64_t m_send_timestamp = 0;
         uint64_t m_receive_timestamp = 0;
 
