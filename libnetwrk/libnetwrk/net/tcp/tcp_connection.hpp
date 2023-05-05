@@ -13,15 +13,15 @@ namespace libnetwrk::net::tcp {
 		public:
 			typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
 
+			typedef libnetwrk::net::common::base_connection<command_type, serializer, storage> base_connection_t;
+			typedef base_connection_t::base_context_t base_context_t;
+
 		protected:
 			asio::ip::tcp::socket m_socket;
 
 		public:
-			tcp_connection(libnetwrk::net::common::connection_owner owner,
-				asio::ip::tcp::socket socket, context_ptr context,
-				libnetwrk::net::common::tsdeque<owned_message_t>& queue)
-				: libnetwrk::net::common::base_connection<command_type, serializer, storage>(owner, context, queue),
-				m_socket(std::move(socket)) {}
+			tcp_connection(base_context_t& parent_context, asio::ip::tcp::socket socket)
+				: base_connection_t(parent_context), m_socket(std::move(socket)) {}
 
 			/// <summary>
 			/// Get IPv4 address
@@ -54,7 +54,7 @@ namespace libnetwrk::net::tcp {
 
 		protected:
 			void read_verification_message() override {
-				if (this->m_owner == libnetwrk::net::common::connection_owner::server) {
+				if (this->m_parent_context.m_owner == connection_owner::server) {
 					asio::async_read(m_socket, asio::buffer(&this->m_verification_code, sizeof(uint32_t)),
 						std::bind(&tcp_connection::read_verification_message_callback,
 							this, std::placeholders::_1, std::placeholders::_2));
@@ -83,7 +83,7 @@ namespace libnetwrk::net::tcp {
 			}
 
 			void write_verification_message() override {
-				if (this->m_owner == libnetwrk::net::common::connection_owner::server) {
+				if (this->m_parent_context.m_owner == connection_owner::server) {
 					asio::async_write(m_socket, asio::buffer(&this->m_verification_code, sizeof(uint32_t)),
 						std::bind(&tcp_connection::write_verification_message_callback,
 							this, std::placeholders::_1, std::placeholders::_2));

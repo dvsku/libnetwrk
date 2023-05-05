@@ -20,6 +20,11 @@ namespace libnetwrk {
 		localhost,
 		v4
 	};
+
+	enum class connection_owner : unsigned int {
+		server, 
+		client
+	};
 }
 
 // use to suppress unreferenced local variable warnings

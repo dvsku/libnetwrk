@@ -4,6 +4,7 @@
 #include "libnetwrk/net/definitions.hpp"
 #include "libnetwrk/net/message.hpp"
 #include "libnetwrk/net/macros.hpp"
+#include "libnetwrk/net/common/base_context.hpp"
 #include "libnetwrk/net/common/base_connection.hpp"
 #include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
 #include "libnetwrk/net/common/containers/tsdeque.hpp"
@@ -12,21 +13,18 @@ namespace libnetwrk::net::common {
 	template <typename command_type,
 		typename serializer = libnetwrk::net::common::binary_serializer,
 		typename storage = libnetwrk::nothing>
-	class base_client {
+	class base_client : public base_context<command_type, serializer, storage> {
 		public:
 			typedef libnetwrk::net::message<command_type, serializer> message_t;
 			typedef std::shared_ptr<message_t> message_t_ptr;
 			typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
 
+			typedef base_context<command_type, serializer, storage> base_context_t;
 			typedef base_connection<command_type, serializer, storage> base_connection_t;
 			typedef std::shared_ptr<base_connection_t> base_connection_t_ptr;
 
 		protected:
-			std::string m_name;
 			bool m_connected = false;
-
-			context_ptr m_context;
-			libnetwrk::net::common::tsdeque<owned_message_t> m_incoming_messages;
 
 			std::thread m_context_thread;
 			std::thread m_process_messages_thread;
@@ -34,11 +32,9 @@ namespace libnetwrk::net::common {
 			base_connection_t_ptr m_connection;
 
 		public:
-			base_client(const std::string& name = "base client") {
+			base_client(const std::string& name = "base client") : base_context_t(name, connection_owner::client) {
 				LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
 					"client command_type template arg can only be an enum");
-				
-				m_name = name;	
 			}
 
 			virtual ~base_client() {
@@ -73,7 +69,7 @@ namespace libnetwrk::net::common {
 				m_connected = false;
 				teardown();
 
-				LIBNETWRK_INFO("%s disconnected", m_name.c_str());
+				LIBNETWRK_INFO("%s disconnected", this->m_name.c_str());
 			}
 
 			/// <summary>
@@ -82,10 +78,10 @@ namespace libnetwrk::net::common {
 			/// <returns>true if a message has been processed, false if it hasn't</returns>
 			bool process_single_message() {
 				try {
-					if (m_incoming_messages.empty())
+					if (this->m_incoming_messages.empty())
 						return false;
 
-					message_t msg = m_incoming_messages.pop_front().m_msg;
+					message_t msg = this->m_incoming_messages.pop_front().m_msg;
 					on_message(msg);
 				}
 				catch (const std::exception& e) {
@@ -137,15 +133,15 @@ namespace libnetwrk::net::common {
 			virtual void on_disconnect() {}
 
 			void teardown() {
-				if (m_context)
-					if (!m_context->stopped())
-						m_context->stop();
+				if (this->m_context)
+					if (!this->m_context->stopped())
+						this->m_context->stop();
 
 				if (m_connection)
 					if (m_connection->is_alive())
 						m_connection->stop();
 
-				m_incoming_messages.cancel_wait();
+				this->m_incoming_messages.cancel_wait();
 
 				if (m_context_thread.joinable())
 					m_context_thread.join();
@@ -161,12 +157,12 @@ namespace libnetwrk::net::common {
 		private:
 			void _process_messages(size_t max_messages = -1) {
 				while (m_connected) {
-					m_incoming_messages.wait();
+					this->m_incoming_messages.wait();
 
 					try {
 						size_t message_count = 0;
-						while (message_count < max_messages && !m_incoming_messages.empty()) {
-							message_t msg = m_incoming_messages.pop_front().m_msg;
+						while (message_count < max_messages && !this->m_incoming_messages.empty()) {
+							message_t msg = this->m_incoming_messages.pop_front().m_msg;
 							on_message(msg);
 							message_count++;
 						}

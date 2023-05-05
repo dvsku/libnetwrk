@@ -107,9 +107,7 @@ namespace libnetwrk::net::tcp {
 								socket.remote_endpoint().port());
 
 							tcp_connection_t_ptr new_connection =
-								std::make_shared<tcp_connection_t>(
-									libnetwrk::net::common::connection_owner::server,
-									std::move(socket), base::context(), base::m_incoming_messages);
+								std::make_shared<tcp_connection_t>(*this, std::move(socket));
 
 							if (on_before_client_connect(new_connection)) {
 								libnetwrk_guard guard(base::m_connections_mutex);

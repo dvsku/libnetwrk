@@ -53,9 +53,8 @@ namespace libnetwrk::net::tcp {
 					socket.connect(ep);
 
 					// Create connection object
-					base::m_connection =
-						std::make_shared<tcp_connection_t>(libnetwrk::net::common::connection_owner::client,
-							std::move(socket), base::m_context, base::m_incoming_messages);
+					this->m_connection = 
+						std::make_shared<tcp_connection_t>(*this, std::move(socket));
 
 					// Start receiving messages
 					base::m_connection->start();

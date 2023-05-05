@@ -8,6 +8,7 @@
 #include "libnetwrk/net/definitions.hpp"
 #include "libnetwrk/net/macros.hpp"
 #include "libnetwrk/net/message.hpp"
+#include "libnetwrk/net/common/base_context.hpp"
 #include "libnetwrk/net/common/containers/tsdeque.hpp"
 #include "libnetwrk/net/common/base_connection.hpp"
 #include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
@@ -16,12 +17,13 @@ namespace libnetwrk::net::common {
 	template <typename command_type,
 		typename serializer = libnetwrk::net::common::binary_serializer,
 		typename storage = libnetwrk::nothing>
-	class base_server {
+	class base_server : public base_context<command_type, serializer, storage> {
 		public:
 			typedef libnetwrk::net::message<command_type, serializer> message_t;
 			typedef std::shared_ptr<message_t> message_t_ptr;
 			typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
 
+			typedef base_context<command_type, serializer, storage> base_context_t;
 			typedef base_connection<command_type, serializer, storage> base_connection_t;
 			typedef std::shared_ptr<base_connection_t> base_connection_t_ptr;
 			typedef base_connection_t_ptr client_ptr;
@@ -30,12 +32,8 @@ namespace libnetwrk::net::common {
 			typedef std::function<bool(const client_ptr&)> send_condition;
 
 		protected:
-			std::string m_name;
 			bool m_running = false;
 			uint64_t m_id_counter = 0;
-
-			context_ptr m_context;
-			libnetwrk::net::common::tsdeque<owned_message_t> m_incoming_messages;
 
 			std::list<base_connection_t_ptr> m_connections;
 			std::mutex m_connections_mutex;
@@ -48,11 +46,9 @@ namespace libnetwrk::net::common {
 			std::condition_variable m_gc_cv;
 
 		public:
-			base_server(const std::string& name = "base server") {
+			base_server(const std::string& name = "base server") : base_context_t(name, connection_owner::server) {
 				LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
 					"server command_type template arg can only be an enum");
-
-				m_name = name;
 			}
 
 			virtual ~base_server() {}
@@ -117,11 +113,11 @@ namespace libnetwrk::net::common {
 			/// <returns>true if a message has been processed, false if it hasn't</returns>
 			bool process_message() {
 				try {
-					if (m_incoming_messages.empty())
+					if (base_context_t::m_incoming_messages.empty())
 						return false;
 
 					owned_message_t msg =
-						m_incoming_messages.pop_front();
+						base_context_t::m_incoming_messages.pop_front();
 
 					on_message(msg);
 				}
@@ -203,14 +199,14 @@ namespace libnetwrk::net::common {
 
 				m_running = false;
 
-				if (m_context)
-					if (!m_context->stopped())
-						m_context->stop();
+				if (base_context_t::m_context)
+					if (!base_context_t::m_context->stopped())
+						base_context_t::m_context->stop();
 
 				if (m_context_thread.joinable())
 					m_context_thread.join();
 
-				m_incoming_messages.cancel_wait();
+				base_context_t::m_incoming_messages.cancel_wait();
 
 				if (m_process_messages_thread.joinable())
 					m_process_messages_thread.join();
@@ -220,7 +216,7 @@ namespace libnetwrk::net::common {
 				if (m_gc_thread.joinable())
 					m_gc_thread.join();
 
-				LIBNETWRK_INFO("%s stopped", m_name.c_str());
+				LIBNETWRK_INFO("%s stopped", base_context_t::m_name.c_str());
 			};
 
 		protected:
@@ -242,10 +238,10 @@ namespace libnetwrk::net::common {
 
 			void _process_messages(size_t max_messages = -1) {
 				while (m_running) {
-					m_incoming_messages.wait();
+					base_context_t::m_incoming_messages.wait();
 					size_t message_count = 0;
-					while (message_count < max_messages && !m_incoming_messages.empty()) {
-						owned_message_t msg = m_incoming_messages.pop_front();
+					while (message_count < max_messages && !base_context_t::m_incoming_messages.empty()) {
+						owned_message_t msg = base_context_t::m_incoming_messages.pop_front();
 						on_message(msg);
 						message_count++;
 					}
