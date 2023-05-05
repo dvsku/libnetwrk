@@ -15,21 +15,21 @@ namespace libnetwrk::net::common {
 		typename storage = libnetwrk::nothing>
 	class base_client : public base_context<command_type, serializer, storage> {
 		public:
-			typedef libnetwrk::net::message<command_type, serializer> message_t;
-			typedef std::shared_ptr<message_t> message_t_ptr;
-			typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
+			typedef libnetwrk::net::message<command_type, serializer>					message_t;
+			typedef std::shared_ptr<message_t>											message_t_ptr;
+			typedef libnetwrk::net::owned_message<command_type, serializer, storage>	owned_message_t;
 
-			typedef base_context<command_type, serializer, storage> base_context_t;
-			typedef base_connection<command_type, serializer, storage> base_connection_t;
-			typedef std::shared_ptr<base_connection_t> base_connection_t_ptr;
+			typedef base_context<command_type, serializer, storage>			base_context_t;
+			typedef base_connection<command_type, serializer, storage>		base_connection_t;
+			typedef std::shared_ptr<base_connection_t>						base_connection_t_ptr;
 
 		protected:
 			bool m_connected = false;
+			base_connection_t_ptr m_connection;
 
+		private:
 			std::thread m_context_thread;
 			std::thread m_process_messages_thread;
-
-			base_connection_t_ptr m_connection;
 
 		public:
 			base_client(const std::string& name = "base client") : base_context_t(name, connection_owner::client) {
@@ -132,6 +132,10 @@ namespace libnetwrk::net::common {
 
 			virtual void on_disconnect() {}
 
+			virtual bool _connect(const char* host, const unsigned short port) {
+				return false;
+			}
+
 			void teardown() {
 				if (this->m_context)
 					if (!this->m_context->stopped())
@@ -150,8 +154,8 @@ namespace libnetwrk::net::common {
 					m_process_messages_thread.join();
 			}
 
-			virtual bool _connect(const char* host, const unsigned short port) {
-				return false;
+			void start_context() {
+				m_context_thread = std::thread([this] { this->m_context->run(); });
 			}
 
 		private:

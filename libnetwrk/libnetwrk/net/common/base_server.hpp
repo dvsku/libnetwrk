@@ -19,29 +19,29 @@ namespace libnetwrk::net::common {
 		typename storage = libnetwrk::nothing>
 	class base_server : public base_context<command_type, serializer, storage> {
 		public:
-			typedef libnetwrk::net::message<command_type, serializer> message_t;
-			typedef std::shared_ptr<message_t> message_t_ptr;
-			typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
+			typedef libnetwrk::net::message<command_type, serializer>					message_t;
+			typedef std::shared_ptr<message_t>											message_t_ptr;
+			typedef libnetwrk::net::owned_message<command_type, serializer, storage>	owned_message_t;
 
-			typedef base_context<command_type, serializer, storage> base_context_t;
-			typedef base_connection<command_type, serializer, storage> base_connection_t;
-			typedef std::shared_ptr<base_connection_t> base_connection_t_ptr;
-			typedef base_connection_t_ptr client_ptr;
+			typedef base_context<command_type, serializer, storage>			base_context_t;
+			typedef base_connection<command_type, serializer, storage>		base_connection_t;
+			typedef std::shared_ptr<base_connection_t>						base_connection_t_ptr;
+			typedef base_connection_t_ptr									client_ptr;
 
 			// function with signature: bool f(const client_ptr&)
 			typedef std::function<bool(const client_ptr&)> send_condition;
 
 		protected:
 			bool m_running = false;
-			uint64_t m_id_counter = 0;
+			uint64_t m_id_counter = 0U;
 
 			std::list<base_connection_t_ptr> m_connections;
 			std::mutex m_connections_mutex;
 
+		private:
 			std::thread m_context_thread;
 			std::thread m_process_messages_thread;
 
-		private:
 			std::thread m_gc_thread;
 			std::condition_variable m_gc_cv;
 
@@ -229,6 +229,10 @@ namespace libnetwrk::net::common {
 			virtual bool _start(const char* host, const unsigned short port) = 0;
 
 			virtual void _accept() = 0;
+
+			void start_context() {
+				m_context_thread = std::thread([this] { this->m_context->run(); });
+			}
 
 		private:
 			void _send(client_ptr& client, const message_t_ptr& message) {

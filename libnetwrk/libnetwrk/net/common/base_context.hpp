@@ -14,13 +14,11 @@ namespace libnetwrk::net::common {
 		typename storage = libnetwrk::nothing>
 	class base_context {
 		public:
-			typedef message<command_type, serializer> message_t;
-			typedef std::shared_ptr<message_t> message_t_ptr;
 			typedef owned_message<command_type, serializer, storage> owned_message_t;
 
 		public:
-			std::string m_name;
-			connection_owner m_owner;
+			const std::string m_name;
+			const connection_owner m_owner;
 
 			context_ptr m_context;
 			libnetwrk::net::common::tsdeque<owned_message_t> m_incoming_messages;

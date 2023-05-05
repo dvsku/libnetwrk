@@ -16,26 +16,25 @@ namespace libnetwrk::net::tcp {
 		: public libnetwrk::net::common::base_server<command_type, serializer, storage> 
 	{
 		public:
-			typedef libnetwrk::net::message<command_type, serializer> message_t;
-			typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
+			typedef libnetwrk::net::common::base_server<command_type, serializer, storage> base_t;
+
+			typedef base_t::message_t			message_t;
+			typedef base_t::owned_message_t		owned_message_t;
+			typedef command_type				cmd_t;
 
 			typedef libnetwrk::net::common::base_connection<command_type, serializer, storage> base_connection_t;
 			typedef std::shared_ptr<base_connection_t> base_connection_t_ptr;
-			typedef base_connection_t_ptr client_ptr;
-
-			typedef command_type cmd_t;
+			typedef base_connection_t_ptr client_ptr;	
 
 		private:
 			typedef tcp_connection<command_type, serializer, storage> tcp_connection_t;
-			typedef std::shared_ptr<tcp_connection_t> tcp_connection_t_ptr;
-			typedef libnetwrk::net::common::base_server<command_type, serializer, storage> base;
+			typedef std::shared_ptr<tcp_connection_t> tcp_connection_t_ptr;			
 
 		protected:
 			acceptor_ptr m_acceptor;
 
 		public:
-			tcp_server(const std::string& name = "tcp server") 
-				: libnetwrk::net::common::base_server<command_type, serializer, storage>(name) {};
+			tcp_server(const std::string& name = "tcp server") : base_t(name) {};
 
 			virtual ~tcp_server() {
 				stop();
@@ -49,7 +48,7 @@ namespace libnetwrk::net::tcp {
 					if (m_acceptor->is_open())
 						m_acceptor->close();
 
-				base::stop();
+				base_t::stop();
 			}
 
 		protected:
@@ -62,25 +61,25 @@ namespace libnetwrk::net::tcp {
 			virtual void on_client_connect(client_ptr client) {}
 
 			virtual void on_client_disconnect(client_ptr client) override {
-				base::on_client_disconnect(client);
+				base_t::on_client_disconnect(client);
 			}
 
 			bool _start(const char* host, const unsigned short port) override {
 				try {
 					// Create ASIO context
-					base::m_context = std::make_shared<asio::io_context>(1);
+					this->m_context = std::make_shared<asio::io_context>(1);
 
 					// Create ASIO acceptor
 					m_acceptor = std::make_shared<asio::ip::tcp::acceptor>
-						(*(base::m_context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
+						(*(this->m_context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
 
 					// Start listening for and accepting connections
 					_accept();
 
 					// Start ASIO context
-					base::m_context_thread = std::thread([this] { base::m_context->run(); });
+					this->start_context();
 
-					base::m_running = true;
+					this->m_running = true;
 
 					LIBNETWRK_INFO("listening for connections on %s:%d", host, port);
 				}
@@ -110,16 +109,16 @@ namespace libnetwrk::net::tcp {
 								std::make_shared<tcp_connection_t>(*this, std::move(socket));
 
 							if (on_before_client_connect(new_connection)) {
-								libnetwrk_guard guard(base::m_connections_mutex);
+								libnetwrk_guard guard(this->m_connections_mutex);
 
-								base::m_connections.push_back(new_connection);
-								base::m_connections.back()->id() = ++base::m_id_counter;
-								base::m_connections.back()->start();
+								this->m_connections.push_back(new_connection);
+								this->m_connections.back()->id() = ++this->m_id_counter;
+								this->m_connections.back()->start();
 								on_client_connect(new_connection);
 
 								LIBNETWRK_INFO("connection success from %s:%d", 
-									base::m_connections.back()->remote_address().c_str(),
-									base::m_connections.back()->remote_port());
+									this->m_connections.back()->remote_address().c_str(),
+									this->m_connections.back()->remote_port());
 							}
 							else {
 								LIBNETWRK_WARNING("connection denied");

@@ -16,19 +16,19 @@ namespace libnetwrk::net::tcp {
 		: public libnetwrk::net::common::base_client<command_type, serializer, storage> 
 	{
 		public:
-			typedef libnetwrk::net::message<command_type, serializer> message_t;
-			typedef std::shared_ptr<message_t> message_t_ptr;
-			typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
-			typedef command_type cmd_t;
+			typedef libnetwrk::net::common::base_client<command_type, serializer, storage> base_t;
+
+			typedef base_t::message_t			message_t;
+			typedef base_t::message_t_ptr		message_t_ptr;
+			typedef base_t::owned_message_t		owned_message_t;
+			typedef command_type				cmd_t;
 
 		private:
 			typedef tcp_connection<command_type, serializer, storage> tcp_connection_t;
 			typedef std::shared_ptr<tcp_connection_t> tcp_connection_t_ptr;
-			typedef libnetwrk::net::common::base_client<command_type, serializer, storage> base;
 
 		public:
-			tcp_client(const std::string& name = "tcp client") 
-				: libnetwrk::net::common::base_client<command_type, serializer, storage>(name) {}
+			tcp_client(const std::string& name = "tcp client") : base_t(name) {}
 		
 			virtual ~tcp_client() {}
 
@@ -41,13 +41,13 @@ namespace libnetwrk::net::tcp {
 			bool _connect(const char* host, const unsigned short port) override {
 				try {
 					// Create ASIO context
-					base::m_context = std::make_shared<asio::io_context>(1);
+					this->m_context = std::make_shared<asio::io_context>(1);
 
 					// Create ASIO endpoint
 					asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
 
 					// Create ASIO socket
-					asio::ip::tcp::socket socket(*(base::m_context), ep.protocol());
+					asio::ip::tcp::socket socket(*(this->m_context), ep.protocol());
 
 					// Connect
 					socket.connect(ep);
@@ -57,23 +57,23 @@ namespace libnetwrk::net::tcp {
 						std::make_shared<tcp_connection_t>(*this, std::move(socket));
 
 					// Start receiving messages
-					base::m_connection->start();
+					this->m_connection->start();
 
 					// Start ASIO context
-					base::m_context_thread = std::thread([this] { base::m_context->run(); });
+					this->start_context();
 
-					base::m_connected = true;
+					this->m_connected = true;
 
 					LIBNETWRK_INFO("connected to %s:%d", host, port);
 				}
 				catch (const std::exception& e) {
 					LIBNETWRK_ERROR("failed to connect | %s", e.what());
-					base::teardown();
+					this->teardown();
 					return false;
 				}
 				catch (...) {
 					LIBNETWRK_ERROR("failed to connect | fatal error");
-					base::teardown();
+					this->teardown();
 					return false;
 				}
 

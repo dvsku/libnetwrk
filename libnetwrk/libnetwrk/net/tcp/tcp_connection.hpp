@@ -11,17 +11,17 @@ namespace libnetwrk::net::tcp {
 		: public libnetwrk::net::common::base_connection<command_type, serializer, storage>
 	{
 		public:
-			typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
+			typedef libnetwrk::net::common::base_connection<command_type, serializer, storage> base_t;
 
-			typedef libnetwrk::net::common::base_connection<command_type, serializer, storage> base_connection_t;
-			typedef base_connection_t::base_context_t base_context_t;
+			typedef base_t::owned_message_t		owned_message_t;
+			typedef base_t::base_context_t		base_context_t;
 
 		protected:
 			asio::ip::tcp::socket m_socket;
 
 		public:
 			tcp_connection(base_context_t& parent_context, asio::ip::tcp::socket socket)
-				: base_connection_t(parent_context), m_socket(std::move(socket)) {}
+				: base_t(parent_context), m_socket(std::move(socket)) {}
 
 			/// <summary>
 			/// Get IPv4 address
@@ -116,14 +116,6 @@ namespace libnetwrk::net::tcp {
 						this->m_outgoing_messages.front()->m_data.size()),
 					std::bind(&tcp_connection::write_message_body_callback, 
 						this, std::placeholders::_1, std::placeholders::_2));
-			}
-
-			void on_disconnect() override {
-				libnetwrk::net::common::base_connection<command_type, serializer, storage>::on_disconnect();
-			}
-
-			void on_error(std::error_code ec) override {
-				libnetwrk::net::common::base_connection<command_type, serializer, storage>::on_error(ec);
 			}
 	};
 }

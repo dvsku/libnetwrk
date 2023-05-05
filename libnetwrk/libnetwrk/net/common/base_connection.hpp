@@ -17,9 +17,9 @@ namespace libnetwrk::net::common {
 		: public std::enable_shared_from_this<base_connection<command_type, serializer, storage>>
 	{
 		public:
-			typedef message<command_type, serializer> message_t;
-			typedef std::shared_ptr<message_t> message_t_ptr;
-			typedef owned_message<command_type, serializer, storage> owned_message_t;
+			typedef message<command_type, serializer>					message_t;
+			typedef std::shared_ptr<message_t>							message_t_ptr;
+			typedef owned_message<command_type, serializer, storage>	owned_message_t;
 
 			typedef base_context<command_type, serializer, storage> base_context_t;
 
@@ -115,14 +115,7 @@ namespace libnetwrk::net::common {
 
 			virtual void write_message_body() = 0;
 
-			virtual void on_disconnect() {
-				stop();
-			}
-
-			virtual void on_error(std::error_code ec) {
-				stop();
-				LIBNETWRK_ERROR("failed during read/write | %s", ec.message().c_str());
-			}
+			
 
 			void read_verification_message_callback(std::error_code ec, std::size_t len) {
 				if (!ec) {
@@ -236,6 +229,15 @@ namespace libnetwrk::net::common {
 			}
 
 		private:
+			void on_disconnect() {
+				stop();
+			}
+
+			void on_error(std::error_code ec) {
+				stop();
+				LIBNETWRK_ERROR("failed during read/write | %s", ec.message().c_str());
+			}
+
 			uint32_t generate_verification_code() {
 				std::random_device seed;
 				std::default_random_engine generator(seed());
