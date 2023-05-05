@@ -9,7 +9,7 @@
 			"installRoot": "${projectDir}\\out\\install\\${name}",
 			"cmakeCommandArgs": "",
 			"buildCommandArgs": "",
-			"ctestCommandArgs": ""
+			"ctestCommandArgs": "--timeout 10"
 		},
 		{
 			"name": "Windows x86 Release",
@@ -20,7 +20,7 @@
 			"installRoot": "${projectDir}\\out\\install\\${name}",
 			"cmakeCommandArgs": "",
 			"buildCommandArgs": "",
-			"ctestCommandArgs": ""
+			"ctestCommandArgs": "--timeout 10"
 		},
 		{
 			"name": "Linux x86 Debug",
@@ -30,7 +30,7 @@
 			"remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
 			"cmakeCommandArgs": "",
 			"buildCommandArgs": "",
-			"ctestCommandArgs": "",
+			"ctestCommandArgs": "--timeout 10",
 			"inheritEnvironments": [ "linux_x86" ],
 			"remoteMachineName": "${defaultRemoteMachineName}",
 			"remoteCMakeListsRoot": "$HOME/vs/libnetwrk/src",
@@ -49,7 +49,7 @@
 			"remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
 			"cmakeCommandArgs": "",
 			"buildCommandArgs": "",
-			"ctestCommandArgs": "",
+			"ctestCommandArgs": "--timeout 10",
 			"inheritEnvironments": [ "linux_x86" ],
 			"remoteMachineName": "${defaultRemoteMachineName}",
 			"remoteCMakeListsRoot": "$HOME/vs/libnetwrk/src",
