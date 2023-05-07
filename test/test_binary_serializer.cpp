@@ -33,19 +33,22 @@ struct simple_struct : public serializable<binary_serializer> {
 
 struct container_struct : public serializable<binary_serializer> {
 	std::vector<int> a;
+	std::deque<int> b;
+	std::list<int> c;
+	std::forward_list<int> d;
 
 	buffer_t serialize() const override {
 		buffer_t buffer;
-		buffer << a;
+		buffer << a << b << c << d;
 		return buffer;
 	}
 
 	void deserialize(buffer_t serialized) override {
-		serialized >> a;
+		serialized >> a >> b >> c >> d;
 	}
 
 	bool equals(const container_struct& obj) {
-		return a == obj.a;
+		return a == obj.a && b == obj.b && c == obj.c && d == obj.d;
 	}
 };
 
@@ -211,16 +214,37 @@ void serialize_deserialize_unsupported() {
 void serialize_deserialize_repeat_container() {
 	container_struct s1, s2;
 	s1.a.push_back(1);
+	s1.b.push_back(1);
+	s1.c.push_back(1);
+	s1.d.push_front(1);
 
 	s2.deserialize(s1.serialize());
 
 	ASSERT(s2.a.size() == 1);
-	ASSERT(s2.a[0] == 1);
+	ASSERT(s2.b.size() == 1);
+	ASSERT(s2.c.size() == 1);
+	
+	{
+		int size = 0;
+		for (int& i : s2.d)
+			size++;
+
+		ASSERT(size == 1);
+	}
 
 	s2.deserialize(s1.serialize());
 
 	ASSERT(s2.a.size() == 1);
-	ASSERT(s2.a[0] == 1);
+	ASSERT(s2.b.size() == 1);
+	ASSERT(s2.c.size() == 1);
+
+	{
+		int size = 0;
+		for (int& i : s2.d)
+			size++;
+
+		ASSERT(size == 1);
+	}
 }
 
 void serialize_deserialize_repeat_string() {
