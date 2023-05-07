@@ -94,6 +94,7 @@ namespace libnetwrk::net::common {
 			// Get # of elements
 			deserialize(buffer, size);
 
+			str = std::string();
 			for (size_t i = 0; i < size; i++) {
 				char element = 0;
 				deserialize(buffer, element);
@@ -143,6 +144,7 @@ namespace libnetwrk::net::common {
 			size_t size = 0;
 			deserialize(buffer, size);
 
+			container = std::vector<TValue>();
 			for (size_t i = 0; i < size; i++) {
 				TValue element{};
 				deserialize(buffer, element);
@@ -164,6 +166,7 @@ namespace libnetwrk::net::common {
 			size_t size = 0;
 			deserialize(buffer, size);
 
+			container = std::deque<TValue>();
 			for (size_t i = 0; i < size; i++) {
 				TValue element{};
 				deserialize(buffer, element);
@@ -185,6 +188,7 @@ namespace libnetwrk::net::common {
 			size_t size = 0;
 			deserialize(buffer, size);
 
+			container = std::list<TValue>();
 			for (size_t i = 0; i < size; i++) {
 				TValue element{};
 				deserialize(buffer, element);
@@ -213,6 +217,7 @@ namespace libnetwrk::net::common {
 			size_t size = 0;
 			deserialize(buffer, size);
 
+			container = std::forward_list<TValue>();
 			for (size_t i = 0; i < size; i++) {
 				TValue element{};
 				deserialize(buffer, element);
