@@ -49,6 +49,24 @@ struct container_struct : public serializable<binary_serializer> {
 	}
 };
 
+struct string_struct : public serializable<binary_serializer> {
+	std::string a;
+
+	buffer_t serialize() const override {
+		buffer_t buffer;
+		buffer << a;
+		return buffer;
+	}
+
+	void deserialize(buffer_t serialized) override {
+		serialized >> a;
+	}
+
+	bool equals(const string_struct& obj) {
+		return a == obj.a;
+	}
+};
+
 void serialize_deserialize_standard_layout() {
 	buffer buffer;
 
@@ -190,7 +208,7 @@ void serialize_deserialize_unsupported() {
 	ASSERT_THROWS(buffer << ummap);
 }
 
-void serialize_deserialize_repeat() {
+void serialize_deserialize_repeat_container() {
 	container_struct s1, s2;
 	s1.a.push_back(1);
 
@@ -205,6 +223,21 @@ void serialize_deserialize_repeat() {
 	ASSERT(s2.a[0] == 1);
 }
 
+void serialize_deserialize_repeat_string() {
+	string_struct s1, s2;
+	s1.a.push_back('1');
+
+	s2.deserialize(s1.serialize());
+
+	ASSERT(s2.a.size() == 1);
+	ASSERT(s2.a[0] == '1');
+
+	s2.deserialize(s1.serialize());
+
+	ASSERT(s2.a.size() == 1);
+	ASSERT(s2.a[0] == '1');
+}
+
 int main(int argc, char* argv[]) {
 	if (argc != 2) {
 		serialize_deserialize_standard_layout();
@@ -212,7 +245,8 @@ int main(int argc, char* argv[]) {
 		serialize_deserialize_strings();
 		serialize_deserialize_serializable();
 		serialize_deserialize_unsupported();
-		serialize_deserialize_repeat();
+		serialize_deserialize_repeat_container();
+		serialize_deserialize_repeat_string();
 	}
 	else {
 		switch (std::stoi(argv[1])) {
@@ -221,7 +255,8 @@ int main(int argc, char* argv[]) {
 			case 2: serialize_deserialize_strings();						break;
 			case 3: serialize_deserialize_serializable();					break;
 			case 4: serialize_deserialize_unsupported();					break;
-			case 5: serialize_deserialize_repeat();							break;
+			case 5: serialize_deserialize_repeat_container();				break;
+			case 6: serialize_deserialize_repeat_string();					break;
 			default: break;
 		}
 	}
