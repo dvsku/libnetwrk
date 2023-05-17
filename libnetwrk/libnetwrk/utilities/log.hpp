@@ -52,6 +52,12 @@ namespace libnetwrk {
 		//	logs to file depending on severity if set to true.
 		// Set to false by default.
 		bool m_log_to_file = false;
+
+		// Prefix used when creating a log file.
+		// Structure: 
+		//	name_prefix + _ + timestamp + .txt
+		// Set to 'log' by default.
+		std::string m_name_prefix = "log";
 	};
 	
 	class log {
@@ -168,7 +174,7 @@ namespace libnetwrk {
 				strftime(time_buffer, sizeof(time_buffer), "%d-%m-%Y", &tstruct);
 
 				// Create file name
-				std::string file_name = std::string("log_") + time_buffer + ".txt";
+				std::string file_name = m_settings.m_name_prefix + "_" + time_buffer + ".txt";
 
 				std::ofstream out;
 				out.open(file_name.c_str(), std::ios_base::app);
