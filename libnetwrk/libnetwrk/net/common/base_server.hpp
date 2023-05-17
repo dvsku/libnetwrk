@@ -61,14 +61,6 @@ namespace libnetwrk::net::common {
 			virtual ~base_server() {}
 
 			/// <summary>
-			/// Get ASIO io_context
-			/// </summary>
-			/// <returns>pointer to ASIO io_context</returns>
-			context_ptr context() {
-				return this->m_context;
-			}
-
-			/// <summary>
 			/// Get server status
 			/// </summary>
 			/// <returns>true if running, false if stopped</returns>
@@ -129,11 +121,11 @@ namespace libnetwrk::net::common {
 					on_message(msg);
 				}
 				catch (const std::exception& e) {
-					LIBNETWRK_ERROR("process_message() fail | %s", e.what());
+					LIBNETWRK_ERROR_A(this->name(), "process_message() fail | %s", e.what());
 					return false;
 				}
 				catch (...) {
-					LIBNETWRK_ERROR("process_message() fail | undefined reason");
+					LIBNETWRK_ERROR_A(this->name(), "process_message() fail | undefined reason");
 					return false;
 				}
 
@@ -223,14 +215,14 @@ namespace libnetwrk::net::common {
 				if (m_gc_thread.joinable())
 					m_gc_thread.join();
 
-				LIBNETWRK_INFO("%s stopped", base_context_t::m_name.c_str());
+				LIBNETWRK_INFO_A(this->name(), "stopped", base_context_t::m_name.c_str());
 			};
 
 		protected:
 			virtual void on_message(owned_message_t& msg) {}
 
 			virtual void on_client_disconnect(client_ptr client) {
-				LIBNETWRK_INFO("client disconnected");
+				LIBNETWRK_INFO_A(this->name(), "client disconnected");
 			}
 
 			virtual bool _start(const char* host, const unsigned short port) = 0;
@@ -275,7 +267,7 @@ namespace libnetwrk::net::common {
 					});
 
 					if (count)
-						LIBNETWRK_INFO("gc tc: %d rc: %d", m_connections.size(), count);
+						LIBNETWRK_INFO_A(this->name(), "gc tc: %d rc: %d", m_connections.size(), count);
 
 					m_gc_cv.wait_for(guard, std::chrono::seconds(15));
 				}
