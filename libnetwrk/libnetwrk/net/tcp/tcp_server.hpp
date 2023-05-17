@@ -81,15 +81,15 @@ namespace libnetwrk::net::tcp {
 
 					this->m_running = true;
 
-					LIBNETWRK_INFO("listening for connections on %s:%d", host, port);
+					LIBNETWRK_INFO_A(this->name(), "listening for connections on %s:%d", host, port);
 				}
 				catch (const std::exception& e) {
-					LIBNETWRK_ERROR("failed to start listening | %s", e.what());
+					LIBNETWRK_ERROR_A(this->name(), "failed to start listening | %s", e.what());
 					stop();
 					return false;
 				}
 				catch (...) {
-					LIBNETWRK_ERROR("failed to start listening | fatal error");
+					LIBNETWRK_ERROR_A(this->name(), "failed to start listening | fatal error");
 					stop();
 					return false;
 				}
@@ -101,7 +101,7 @@ namespace libnetwrk::net::tcp {
 				m_acceptor->async_accept(
 					[this](std::error_code ec, asio::ip::tcp::socket socket) {
 						if (!ec) {
-							LIBNETWRK_VERBOSE("attempted connection from %s:%d", 
+							LIBNETWRK_VERBOSE_A(this->name(), "attempted connection from %s:%d",
 								socket.remote_endpoint().address().to_string().c_str(),
 								socket.remote_endpoint().port());
 
@@ -116,20 +116,20 @@ namespace libnetwrk::net::tcp {
 								this->m_connections.back()->start();
 								on_client_connect(new_connection);
 
-								LIBNETWRK_INFO("connection success from %s:%d", 
+								LIBNETWRK_INFO_A(this->name(), "connection success from %s:%d",
 									this->m_connections.back()->remote_address().c_str(),
 									this->m_connections.back()->remote_port());
 							}
 							else {
-								LIBNETWRK_WARNING("connection denied");
+								LIBNETWRK_WARNING_A(this->name(), "connection denied");
 							}
 						}
 						else if (ec == asio::error::operation_aborted) {
-							LIBNETWRK_INFO("listening stopped");
+							LIBNETWRK_INFO_A(this->name(), "listening stopped");
 							return;
 						}
 						else {
-							LIBNETWRK_ERROR("failed to accept connection | %s", ec.message().c_str());
+							LIBNETWRK_ERROR_A(this->name(), "failed to accept connection | %s", ec.message().c_str());
 						}
 
 						_accept();

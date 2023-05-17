@@ -25,6 +25,10 @@ namespace libnetwrk::net::common {
 
 			base_context(const std::string& name, connection_owner owner) 
 				: m_name(name), m_owner(owner) {}
+
+			const char* name() {
+				return m_name.c_str();
+			}
 	};
 }
 

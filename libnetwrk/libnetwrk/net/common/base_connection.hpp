@@ -127,7 +127,8 @@ namespace libnetwrk::net::common {
 							read_message_head();
 						}
 						else {
-							LIBNETWRK_WARNING("client verification failed, disconnecting");
+							LIBNETWRK_WARNING_A(this->m_parent_context.name(),
+								"client verification failed; disconnecting client");
 							stop();
 						}
 					}
@@ -238,7 +239,8 @@ namespace libnetwrk::net::common {
 
 			void on_error(std::error_code ec) {
 				stop();
-				LIBNETWRK_ERROR("failed during read/write | %s", ec.message().c_str());
+				LIBNETWRK_ERROR_A(this->m_parent_context.name(),
+					"failed during read/write | %s", ec.message().c_str());
 			}
 
 			uint32_t generate_verification_code() {
