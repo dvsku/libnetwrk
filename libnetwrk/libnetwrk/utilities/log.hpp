@@ -101,7 +101,7 @@ namespace libnetwrk {
 				va_list args;
 				va_start(args, fmt);
 
-				log_message(severity, name, fmt, args);
+				_log_message(severity, name, fmt, args);
 
 				va_end(args);
 			}
@@ -111,23 +111,13 @@ namespace libnetwrk {
 				va_list args;
 				va_start(args, fmt);
 
-				log_message(severity, name.c_str(), fmt, args);
-
-				va_end(args);
-			}
-
-			void log_message(log_severity severity, const char* fmt, ...) {
-				// Get args list
-				va_list args;
-				va_start(args, fmt);
-
-				log_message(severity, nullptr, fmt, args);
+				_log_message(severity, name.c_str(), fmt, args);
 
 				va_end(args);
 			}
 
 		protected:
-			void log_message(const std::string& str) {
+			void _log_message(const std::string& str) {
 				if (m_settings.m_log_to_console)
 					print(str);
 
@@ -135,7 +125,7 @@ namespace libnetwrk {
 					write(str);
 			}
 
-			void log_message(log_severity severity, const char* name, const char* fmt, va_list args) {
+			void _log_message(log_severity severity, const char* name, const char* fmt, va_list args) {
 				if (m_settings.m_severity < severity) return;
 				if (!m_settings.m_log_to_console && !m_settings.m_log_to_file) return;
 
@@ -144,7 +134,7 @@ namespace libnetwrk {
 				// Format message
 				format(str, LIBNETWRK_DEFAULT_LOG_BUFFER_SIZE, severity, name, fmt, args);
 
-				log_message(str);
+				_log_message(str);
 			}
 
 			void format(std::string& str, size_t size, log_severity severity, 
@@ -178,7 +168,7 @@ namespace libnetwrk {
 				
 				// __SNPRINTF failed to encode time_buffer and prefix
 				if (i == -1)
-					return log_message(log_severity::warning, 
+					return log_message(log_severity::warning, nullptr,
 						"failed to log message. encoding error occurred.");
 				
 				// Buffer not large enough
@@ -190,7 +180,7 @@ namespace libnetwrk {
 
 				// __SNPRINTF failed to encode args
 				if (i == -1)
-					return log_message(log_severity::warning, 
+					return log_message(log_severity::warning, nullptr,
 						"failed to log message. encoding error occurred.");
 
 				// Buffer not large enough
