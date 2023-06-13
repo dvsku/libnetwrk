@@ -3,9 +3,14 @@
 
 #include <string>
 #include <time.h>
-#include <stdarg.h>
 #include <iostream>
 #include <fstream>
+#include <chrono>
+
+#define FMT_HEADER_ONLY
+#include "libnetwrk/fmt/format.h"
+#include "libnetwrk/fmt/chrono.h"
+#include "libnetwrk/fmt/color.h"
 
 #if defined(_WIN32) || defined(WIN32)
 	#define LIBNETWRK_SNPRINTF(buffer, size, format, ...) _snprintf(buffer, size, format, __VA_ARGS__)
@@ -19,26 +24,29 @@
 	#define LIBNETWRK_DEFAULT_LOG_BUFFER_SIZE 512U
 #endif
 
+#define LIBNETWRK_FORMAT(fmt, ...)				\
+	fmt::format(fmt, ##__VA_ARGS__)
+
 #define LIBNETWRK_INFO(fmt, ...)				\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::informational, nullptr, fmt, ##__VA_ARGS__)
+	libnetwrk::log::instance().log_message(libnetwrk::log_severity::informational, "", fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_INFO_A(name, fmt, ...)		\
 	libnetwrk::log::instance().log_message(libnetwrk::log_severity::informational, name, fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_WARNING(fmt, ...)				\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::warning, nullptr, fmt, ##__VA_ARGS__)
+	libnetwrk::log::instance().log_message(libnetwrk::log_severity::warning, "", fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_WARNING_A(name, fmt, ...)		\
 	libnetwrk::log::instance().log_message(libnetwrk::log_severity::warning, name, fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_ERROR(fmt, ...)				\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::error, nullptr, fmt, ##__VA_ARGS__)
+	libnetwrk::log::instance().log_message(libnetwrk::log_severity::error, "", fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_ERROR_A(name, fmt, ...)		\
 	libnetwrk::log::instance().log_message(libnetwrk::log_severity::error, name, fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_VERBOSE(fmt, ...)				\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::verbose, nullptr, fmt, ##__VA_ARGS__)
+	libnetwrk::log::instance().log_message(libnetwrk::log_severity::verbose, "", fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_VERBOSE_A(name, fmt, ...)		\
 	libnetwrk::log::instance().log_message(libnetwrk::log_severity::verbose, name, fmt, ##__VA_ARGS__)
@@ -76,8 +84,16 @@ namespace libnetwrk {
 		protected:
 			log_settings m_settings{};
 
-			static inline const char* m_prefixes[] = {
-				"INFO", "WARN", "ERRO", "VERB"
+			struct prefix {
+				const char* m_abbr;
+				fmt::color m_color;
+			};
+
+			static inline const prefix m_prefixes[] = {
+				{"INFO", fmt::color::white},
+				{"WARN", fmt::color::yellow},
+				{"ERRO", fmt::color::red},
+				{"VERB", fmt::color::dark_cyan}
 			};
 
 		private:
@@ -96,103 +112,53 @@ namespace libnetwrk {
 				m_settings = settings;
 			}
 
-			void log_message(log_severity severity, const char* name, const char* fmt, ...) {
-				// Get args list
-				va_list args;
-				va_start(args, fmt);
+			template <typename... Targs>
+			void log_message(log_severity severity, const std::string& name, fmt::format_string<Targs...> format, Targs&&... args) {
+				auto time = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
+				auto prefix = m_prefixes[(unsigned int)severity - 1];
+				
+				auto formatted = fmt::format(format, std::forward<Targs>(args)...);
 
-				_log_message(severity, name, fmt, args);
+				if (m_settings.m_log_to_console) {
+					std::string msg;
 
-				va_end(args);
-			}
+					if (name != "")
+						msg = fmt::format("[{:%X} {}] [{}] {}\n",
+							time,
+							fmt::styled(prefix.m_abbr, fmt::fg(prefix.m_color)),
+							fmt::styled(name, fmt::fg(fmt::color::blue_violet)),
+							formatted);
+					else
+						msg = fmt::format("[{:%X} {}] {}\n",
+							time,
+							fmt::styled(prefix.m_abbr, fmt::fg(prefix.m_color)),
+							formatted);
 
-			void log_message(log_severity severity, const std::string& name, const char* fmt, ...) {
-				// Get args list
-				va_list args;
-				va_start(args, fmt);
+					print(msg);
+				}
 
-				_log_message(severity, name.c_str(), fmt, args);
+				if (m_settings.m_log_to_file) {
+					std::string msg;
 
-				va_end(args);
+					if (name != "")
+						msg = fmt::format("[{:%X} {}] [{}] {}\n",
+							time,
+							prefix.m_abbr,
+							name,
+							formatted);
+					else
+						msg = fmt::format("[{:%X} {}] {}\n",
+							time,
+							prefix.m_abbr,
+							formatted);
+
+					write(msg);
+				}
 			}
 
 		protected:
-			void _log_message(const std::string& str) {
-				if (m_settings.m_log_to_console)
-					print(str);
-
-				if (m_settings.m_log_to_file)
-					write(str);
-			}
-
-			void _log_message(log_severity severity, const char* name, const char* fmt, va_list args) {
-				if (m_settings.m_severity < severity) return;
-				if (!m_settings.m_log_to_console && !m_settings.m_log_to_file) return;
-
-				std::string str;
-
-				// Format message
-				format(str, LIBNETWRK_DEFAULT_LOG_BUFFER_SIZE, severity, name, fmt, args);
-
-				_log_message(str);
-			}
-
-			void format(std::string& str, size_t size, log_severity severity, 
-				const char* name, const char* fmt, va_list args) 
-			{
-				// Make sure buffer is at least 512 bytes
-				if (size < 512U) size = 512U;
-
-				str.resize(size);
-
-				char time_buffer[32];
-
-				// Get current time
-				time_t		now = time(0);
-				struct tm	tstruct;
-
-				LIBNETWRK_LOCALTIME(&now, &tstruct);
-
-				// Format time to time_buffer
-				strftime(time_buffer, sizeof(time_buffer), "%X", &tstruct);
-
-				// Copy time and prefix to str
-				int i = 0;
-
-				if(name == nullptr)
-					i = LIBNETWRK_SNPRINTF(str.data(), size, "[%s %s] ",
-						time_buffer, m_prefixes[(unsigned int)severity - 1]);
-				else
-					i = LIBNETWRK_SNPRINTF(str.data(), size, "[%s %s] [%s] ",
-						time_buffer, m_prefixes[(unsigned int)severity - 1], name);
-				
-				// __SNPRINTF failed to encode time_buffer and prefix
-				if (i == -1)
-					return log_message(log_severity::warning, nullptr,
-						"failed to log message. encoding error occurred.");
-				
-				// Buffer not large enough
-				if ((size_t)i >= size)
-					return format(str, size * 2, severity, name, fmt, args);
-
-				// Format fmt to str
-				i = vsnprintf(str.data() + i, size - i, fmt, args);
-
-				// __SNPRINTF failed to encode args
-				if (i == -1)
-					return log_message(log_severity::warning, nullptr,
-						"failed to log message. encoding error occurred.");
-
-				// Buffer not large enough
-				if ((size_t)i >= size)
-					return format(str, size * 2, severity, name, fmt, args);
-
-				str.erase(std::find(str.begin(), str.end(), '\0'), str.end());
-				str.append(1, '\n');
-			}
-
 			void print(const std::string& str) {
-				std::cout << str;
+				fmt::print(fmt::text_style(), str);
 			}
 
 			void write(const std::string& str) {
