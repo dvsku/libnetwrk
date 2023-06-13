@@ -121,7 +121,7 @@ namespace libnetwrk::net::common {
 					on_message(msg);
 				}
 				catch (const std::exception& e) {
-					LIBNETWRK_ERROR_A(this->name(), "process_message() fail | %s", e.what());
+					LIBNETWRK_ERROR_A(this->name(), "process_message() fail | {}", e.what());
 					return false;
 				}
 				catch (...) {
@@ -267,7 +267,7 @@ namespace libnetwrk::net::common {
 					});
 
 					if (count)
-						LIBNETWRK_INFO_A(this->name(), "gc tc: %d rc: %d", m_connections.size(), count);
+						LIBNETWRK_INFO_A(this->name(), "gc tc: {} rc: {}", m_connections.size(), count);
 
 					m_gc_cv.wait_for(guard, std::chrono::seconds(15));
 				}

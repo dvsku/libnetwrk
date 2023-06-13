@@ -240,7 +240,7 @@ namespace libnetwrk::net::common {
 			void on_error(std::error_code ec) {
 				stop();
 				LIBNETWRK_ERROR_A(this->m_parent_context.name(),
-					"failed during read/write | %s", ec.message().c_str());
+					"failed during read/write | {}", ec.message().c_str());
 			}
 
 			uint32_t generate_verification_code() {

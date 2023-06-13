@@ -81,10 +81,10 @@ namespace libnetwrk::net::tcp {
 
 					this->m_running = true;
 
-					LIBNETWRK_INFO_A(this->name(), "listening for connections on %s:%d", host, port);
+					LIBNETWRK_INFO_A(this->name(), "listening for connections on {}:{}", host, port);
 				}
 				catch (const std::exception& e) {
-					LIBNETWRK_ERROR_A(this->name(), "failed to start listening | %s", e.what());
+					LIBNETWRK_ERROR_A(this->name(), "failed to start listening | {}", e.what());
 					stop();
 					return false;
 				}
@@ -101,7 +101,7 @@ namespace libnetwrk::net::tcp {
 				m_acceptor->async_accept(
 					[this](std::error_code ec, asio::ip::tcp::socket socket) {
 						if (!ec) {
-							LIBNETWRK_VERBOSE_A(this->name(), "attempted connection from %s:%d",
+							LIBNETWRK_VERBOSE_A(this->name(), "attempted connection from {}:{}",
 								socket.remote_endpoint().address().to_string().c_str(),
 								socket.remote_endpoint().port());
 
@@ -116,7 +116,7 @@ namespace libnetwrk::net::tcp {
 								this->m_connections.back()->start();
 								on_client_connect(new_connection);
 
-								LIBNETWRK_INFO_A(this->name(), "connection success from %s:%d",
+								LIBNETWRK_INFO_A(this->name(), "connection success from {}:{}",
 									this->m_connections.back()->remote_address().c_str(),
 									this->m_connections.back()->remote_port());
 							}
@@ -129,7 +129,7 @@ namespace libnetwrk::net::tcp {
 							return;
 						}
 						else {
-							LIBNETWRK_ERROR_A(this->name(), "failed to accept connection | %s", ec.message().c_str());
+							LIBNETWRK_ERROR_A(this->name(), "failed to accept connection | {}", ec.message().c_str());
 						}
 
 						_accept();
