@@ -92,7 +92,7 @@ namespace libnetwrk::net::common {
 					on_message(msg);
 				}
 				catch (const std::exception& e) {
-					LIBNETWRK_ERROR_A(this->name(), "process_single_message() fail | %s", e.what());
+					LIBNETWRK_ERROR_A(this->name(), "process_single_message() fail | {}", e.what());
 					return false;
 				}
 				catch (...) {
@@ -179,7 +179,7 @@ namespace libnetwrk::net::common {
 						}
 					}
 					catch (const std::exception& e) {
-						LIBNETWRK_ERROR_A(this->name(), "_process_messages() fail | %s", e.what());
+						LIBNETWRK_ERROR_A(this->name(), "_process_messages() fail | {}", e.what());
 					}
 					catch (...) {
 						LIBNETWRK_ERROR_A(this->name(), "_process_messages() fail | undefined reason");

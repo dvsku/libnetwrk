@@ -64,10 +64,10 @@ namespace libnetwrk::net::tcp {
 
 					this->m_connected = true;
 
-					LIBNETWRK_INFO_A(this->name(), "connected to %s:%d", host, port);
+					LIBNETWRK_INFO_A(this->name(), "connected to {}:{}", host, port);
 				}
 				catch (const std::exception& e) {
-					LIBNETWRK_ERROR_A(this->name(), "failed to connect | %s", e.what());
+					LIBNETWRK_ERROR_A(this->name(), "failed to connect | {}", e.what());
 					this->teardown();
 					return false;
 				}
