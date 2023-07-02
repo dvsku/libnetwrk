@@ -51,13 +51,17 @@
 #define LIBNETWRK_VERBOSE_A(name, fmt, ...)		\
 	libnetwrk::log::instance().log_message(libnetwrk::log_severity::verbose, name, fmt, ##__VA_ARGS__)
 
+#define LIBNETWRK_DEBUG(name, fmt, ...)		\
+	libnetwrk::log::instance().log_message(libnetwrk::log_severity::verbose, name, fmt, ##__VA_ARGS__)
+
 namespace libnetwrk {
 	enum class log_severity : unsigned char {
 		none			= 0x00,		// does not log
 		informational	= 0x01,		// logs only info
 		warning			= 0x02,		// logs info and warnings
 		error			= 0x03,		// logs info, warnings and errors
-		verbose			= 0x04		// logs info, warnings and errors with additional details
+		verbose			= 0x04,		// logs info, warnings and errors with additional details
+		debug			= 0x05		// logs everything
 	};
 
 	struct log_settings {
@@ -90,10 +94,11 @@ namespace libnetwrk {
 			};
 
 			static inline const prefix m_prefixes[] = {
-				{"INFO", fmt::color::white},
+				{"INFO", fmt::color::white_smoke},
 				{"WARN", fmt::color::yellow},
 				{"ERRO", fmt::color::red},
-				{"VERB", fmt::color::dark_cyan}
+				{"VERB", fmt::color::dark_cyan},
+				{"DEBG", fmt::color::white_smoke}
 			};
 
 		private:
