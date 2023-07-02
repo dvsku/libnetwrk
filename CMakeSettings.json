@@ -1,7 +1,7 @@
 ﻿{
 	"configurations": [
 		{
-			"name": "Windows x86 Debug",
+			"name": "1.  Windows x86 Debug",
 			"generator": "Ninja",
 			"configurationType": "Debug",
 			"inheritEnvironments": [ "msvc_x86" ],
@@ -12,7 +12,7 @@
 			"ctestCommandArgs": "--timeout 10"
 		},
 		{
-			"name": "Windows x86 Release",
+			"name": "2.  Windows x86 Release",
 			"generator": "Ninja",
 			"configurationType": "Release",
 			"inheritEnvironments": [ "msvc_x86" ],
@@ -23,7 +23,7 @@
 			"ctestCommandArgs": "--timeout 10"
 		},
 		{
-			"name": "Linux x86 Debug",
+			"name": "3.  Linux x86 Debug",
 			"generator": "Unix Makefiles",
 			"configurationType": "Debug",
 			"cmakeExecutable": "cmake",
@@ -42,7 +42,7 @@
 			"remoteCopySourcesMethod": "rsync"
 		},
 		{
-			"name": "Linux x86 Release",
+			"name": "4.  Linux x86 Release",
 			"generator": "Unix Makefiles",
 			"configurationType": "Release",
 			"cmakeExecutable": "cmake",
