@@ -86,8 +86,6 @@ namespace libnetwrk {
 	
 	class log {
 		protected:
-			log_settings m_settings{};
-
 			struct prefix {
 				const char* m_abbr;
 				fmt::color m_color;
@@ -105,16 +103,14 @@ namespace libnetwrk {
 			log() {}
 
 		public:
+			log_settings m_settings{};
+
 			log(log const&) = delete;
 			void operator=(log const&) = delete;
 
 			static log& instance() {
 				static log instance;
 				return instance;
-			}
-
-			void set_settings(const log_settings settings) {
-				m_settings = settings;
 			}
 
 			template <typename... Targs>
