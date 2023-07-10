@@ -121,11 +121,11 @@ namespace libnetwrk::net::common {
 					on_message(msg);
 				}
 				catch (const std::exception& e) {
-					LIBNETWRK_ERROR_A(this->name(), "process_message() fail | {}", e.what());
+					LIBNETWRK_ERROR(this->name(), "process_message() fail | {}", e.what());
 					return false;
 				}
 				catch (...) {
-					LIBNETWRK_ERROR_A(this->name(), "process_message() fail | undefined reason");
+					LIBNETWRK_ERROR(this->name(), "process_message() fail | undefined reason");
 					return false;
 				}
 
@@ -215,14 +215,14 @@ namespace libnetwrk::net::common {
 				if (m_gc_thread.joinable())
 					m_gc_thread.join();
 
-				LIBNETWRK_INFO_A(this->name(), "stopped", base_context_t::m_name.c_str());
+				LIBNETWRK_INFO(this->name(), "stopped", base_context_t::m_name.c_str());
 			};
 
 		protected:
 			virtual void on_message(owned_message_t& msg) {}
 
 			virtual void on_client_disconnect(client_ptr client) {
-				LIBNETWRK_INFO_A(this->name(), "client disconnected");
+				LIBNETWRK_INFO(this->name(), "client disconnected");
 			}
 
 			virtual bool _start(const char* host, const unsigned short port) = 0;
@@ -267,7 +267,7 @@ namespace libnetwrk::net::common {
 					});
 
 					if (count)
-						LIBNETWRK_INFO_A(this->name(), "gc tc: {} rc: {}", m_connections.size(), count);
+						LIBNETWRK_INFO(this->name(), "gc tc: {} rc: {}", m_connections.size(), count);
 
 					m_gc_cv.wait_for(guard, std::chrono::seconds(15));
 				}

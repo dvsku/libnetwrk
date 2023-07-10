@@ -76,7 +76,7 @@ namespace libnetwrk::net::common {
 				m_connected = false;
 				teardown();
 
-				LIBNETWRK_INFO_A(this->name(), "disconnected");
+				LIBNETWRK_INFO(this->name(), "disconnected");
 			}
 
 			/// <summary>
@@ -92,11 +92,11 @@ namespace libnetwrk::net::common {
 					on_message(msg);
 				}
 				catch (const std::exception& e) {
-					LIBNETWRK_ERROR_A(this->name(), "process_single_message() fail | {}", e.what());
+					LIBNETWRK_ERROR(this->name(), "process_single_message() fail | {}", e.what());
 					return false;
 				}
 				catch (...) {
-					LIBNETWRK_ERROR_A(this->name(), "process_single_message() fail | undefined reason");
+					LIBNETWRK_ERROR(this->name(), "process_single_message() fail | undefined reason");
 					return false;
 				}
 
@@ -179,10 +179,10 @@ namespace libnetwrk::net::common {
 						}
 					}
 					catch (const std::exception& e) {
-						LIBNETWRK_ERROR_A(this->name(), "_process_messages() fail | {}", e.what());
+						LIBNETWRK_ERROR(this->name(), "_process_messages() fail | {}", e.what());
 					}
 					catch (...) {
-						LIBNETWRK_ERROR_A(this->name(), "_process_messages() fail | undefined reason");
+						LIBNETWRK_ERROR(this->name(), "_process_messages() fail | undefined reason");
 					}
 				}
 			}
