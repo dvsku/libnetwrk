@@ -15,7 +15,7 @@ class tcp_echo_client : public tcp_client<commands> {
 			case commands::s2c_echo: {
 				std::string text;
 				msg >> text;
-				LIBNETWRK_INFO("%s", text.c_str());
+				LIBNETWRK_INFO(this->name(), "{}", text);
 				break;
 			}
 			default: break;

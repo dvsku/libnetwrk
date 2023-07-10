@@ -64,15 +64,15 @@ namespace libnetwrk::net::tcp {
 
 					this->m_connected = true;
 
-					LIBNETWRK_INFO_A(this->name(), "connected to {}:{}", host, port);
+					LIBNETWRK_INFO(this->name(), "connected to {}:{}", host, port);
 				}
 				catch (const std::exception& e) {
-					LIBNETWRK_ERROR_A(this->name(), "failed to connect | {}", e.what());
+					LIBNETWRK_ERROR(this->name(), "failed to connect | {}", e.what());
 					this->teardown();
 					return false;
 				}
 				catch (...) {
-					LIBNETWRK_ERROR_A(this->name(), "failed to connect | fatal error");
+					LIBNETWRK_ERROR(this->name(), "failed to connect | fatal error");
 					this->teardown();
 					return false;
 				}

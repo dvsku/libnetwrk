@@ -15,8 +15,8 @@ class tcp_echo_server : public tcp_server<commands> {
 					std::string text;
 					msg.m_msg >> text;
 
-					LIBNETWRK_INFO("%s:%d\t%s",
-						msg.m_client->remote_address().c_str(), msg.m_client->remote_port(), text.c_str());
+					LIBNETWRK_INFO(this->name(), "{}:{}\t{}",
+						msg.m_client->remote_address().c_str(), msg.m_client->remote_port(), text);
 
 					response.m_head.m_command = commands::s2c_echo;
 					response << text;
