@@ -27,32 +27,20 @@
 #define LIBNETWRK_FORMAT(fmt, ...)				\
 	fmt::format(fmt, ##__VA_ARGS__)
 
-#define LIBNETWRK_INFO(fmt, ...)				\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::informational, "", fmt, ##__VA_ARGS__)
+#define LIBNETWRK_INFO(name, fmt, ...)			\
+	libnetwrk::log::instance().log_message(libnetwrk::log_severity::informational,	name, fmt, ##__VA_ARGS__)
 
-#define LIBNETWRK_INFO_A(name, fmt, ...)		\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::informational, name, fmt, ##__VA_ARGS__)
+#define LIBNETWRK_WARNING(name, fmt, ...)		\
+	libnetwrk::log::instance().log_message(libnetwrk::log_severity::warning,		name, fmt, ##__VA_ARGS__)
 
-#define LIBNETWRK_WARNING(fmt, ...)				\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::warning, "", fmt, ##__VA_ARGS__)
+#define LIBNETWRK_ERROR(name, fmt, ...)			\
+	libnetwrk::log::instance().log_message(libnetwrk::log_severity::error,			name, fmt, ##__VA_ARGS__)
 
-#define LIBNETWRK_WARNING_A(name, fmt, ...)		\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::warning, name, fmt, ##__VA_ARGS__)
+#define LIBNETWRK_VERBOSE(name, fmt, ...)		\
+	libnetwrk::log::instance().log_message(libnetwrk::log_severity::verbose,		name, fmt, ##__VA_ARGS__)
 
-#define LIBNETWRK_ERROR(fmt, ...)				\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::error, "", fmt, ##__VA_ARGS__)
-
-#define LIBNETWRK_ERROR_A(name, fmt, ...)		\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::error, name, fmt, ##__VA_ARGS__)
-
-#define LIBNETWRK_VERBOSE(fmt, ...)				\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::verbose, "", fmt, ##__VA_ARGS__)
-
-#define LIBNETWRK_VERBOSE_A(name, fmt, ...)		\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::verbose, name, fmt, ##__VA_ARGS__)
-
-#define LIBNETWRK_DEBUG(name, fmt, ...)		\
-	libnetwrk::log::instance().log_message(libnetwrk::log_severity::verbose, name, fmt, ##__VA_ARGS__)
+#define LIBNETWRK_DEBUG(name, fmt, ...)			\
+	libnetwrk::log::instance().log_message(libnetwrk::log_severity::debug,			name, fmt, ##__VA_ARGS__)
 
 namespace libnetwrk {
 	enum class log_severity : unsigned char {
