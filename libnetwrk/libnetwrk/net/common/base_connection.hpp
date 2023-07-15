@@ -2,6 +2,9 @@
 #define LIBNETWRK_NET_COMMON_BASE_CONNECTION_HPP
 
 #include <random>
+#include <chrono>
+#include <map>
+#include <mutex>
 
 #include "libnetwrk/net/definitions.hpp"
 #include "libnetwrk/net/common/base_context.hpp"
@@ -20,12 +23,16 @@ namespace libnetwrk::net::common {
 			typedef message<command_type, serializer>					message_t;
 			typedef std::shared_ptr<message_t>							message_t_ptr;
 			typedef owned_message<command_type, serializer, storage>	owned_message_t;
+			typedef std::shared_ptr<owned_message_t>					owned_message_t_ptr;
 
 			typedef base_context<command_type, serializer, storage> base_context_t;
 
 		protected:
 			base_context_t& m_parent_context;
 			tsdeque<message_t_ptr> m_outgoing_messages;
+
+			std::map<command_type, message_t*> m_waiting_responses;
+			std::mutex m_waiting_responses_mutex;
 
 			uint64_t m_id;
 			storage m_storage;
@@ -105,6 +112,31 @@ namespace libnetwrk::net::common {
 			/// <param name="message">: message to send</param>
 			void send(message_t& message) {
 				send(std::make_shared<message_t>(std::move(message)));
+			}
+
+			/// <summary>
+			/// Send message and block until a response arives or timeout elapses. 
+			/// Message object after sending should be considered in an undefined state and
+			/// shouldn't be used further without reassigning.
+			/// </summary>
+			bool send(const message_t_ptr& message, message_t& response, command_type response_type, 
+				std::chrono::milliseconds timeout = std::chrono::milliseconds(5000)) 
+			{
+				send(message);
+
+				if (wait_for_response(response, response_type, timeout)) {
+					return true;
+				}
+				else {
+					LIBNETWRK_ERROR(m_parent_context.name(), "send failed, timeout elapsed");
+					return false;
+				}
+			}
+
+			bool send(message_t& message, message_t& response, command_type response_type, 
+				std::chrono::milliseconds timeout = std::chrono::milliseconds(5000)) 
+			{
+				return send(std::make_shared<message_t>(std::move(message)), response_type, timeout);
 			}
 
 		protected:
@@ -222,13 +254,26 @@ namespace libnetwrk::net::common {
 				owned_message_t owned_message;
 				owned_message.m_msg = m_temp_message;
 
-				if (m_parent_context.m_owner == connection_owner::server)
+				if (m_parent_context.m_owner == connection_owner::server) {
 					owned_message.m_client = this->shared_from_this();
-				else
-					owned_message.m_client = nullptr;
+					m_parent_context.m_incoming_messages.push_back(owned_message);
+				}
+				else {
+					libnetwrk_guard guard(m_waiting_responses_mutex);
+					command_type cmd = owned_message.m_msg.m_head.m_command;
 
-				m_parent_context.m_incoming_messages.push_back(owned_message);
+					if (m_waiting_responses.contains(cmd)) {
+						if(m_waiting_responses[cmd])
+							*m_waiting_responses[cmd] = std::move(owned_message.m_msg);
 
+						m_waiting_responses.erase(cmd);
+					}
+					else {
+						owned_message.m_client = nullptr;
+						m_parent_context.m_incoming_messages.push_back(owned_message);
+					}
+				}
+					
 				read_message_head();
 			}
 
@@ -241,6 +286,33 @@ namespace libnetwrk::net::common {
 				stop();
 				LIBNETWRK_ERROR(this->m_parent_context.name(),
 					"failed during read/write | {}", ec.message().c_str());
+			}
+
+			bool wait_for_response(message_t& response_out, command_type response_type, std::chrono::milliseconds timeout) {
+				{
+					libnetwrk_guard guard(m_waiting_responses_mutex);
+					if (m_waiting_responses.contains(response_type)) return false;
+					m_waiting_responses.insert({ response_type, &response_out });
+				}
+				
+				auto end_time = std::chrono::system_clock::now() + timeout;
+
+				while (std::chrono::system_clock::now() < end_time) {
+					libnetwrk_guard guard(m_waiting_responses_mutex);
+
+					if (!m_waiting_responses.contains(response_type))
+						return true;
+
+					std::this_thread::sleep_for(std::chrono::milliseconds(50));
+				}
+
+				{
+					libnetwrk_guard guard(m_waiting_responses_mutex);
+					if (m_waiting_responses.contains(response_type))
+						m_waiting_responses.erase(response_type);
+				}
+
+				return false;
 			}
 
 			uint32_t generate_verification_code() {
