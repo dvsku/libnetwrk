@@ -15,7 +15,11 @@ enum class commands : unsigned int {
 	c2s_ping,
 	s2c_pong,
 	c2s_broadcast,
-	s2c_broadcast
+	s2c_broadcast,
+	c2s_send_sync_success,
+	s2c_send_sync_success,
+	c2s_send_sync_fail,
+	s2c_send_sync_fail
 };
 
 class test_service : public tcp_server<commands> {
@@ -48,6 +52,17 @@ class test_service : public tcp_server<commands> {
 					client_said_broadcast = true;
 					response.m_head.m_command = commands::s2c_broadcast;
 					send_all(response);
+					break;
+				case commands::c2s_send_sync_success:
+					response.m_head.m_command = commands::s2c_send_sync_success;
+					response << std::string("success");
+					msg.m_client->send(response);
+					break;
+				case commands::c2s_send_sync_fail:
+					response.m_head.m_command = commands::s2c_send_sync_fail;
+					response << std::string("fail");
+					std::this_thread::sleep_for(std::chrono::milliseconds(5500));
+					msg.m_client->send(response);
 					break;
 				default:
 					break;
@@ -198,6 +213,41 @@ void service_broadcast() {
 	ASSERT(client2.server_said_broadcast == true);
 }
 
+void client_send_sync_success() {
+	test_service server;
+	server.start("127.0.0.1", 21205);
+	server.process_messages_async();
+
+	test_client client;
+	client.connect("127.0.0.1", 21205);
+	client.process_messages_async();
+
+	message<commands> msg(commands::c2s_send_sync_success);
+	message<commands> response;
+	bool res = client.send(msg, response, commands::s2c_send_sync_success);
+
+	ASSERT(res == true);
+
+	std::string text; response >> text;
+	ASSERT(text == "success");
+}
+
+void client_send_sync_fail() {
+	test_service server;
+	server.start("127.0.0.1", 21205);
+	server.process_messages_async();
+	
+	test_client client;
+	client.connect("127.0.0.1", 21205);
+	client.process_messages_async();
+
+	message<commands> msg(commands::c2s_send_sync_fail);
+	message<commands> response;
+	bool res = client.send(msg, response, commands::s2c_send_sync_fail);
+
+	ASSERT(res == false);
+}
+
 int main(int argc, char* argv[]) {
 	if (argc != 2) {
 		service_connect();
@@ -205,14 +255,18 @@ int main(int argc, char* argv[]) {
 		service_echo();
 		service_ping_pong();
 		service_broadcast();
+		client_send_sync_success();
+		client_send_sync_fail();
 	}
 	else {
 		switch (std::stoi(argv[1])) {
-			case 0: service_connect();			break;
-			case 1: service_client_hello();		break;
-			case 2: service_echo();				break;
-			case 3: service_ping_pong();		break;
-			case 4: service_broadcast();		break;
+			case 0: service_connect();				break;
+			case 1: service_client_hello();			break;
+			case 2: service_echo();					break;
+			case 3: service_ping_pong();			break;
+			case 4: service_broadcast();			break;
+			case 5: client_send_sync_success();		break;
+			case 6: client_send_sync_fail();		break;
 			default: break;
 		}
 	}

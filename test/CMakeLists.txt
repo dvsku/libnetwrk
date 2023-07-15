@@ -65,6 +65,8 @@ ADD_TEST(NAME service_client_hello COMMAND test_tcp_server_client 1)
 ADD_TEST(NAME service_echo COMMAND test_tcp_server_client 2)
 ADD_TEST(NAME service_ping_pong COMMAND test_tcp_server_client 3)
 ADD_TEST(NAME service_broadcast COMMAND test_tcp_server_client 4)
+ADD_TEST(NAME client_send_sync_success COMMAND test_tcp_server_client 5)
+ADD_TEST(NAME client_send_sync_fail COMMAND test_tcp_server_client 6)
 
 # TEST: TCP_COMMAND_TYPE
 ADD_EXECUTABLE(test_tcp_command_type test_tcp_command_type.cpp)
