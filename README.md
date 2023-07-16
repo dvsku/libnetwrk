@@ -20,7 +20,7 @@
 Based heavily on <a href="https://www.youtube.com/@javidx9">javidx9</a>'s work with networking. Relies on embedded ASIO 1.14.0 library. <br/> Recommended for use on small personal projects as it's not heavily tested.
 
 ## Requirements
-- c++17 or later compiler
+- c++20 or later compiler
 
 ## Usage
 - Copy libnetwrk folder to your project
