@@ -292,7 +292,6 @@ namespace libnetwrk::net::common {
 			bool wait_for_response(message_t& response_out, command_type response_type, std::chrono::milliseconds timeout) {
 				{
 					libnetwrk_guard guard(m_waiting_responses_mutex);
-
 					if (m_waiting_responses.find(response_type) != m_waiting_responses.end()) return false;
 					m_waiting_responses.insert({ response_type, &response_out });
 				}
@@ -300,10 +299,11 @@ namespace libnetwrk::net::common {
 				auto end_time = std::chrono::system_clock::now() + timeout;
 
 				while (std::chrono::system_clock::now() < end_time) {
-					libnetwrk_guard guard(m_waiting_responses_mutex);
-
-					if (m_waiting_responses.find(response_type) == m_waiting_responses.end())
-						return true;
+					{
+						libnetwrk_guard guard(m_waiting_responses_mutex);
+						if (m_waiting_responses.find(response_type) == m_waiting_responses.end())
+							return true;
+					}
 
 					std::this_thread::sleep_for(std::chrono::milliseconds(50));
 				}
