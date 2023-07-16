@@ -102,14 +102,14 @@ namespace libnetwrk {
 			}
 
 			template <typename... Targs>
-			void log_message(log_severity severity, const std::string& name, fmt::format_string<Targs...> format, Targs&&... args) {
+			void log_message(log_severity severity, const std::string& name, fmt::string_view format, Targs&&... args) {
 				if (m_settings.m_severity < severity) return;
 				if (!m_settings.m_log_to_console && !m_settings.m_log_to_file) return;
 				
 				auto time = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
 				auto prefix = m_prefixes[(unsigned int)severity - 1];
 				
-				auto formatted = fmt::format(format, std::forward<Targs>(args)...);
+				auto formatted = fmt::vformat(format, fmt::make_format_args(std::forward<Targs>(args)...));
 
 				if (m_settings.m_log_to_console) {
 					std::string msg;

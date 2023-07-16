@@ -255,7 +255,9 @@ namespace libnetwrk::net::common {
 				while (m_running) {
 					std::unique_lock<std::mutex> guard(m_connections_mutex);
 					
-					auto count = m_connections.remove_if([this](auto& client) {
+					auto prev_size = m_connections.size();
+
+					m_connections.remove_if([this](auto& client) {
 						if (client == nullptr) return true;
 
 						if (!client->is_alive()) {
@@ -266,8 +268,8 @@ namespace libnetwrk::net::common {
 						return false;
 					});
 
-					if (count)
-						LIBNETWRK_INFO(this->name(), "gc tc: {} rc: {}", m_connections.size(), count);
+					if (prev_size - m_connections.size())
+						LIBNETWRK_INFO(this->name(), "gc tc: {} rc: {}", m_connections.size(), prev_size - m_connections.size());
 
 					m_gc_cv.wait_for(guard, std::chrono::seconds(15));
 				}

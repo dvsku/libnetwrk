@@ -262,9 +262,10 @@ namespace libnetwrk::net::common {
 					libnetwrk_guard guard(m_waiting_responses_mutex);
 					command_type cmd = owned_message.m_msg.m_head.m_command;
 
-					if (m_waiting_responses.contains(cmd)) {
-						if(m_waiting_responses[cmd])
-							*m_waiting_responses[cmd] = std::move(owned_message.m_msg);
+					auto iter = m_waiting_responses.find(cmd);
+					if (iter != m_waiting_responses.end()) {
+						if(iter->second)
+							*iter->second = std::move(owned_message.m_msg);
 
 						m_waiting_responses.erase(cmd);
 					}
@@ -291,7 +292,8 @@ namespace libnetwrk::net::common {
 			bool wait_for_response(message_t& response_out, command_type response_type, std::chrono::milliseconds timeout) {
 				{
 					libnetwrk_guard guard(m_waiting_responses_mutex);
-					if (m_waiting_responses.contains(response_type)) return false;
+
+					if (m_waiting_responses.find(response_type) != m_waiting_responses.end()) return false;
 					m_waiting_responses.insert({ response_type, &response_out });
 				}
 				
@@ -300,7 +302,7 @@ namespace libnetwrk::net::common {
 				while (std::chrono::system_clock::now() < end_time) {
 					libnetwrk_guard guard(m_waiting_responses_mutex);
 
-					if (!m_waiting_responses.contains(response_type))
+					if (m_waiting_responses.find(response_type) == m_waiting_responses.end())
 						return true;
 
 					std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -308,7 +310,7 @@ namespace libnetwrk::net::common {
 
 				{
 					libnetwrk_guard guard(m_waiting_responses_mutex);
-					if (m_waiting_responses.contains(response_type))
+					if (m_waiting_responses.find(response_type) != m_waiting_responses.end())
 						m_waiting_responses.erase(response_type);
 				}
 
