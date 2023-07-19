@@ -27,21 +27,21 @@ namespace libnetwrk::net::common {
 
 		template <typename T>
 		static void serialize(buffer_t& buffer, const T& value,
-			typename std::enable_if<std::is_standard_layout<T>::value, bool>::type = true) 
+			typename std::enable_if<is_arithmetic_or_enum<T>, bool>::type = true)
 		{
 			buffer.push_back(&value, sizeof(T));
 		}
 
 		template <typename T>
 		static void serialize(buffer_t& buffer, const T& value, const size_t offset,
-			typename std::enable_if<std::is_standard_layout<T>::value, bool>::type = true)
+			typename std::enable_if<is_arithmetic_or_enum<T>, bool>::type = true)
 		{
 			buffer.push_at(&value, sizeof(T), offset);
 		}
 
 		template <typename T>
 		static void deserialize(buffer_t& buffer, T& obj,
-			typename std::enable_if<std::is_standard_layout<T>::value, bool>::type = true)
+			typename std::enable_if<is_arithmetic_or_enum<T>, bool>::type = true)
 		{
 			buffer.get_range(&obj, sizeof(obj));
 		}

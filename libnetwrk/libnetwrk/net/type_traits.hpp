@@ -17,6 +17,15 @@ namespace libnetwrk::net {
 		std::is_base_of<libnetwrk::net::common::serializable<serializer>, T>::value;
 
 	/// <summary>
+	/// Check if type is serializable. Type is serializable if it derives from serializable struct.
+	/// </summary>
+	/// <typeparam name="T">type</typeparam>
+	/// <typeparam name="serializer">serializer to use</typeparam>
+	template<typename T>
+	constexpr bool is_arithmetic_or_enum =
+		std::is_arithmetic<T>::value || std::is_enum<T>::value;
+
+	/// <summary>
 	/// Check if function's signature matches a desired signature
 	/// </summary>
 	/// <typeparam name="F">: function to test</typeparam>
