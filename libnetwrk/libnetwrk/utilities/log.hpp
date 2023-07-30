@@ -150,27 +150,34 @@ namespace libnetwrk {
 
 		protected:
 			void print(const std::string& str) {
-				fmt::print(fmt::text_style(), str);
+				try {
+					fmt::print(fmt::text_style(), str);
+				}
+				catch(...) {}
 			}
 
 			void write(const std::string& str) {
-				char time_buffer[32];
+				try {
+					char time_buffer[32];
 
-				// Get current time
-				time_t		now = time(0);
-				struct tm	tstruct;
+					// Get current time
+					time_t		now = time(0);
+					struct tm	tstruct;
 
-				LIBNETWRK_LOCALTIME(&now, &tstruct);
+					LIBNETWRK_LOCALTIME(&now, &tstruct);
 
-				// Format time to time_buffer
-				strftime(time_buffer, sizeof(time_buffer), "%d-%m-%Y", &tstruct);
+					// Format time to time_buffer
+					strftime(time_buffer, sizeof(time_buffer), "%d-%m-%Y", &tstruct);
 
-				// Create file name
-				std::string file_name = m_settings.m_name_prefix + "_" + time_buffer + ".txt";
+					// Create file name
+					std::string file_name = m_settings.m_name_prefix + "_" + time_buffer + ".txt";
 
-				std::ofstream out;
-				out.open(file_name.c_str(), std::ios_base::app);
-				out << str;
+					std::ofstream out;
+					out.open(file_name.c_str(), std::ios_base::app);
+					if (out.is_open() && out.good())
+						out << str;
+				}
+				catch(...) {}
 			}
 	};
 }
