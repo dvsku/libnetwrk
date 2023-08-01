@@ -15,15 +15,6 @@
 #include "libnetwrk/utilities/traits/non_copyable.hpp"
 #include "libnetwrk/utilities/traits/non_moveable.hpp"
 
-#if defined(_WIN32) || defined(WIN32)
-	#include "windows.h"
-	#define __LIBNETWRK_SNPRINTF(buffer, size, format, ...) _snprintf(buffer, size, format, __VA_ARGS__)
-	#define __LIBNETWRK_LOCALTIME(time_t_addr, dst_addr) localtime_s(dst_addr, time_t_addr)
-#else
-	#define __LIBNETWRK_SNPRINTF(buffer, size, format, ...) snprintf(buffer, size, format, __VA_ARGS__)
-	#define __LIBNETWRK_LOCALTIME(time_t_addr, dst_addr) localtime_r(time_t_addr, dst_addr)
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////
 // MACROS
 ///////////////////////////////////////////////////////////////////////////////
@@ -144,19 +135,14 @@ namespace libnetwrk {
 		public:
 			logger() = delete;
 			logger(log_level _lev, bool _log_to_console, bool _log_to_file) 
-				: level(_lev), log_to_console(_log_to_console), log_to_file(_log_to_file) 
-			{
-				auto timezone = std::chrono::current_zone();
-				m_timezone_offset = timezone ? 
-					timezone->get_info(std::chrono::system_clock::now()).offset : std::chrono::seconds(0);
-			}
+				: level(_lev), log_to_console(_log_to_console), log_to_file(_log_to_file) {}
 
 			template <typename... Targs>
 			void log(log_level _lev, const std::string& _name, fmt::string_view _format, Targs&&... _args) {
 				if (level < _lev) return;
 				if (!log_to_console && !log_to_file) return;
 
-				auto local		= std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now() + m_timezone_offset);
+				auto local		= fmt::localtime(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
 				auto prefix		= m_prefixes[(unsigned int)_lev - 1];
 				auto formatted	= fmt::vformat(_format, fmt::make_format_args(std::forward<Targs>(_args)...));
 
@@ -199,8 +185,6 @@ namespace libnetwrk {
 				{"VERB", fmt::color::dark_cyan}
 			};
 
-			std::chrono::seconds m_timezone_offset;
-
 		private:
 			void print_to_console(const std::string& str) {
 				try {
@@ -211,19 +195,8 @@ namespace libnetwrk {
 
 			void write_to_file(const std::string& str) {
 				try {
-					char time_buffer[32];
-
-					// Get current time
-					time_t		now = time(0);
-					struct tm	tstruct;
-
-					__LIBNETWRK_LOCALTIME(&now, &tstruct);
-
-					// Format time to time_buffer
-					strftime(time_buffer, sizeof(time_buffer), "%d-%m-%Y", &tstruct);
-
-					// Create file name
-					std::string file_name = log_name + "_" + time_buffer + ".txt";
+					auto local = fmt::localtime(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+					std::string file_name = fmt::format("{}_{:%d-%m-%Y}.txt", log_name, local);
 
 					std::ofstream out;
 					out.open(file_name.c_str(), std::ios_base::app);
