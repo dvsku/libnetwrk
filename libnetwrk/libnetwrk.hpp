@@ -1,7 +1,6 @@
 ﻿#ifndef LIBNETWRK_HPP
 #define LIBNETWRK_HPP
 
-#include "libnetwrk/utilities/log.hpp"
 #include "libnetwrk/net/definitions.hpp"
 #include "libnetwrk/net/message.hpp"
 #include "libnetwrk/net/common/containers/buffer.hpp"
