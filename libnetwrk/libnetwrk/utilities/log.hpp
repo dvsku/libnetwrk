@@ -16,6 +16,7 @@
 #include "libnetwrk/utilities/traits/non_moveable.hpp"
 
 #if defined(_WIN32) || defined(WIN32)
+	#include "windows.h"
 	#define __LIBNETWRK_SNPRINTF(buffer, size, format, ...) _snprintf(buffer, size, format, __VA_ARGS__)
 	#define __LIBNETWRK_LOCALTIME(time_t_addr, dst_addr) localtime_s(dst_addr, time_t_addr)
 #else
