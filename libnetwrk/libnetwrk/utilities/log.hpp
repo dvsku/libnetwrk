@@ -24,27 +24,63 @@
 	#define __LIBNETWRK_LOCALTIME(time_t_addr, dst_addr) localtime_r(time_t_addr, dst_addr)
 #endif
 
+///////////////////////////////////////////////////////////////////////////////
+// MACROS
+///////////////////////////////////////////////////////////////////////////////
+
 #define LIBNETWRK_FORMAT(fmt, ...)				\
 	fmt::format(fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_INFO(name, fmt, ...)			\
-	libnetwrk::log::log_message(libnetwrk::log_severity::informational,	name, fmt, ##__VA_ARGS__)
+	libnetwrk::log::log_message(libnetwrk::log_level::informational,	name, fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_WARNING(name, fmt, ...)		\
-	libnetwrk::log::log_message(libnetwrk::log_severity::warning,		name, fmt, ##__VA_ARGS__)
+	libnetwrk::log::log_message(libnetwrk::log_level::warning,			name, fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_ERROR(name, fmt, ...)			\
-	libnetwrk::log::log_message(libnetwrk::log_severity::error,			name, fmt, ##__VA_ARGS__)
+	libnetwrk::log::log_message(libnetwrk::log_level::error,			name, fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_DEBUG(name, fmt, ...)			\
-	libnetwrk::log::log_message(libnetwrk::log_severity::debug,			name, fmt, ##__VA_ARGS__)
+	libnetwrk::log::log_message(libnetwrk::log_level::debug,			name, fmt, ##__VA_ARGS__)
 
 #define LIBNETWRK_VERBOSE(name, fmt, ...)		\
-	libnetwrk::log::log_message(libnetwrk::log_severity::verbose,		name, fmt, ##__VA_ARGS__)
+	libnetwrk::log::log_message(libnetwrk::log_level::verbose,			name, fmt, ##__VA_ARGS__)
 
+///////////////////////////////////////////////////////////////////////////////
+// Only define these macros if they aren't already defined as to not
+//	clash with existing log libs
+
+#ifndef LOG_INFO
+#define LOG_INFO(name, fmt, ...)				\
+	libnetwrk::log::log_message(libnetwrk::log_level::informational,	name, fmt, ##__VA_ARGS__)
+#endif
+
+#ifndef LOG_WARN
+#define LOG_WARN(name, fmt, ...)				\
+	libnetwrk::log::log_message(libnetwrk::log_level::warning,			name, fmt, ##__VA_ARGS__)
+#endif
+
+#ifndef LOG_ERROR
+#define LOG_ERROR(name, fmt, ...)				\
+	libnetwrk::log::log_message(libnetwrk::log_level::error,			name, fmt, ##__VA_ARGS__)
+#endif
+
+#ifndef LOG_DEBUG
+#define LOG_DEBUG(name, fmt, ...)				\
+	libnetwrk::log::log_message(libnetwrk::log_level::debug,			name, fmt, ##__VA_ARGS__)
+#endif
+
+#ifndef LOG_VERB
+#define LOG_VERB(name, fmt, ...)				\
+	libnetwrk::log::log_message(libnetwrk::log_level::verbose,			name, fmt, ##__VA_ARGS__)
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// IMPLEMENTATION
+///////////////////////////////////////////////////////////////////////////////
 
 namespace libnetwrk {
-	enum class log_severity : unsigned char {
+	enum class log_level : unsigned char {
 		none			= 0x00,		// does not log
 		informational	= 0x01,		// logs only info
 		warning			= 0x02,		// logs info and warnings
@@ -55,9 +91,9 @@ namespace libnetwrk {
 	
 	class log : public non_copyable, public non_moveable {
 	public:
-		static void init(log_severity severity, bool log_to_console = true, bool log_to_file = false) {
+		static void init(log_level level, bool log_to_console = true, bool log_to_file = false) {
 			if (m_logger) return;
-			m_logger = std::make_unique<logger>(severity, log_to_console, log_to_file);
+			m_logger = std::make_unique<logger>(level, log_to_console, log_to_file);
 
 		#if defined(_WIN32) || defined(WIN32)
 			// Enable colors in console (disabled by default)
@@ -65,9 +101,9 @@ namespace libnetwrk {
 		#endif
 		}
 
-		static void set_severity(log_severity severity) {
+		static void set_level(log_level level) {
 			if (m_logger) 
-				m_logger->severity = severity;
+				m_logger->level = level;
 		}
 
 		static void set_log_to_console(bool log_to_console) {
@@ -91,15 +127,15 @@ namespace libnetwrk {
 		}
 
 		template <typename... Targs>
-		static void log_message(log_severity severity, const std::string& name, fmt::string_view format, Targs&&... args) {
+		static void log_message(log_level level, const std::string& name, fmt::string_view format, Targs&&... args) {
 			if (m_logger)
-				m_logger->log(severity, name, format, args...);
+				m_logger->log(level, name, format, args...);
 		}
 
 	private:
 		class logger : public non_copyable, public non_moveable {
 		public:
-			log_severity severity	= log_severity::error;
+			log_level level			= log_level::error;
 			bool log_to_console		= true;
 			bool log_to_file		= true;
 			std::string log_name	= "log";
@@ -107,8 +143,8 @@ namespace libnetwrk {
 
 		public:
 			logger() = delete;
-			logger(log_severity _severity, bool _log_to_console, bool _log_to_file) 
-				: severity(_severity), log_to_console(_log_to_console), log_to_file(_log_to_file) 
+			logger(log_level _lev, bool _log_to_console, bool _log_to_file) 
+				: level(_lev), log_to_console(_log_to_console), log_to_file(_log_to_file) 
 			{
 				auto timezone = std::chrono::current_zone();
 				m_timezone_offset = timezone ? 
@@ -116,12 +152,12 @@ namespace libnetwrk {
 			}
 
 			template <typename... Targs>
-			void log(log_severity _severity, const std::string& _name, fmt::string_view _format, Targs&&... _args) {
-				if (severity < _severity) return;
+			void log(log_level _lev, const std::string& _name, fmt::string_view _format, Targs&&... _args) {
+				if (level < _lev) return;
 				if (!log_to_console && !log_to_file) return;
 
 				auto local		= std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now() + m_timezone_offset);
-				auto prefix		= m_prefixes[(unsigned int)_severity - 1];
+				auto prefix		= m_prefixes[(unsigned int)_lev - 1];
 				auto formatted	= fmt::vformat(_format, fmt::make_format_args(std::forward<Targs>(_args)...));
 
 				if (log_to_console) {
