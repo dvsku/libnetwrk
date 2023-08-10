@@ -192,7 +192,13 @@ namespace libnetwrk {
 		private:
 			void print_to_console(const std::string& str) {
 				try {
+				#if (defined(_WIN32) || defined(_WIN64)) && defined(LIBNETWRK_DLL)
+					auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
+					if(handle)
+						WriteConsole(handle, str.c_str(), str.length(), NULL, NULL);
+				#else
 					fmt::print(fmt::text_style(), str);
+				#endif	
 				}
 				catch (...) {}
 			}
