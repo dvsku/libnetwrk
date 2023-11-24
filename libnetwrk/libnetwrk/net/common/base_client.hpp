@@ -72,8 +72,9 @@ namespace libnetwrk::net::common {
             /// </summary>
             void disconnect() {
                 if (!m_connected) return;
-
                 m_connected = false;
+
+                on_disconnect();
                 teardown();
 
                 LIBNETWRK_INFO(this->name(), "disconnected");
@@ -128,7 +129,6 @@ namespace libnetwrk::net::common {
                         m_connection->send(std::make_shared<message_t>(std::move(message)));
                     }
                     else {
-                        on_disconnect();
                         disconnect();
                     }
                 }
@@ -140,7 +140,6 @@ namespace libnetwrk::net::common {
                 if (!m_connection || !m_connected) return false;
                 
                 if (!m_connection->is_alive()) {
-                    on_disconnect();
                     disconnect();
                     return false;
                 }
