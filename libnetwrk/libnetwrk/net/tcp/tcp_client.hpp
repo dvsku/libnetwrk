@@ -35,6 +35,7 @@ namespace libnetwrk::net::tcp {
         protected:
             virtual void on_message(message_t& msg) override {}
 
+            virtual void on_connect()    override {}
             virtual void on_disconnect() override {}
 
         private:
@@ -63,6 +64,8 @@ namespace libnetwrk::net::tcp {
                     this->start_context();
 
                     this->m_connected = true;
+
+                    on_connect();
 
                     LIBNETWRK_INFO(this->name(), "connected to {}:{}", host, port);
                 }

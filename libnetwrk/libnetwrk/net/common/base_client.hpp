@@ -150,6 +150,7 @@ namespace libnetwrk::net::common {
         protected:
             virtual void on_message(message_t& msg) {}
 
+            virtual void on_connect()    {}
             virtual void on_disconnect() {}
 
             virtual bool _connect(const char* host, const unsigned short port) {
