@@ -83,7 +83,7 @@ namespace libnetwrk::net::common {
         /// <returns>true if a message has been processed, false if it hasn't</returns>
         bool process_single_message() {
             try {
-                if (this->m_incoming_messages.empty())
+                if (!m_connected || this->m_incoming_messages.empty())
                     return false;
     
                 message_t msg = this->m_incoming_messages.pop_front().m_msg;
@@ -171,6 +171,7 @@ namespace libnetwrk::net::common {
             m_connection.reset();
     
             this->m_incoming_messages.cancel_wait();
+            this->m_incoming_messages.clear();
     
             if (m_context_thread.joinable())
                 m_context_thread.join();
@@ -188,16 +189,14 @@ namespace libnetwrk::net::common {
         std::thread m_process_messages_thread;
 
     private:
-        void _process_messages(size_t max_messages = -1) {
+        void _process_messages() {
             while (m_connected) {
                 this->m_incoming_messages.wait();
     
                 try {
-                    size_t message_count = 0;
-                    while (message_count < max_messages && !this->m_incoming_messages.empty()) {
+                    while (!this->m_incoming_messages.empty()) {
                         message_t msg = this->m_incoming_messages.pop_front().m_msg;
                         on_message(msg);
-                        message_count++;
                     }
                 }
                 catch (const std::exception& e) {
