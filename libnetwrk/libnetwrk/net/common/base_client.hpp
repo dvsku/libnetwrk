@@ -165,6 +165,8 @@ namespace libnetwrk::net::common {
                     if (m_connection->is_alive())
                         m_connection->stop();
 
+                m_connection.reset();
+
                 this->m_incoming_messages.cancel_wait();
 
                 if (m_context_thread.joinable())
