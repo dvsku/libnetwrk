@@ -22,15 +22,15 @@ void type_trait_is_serializable() {
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 2) {
-		type_trait_is_serializable();
-	}
-	else {
-		switch (std::stoi(argv[1])) {
-			case 0: type_trait_is_serializable();			break;
-			default: break;
-		}
-	}
+    if (argc != 2) {
+        type_trait_is_serializable();
+    }
+    else {
+        switch (std::stoi(argv[1])) {
+            case 0: type_trait_is_serializable();            break;
+            default: break;
+        }
+    }
 
-	return 0;
+    return 0;
 }

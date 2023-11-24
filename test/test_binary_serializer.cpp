@@ -5,285 +5,285 @@
 using namespace libnetwrk::net::common;
 
 struct simple_struct : public serializable<binary_serializer> {
-	uint32_t a = 420;
-	std::string b = "";
+    uint32_t a = 420;
+    std::string b = "";
 
-	simple_struct() {}
+    simple_struct() {}
 
-	simple_struct(uint32_t a, std::string b) {
-		this->a = a;
-		this->b = b;
-	}
-	
-	buffer_t serialize() const override {
-		buffer_t buffer;
-		buffer << a;
-		buffer << b;
-		return buffer;
-	}
+    simple_struct(uint32_t a, std::string b) {
+        this->a = a;
+        this->b = b;
+    }
+    
+    buffer_t serialize() const override {
+        buffer_t buffer;
+        buffer << a;
+        buffer << b;
+        return buffer;
+    }
 
-	void deserialize(buffer_t serialized) override {
-		serialized >> a >> b;
-	}
+    void deserialize(buffer_t serialized) override {
+        serialized >> a >> b;
+    }
 
-	bool equals(const simple_struct& obj) {
-		return a == obj.a && b == obj.b;
-	}
+    bool equals(const simple_struct& obj) {
+        return a == obj.a && b == obj.b;
+    }
 };
 
 struct container_struct : public serializable<binary_serializer> {
-	std::vector<int> a;
-	std::deque<int> b;
-	std::list<int> c;
-	std::forward_list<int> d;
+    std::vector<int> a;
+    std::deque<int> b;
+    std::list<int> c;
+    std::forward_list<int> d;
 
-	buffer_t serialize() const override {
-		buffer_t buffer;
-		buffer << a << b << c << d;
-		return buffer;
-	}
+    buffer_t serialize() const override {
+        buffer_t buffer;
+        buffer << a << b << c << d;
+        return buffer;
+    }
 
-	void deserialize(buffer_t serialized) override {
-		serialized >> a >> b >> c >> d;
-	}
+    void deserialize(buffer_t serialized) override {
+        serialized >> a >> b >> c >> d;
+    }
 
-	bool equals(const container_struct& obj) {
-		return a == obj.a && b == obj.b && c == obj.c && d == obj.d;
-	}
+    bool equals(const container_struct& obj) {
+        return a == obj.a && b == obj.b && c == obj.c && d == obj.d;
+    }
 };
 
 struct string_struct : public serializable<binary_serializer> {
-	std::string a;
+    std::string a;
 
-	buffer_t serialize() const override {
-		buffer_t buffer;
-		buffer << a;
-		return buffer;
-	}
+    buffer_t serialize() const override {
+        buffer_t buffer;
+        buffer << a;
+        return buffer;
+    }
 
-	void deserialize(buffer_t serialized) override {
-		serialized >> a;
-	}
+    void deserialize(buffer_t serialized) override {
+        serialized >> a;
+    }
 
-	bool equals(const string_struct& obj) {
-		return a == obj.a;
-	}
+    bool equals(const string_struct& obj) {
+        return a == obj.a;
+    }
 };
 
 void serialize_deserialize_standard_layout() {
-	buffer buffer;
+    buffer buffer;
 
-	int i1 = 156, i2 = 0;
-	buffer << i1 >> i2;
-	ASSERT(i1 == i2);
+    int i1 = 156, i2 = 0;
+    buffer << i1 >> i2;
+    ASSERT(i1 == i2);
 
-	bool b1 = true, b2 = false;
-	buffer << b1; 
-	buffer >> b2;
-	ASSERT(b1 == b2);
+    bool b1 = true, b2 = false;
+    buffer << b1; 
+    buffer >> b2;
+    ASSERT(b1 == b2);
 
-	char c1 = 69, c2 = 0;
-	buffer << c1 >> c2;
-	ASSERT(c1 == c2);
+    char c1 = 69, c2 = 0;
+    buffer << c1 >> c2;
+    ASSERT(c1 == c2);
 
-	float f1 = 69.420f, f2 = 0.0f;
-	buffer << f1 >> f2;
-	ASSERT(f1 == f2);
+    float f1 = 69.420f, f2 = 0.0f;
+    buffer << f1 >> f2;
+    ASSERT(f1 == f2);
 
-	double d1 = 420.69, d2 = 0;
-	buffer << d1 >> d2;
-	ASSERT(d1 == d2);
+    double d1 = 420.69, d2 = 0;
+    buffer << d1 >> d2;
+    ASSERT(d1 == d2);
 
-	wchar_t w1 = 256, w2 = 0;
-	buffer << w1 >> w2;
-	ASSERT(w1 == w2);
+    wchar_t w1 = 256, w2 = 0;
+    buffer << w1 >> w2;
+    ASSERT(w1 == w2);
 }
 
 void serialize_deserialize_standard_layout_containers() {
-	buffer buffer;
-	std::vector<int> v1({ 123, 534, 346, 5432, 242, 735 });
-	std::vector<int> v2;
+    buffer buffer;
+    std::vector<int> v1({ 123, 534, 346, 5432, 242, 735 });
+    std::vector<int> v2;
 
-	buffer << v1 >> v2;
-	ASSERT(v1.size() == v2.size());
-	ASSERT(v1 == v2);
+    buffer << v1 >> v2;
+    ASSERT(v1.size() == v2.size());
+    ASSERT(v1 == v2);
 
-	buffer.clear();
+    buffer.clear();
 
-	std::deque<int> dq1({ 123, 534, 346, 5432, 242, 735 });
-	std::deque<int> dq2;
+    std::deque<int> dq1({ 123, 534, 346, 5432, 242, 735 });
+    std::deque<int> dq2;
 
-	buffer << dq1 >> dq2;
-	ASSERT(dq1.size() == dq2.size());
-	ASSERT(dq1 == dq2);
+    buffer << dq1 >> dq2;
+    ASSERT(dq1.size() == dq2.size());
+    ASSERT(dq1 == dq2);
 
-	buffer.clear();
+    buffer.clear();
 
-	std::forward_list<int> fl1({ 123, 534, 346, 5432, 242, 735 });
-	std::forward_list<int> fl2;
+    std::forward_list<int> fl1({ 123, 534, 346, 5432, 242, 735 });
+    std::forward_list<int> fl2;
 
-	buffer << fl1 >> fl2;
-	ASSERT(fl1 == fl2);
+    buffer << fl1 >> fl2;
+    ASSERT(fl1 == fl2);
 
-	buffer.clear();
+    buffer.clear();
 
-	std::list<int> l1({ 123, 534, 346, 5432, 242, 735 });
-	std::list<int> l2;
+    std::list<int> l1({ 123, 534, 346, 5432, 242, 735 });
+    std::list<int> l2;
 
-	buffer << l1 >> l2;
-	ASSERT(l1.size() == l2.size());
-	ASSERT(l1 == l2);
+    buffer << l1 >> l2;
+    ASSERT(l1.size() == l2.size());
+    ASSERT(l1 == l2);
 
-	std::array<int, 6> ar1({ 123, 534, 346, 5432, 242, 735 });
-	std::array<int, 6> ar2{};
+    std::array<int, 6> ar1({ 123, 534, 346, 5432, 242, 735 });
+    std::array<int, 6> ar2{};
 
-	buffer << ar1 >> ar2;
-	ASSERT(ar1 == ar2);
+    buffer << ar1 >> ar2;
+    ASSERT(ar1 == ar2);
 }
 
 void serialize_deserialize_serializable() {
-	simple_struct ss1(16, "test_1");
-	simple_struct ss2(524, "test_2");
-	simple_struct ss3, ss4, ss5;
+    simple_struct ss1(16, "test_1");
+    simple_struct ss2(524, "test_2");
+    simple_struct ss3, ss4, ss5;
 
-	buffer buffer;
-	buffer << ss1 >> ss3;
-	ASSERT(ss1.equals(ss3));
+    buffer buffer;
+    buffer << ss1 >> ss3;
+    ASSERT(ss1.equals(ss3));
 
-	buffer.clear();
+    buffer.clear();
 
-	buffer << ss1 << ss2 >> ss4 >> ss5;
-	ASSERT(ss1.equals(ss4));
-	ASSERT(ss2.equals(ss5));
+    buffer << ss1 << ss2 >> ss4 >> ss5;
+    ASSERT(ss1.equals(ss4));
+    ASSERT(ss2.equals(ss5));
 }
 
 void serialize_deserialize_strings() {
-	buffer buffer;
+    buffer buffer;
 
-	std::string s1("SeRiaLiZE mE");
-	std::string s2;
+    std::string s1("SeRiaLiZE mE");
+    std::string s2;
 
-	buffer << s1 >> s2;
-	ASSERT(s1 == s2);
+    buffer << s1 >> s2;
+    ASSERT(s1 == s2);
 
-	std::vector<std::string> vs1({ "nxnuNoeuLN", "XjTfSs5loB", "UWp8hsoW5s", "O0c7byqKfj", "CzAXjEObB0" });
-	std::vector<std::string> vs2;
+    std::vector<std::string> vs1({ "nxnuNoeuLN", "XjTfSs5loB", "UWp8hsoW5s", "O0c7byqKfj", "CzAXjEObB0" });
+    std::vector<std::string> vs2;
 
-	buffer << vs1 >> vs2;
-	for (size_t i = 0; i < vs1.size(); i++)
-		ASSERT(vs1[i] == vs2[i]);
+    buffer << vs1 >> vs2;
+    for (size_t i = 0; i < vs1.size(); i++)
+        ASSERT(vs1[i] == vs2[i]);
 }
 
 void serialize_deserialize_unsupported() {
-	buffer buffer;
-	
-	std::stack<int> stack;
-	ASSERT_THROWS(buffer << stack);
+    buffer buffer;
+    
+    std::stack<int> stack;
+    ASSERT_THROWS(buffer << stack);
 
-	std::queue<int> queue;
-	ASSERT_THROWS(buffer << queue);
+    std::queue<int> queue;
+    ASSERT_THROWS(buffer << queue);
 
-	std::priority_queue<int> pqueue;
-	ASSERT_THROWS(buffer << pqueue);
+    std::priority_queue<int> pqueue;
+    ASSERT_THROWS(buffer << pqueue);
 
-	std::set<int> set;
-	ASSERT_THROWS(buffer << set);
+    std::set<int> set;
+    ASSERT_THROWS(buffer << set);
 
-	std::multiset<int> mset;
-	ASSERT_THROWS(buffer << mset);
+    std::multiset<int> mset;
+    ASSERT_THROWS(buffer << mset);
 
-	std::unordered_set<int> uset;
-	ASSERT_THROWS(buffer << uset);
+    std::unordered_set<int> uset;
+    ASSERT_THROWS(buffer << uset);
 
-	std::unordered_multiset<int> umset;
-	ASSERT_THROWS(buffer << umset);
+    std::unordered_multiset<int> umset;
+    ASSERT_THROWS(buffer << umset);
 
-	std::map<int, int> map;
-	ASSERT_THROWS(buffer << map);
+    std::map<int, int> map;
+    ASSERT_THROWS(buffer << map);
 
-	std::multimap<int, int> mmap;
-	ASSERT_THROWS(buffer << mmap);
+    std::multimap<int, int> mmap;
+    ASSERT_THROWS(buffer << mmap);
 
-	std::unordered_map<int, int> umap;
-	ASSERT_THROWS(buffer << umap);
+    std::unordered_map<int, int> umap;
+    ASSERT_THROWS(buffer << umap);
 
-	std::unordered_multimap<int, int> ummap;
-	ASSERT_THROWS(buffer << ummap);
+    std::unordered_multimap<int, int> ummap;
+    ASSERT_THROWS(buffer << ummap);
 }
 
 void serialize_deserialize_repeat_container() {
-	container_struct s1, s2;
-	s1.a.push_back(1);
-	s1.b.push_back(1);
-	s1.c.push_back(1);
-	s1.d.push_front(1);
+    container_struct s1, s2;
+    s1.a.push_back(1);
+    s1.b.push_back(1);
+    s1.c.push_back(1);
+    s1.d.push_front(1);
 
-	s2.deserialize(s1.serialize());
+    s2.deserialize(s1.serialize());
 
-	ASSERT(s2.a.size() == 1);
-	ASSERT(s2.b.size() == 1);
-	ASSERT(s2.c.size() == 1);
-	
-	{
-		int size = 0;
-		for (int& i : s2.d)
-			size++;
+    ASSERT(s2.a.size() == 1);
+    ASSERT(s2.b.size() == 1);
+    ASSERT(s2.c.size() == 1);
+    
+    {
+        int size = 0;
+        for (int& i : s2.d)
+            size++;
 
-		ASSERT(size == 1);
-	}
+        ASSERT(size == 1);
+    }
 
-	s2.deserialize(s1.serialize());
+    s2.deserialize(s1.serialize());
 
-	ASSERT(s2.a.size() == 1);
-	ASSERT(s2.b.size() == 1);
-	ASSERT(s2.c.size() == 1);
+    ASSERT(s2.a.size() == 1);
+    ASSERT(s2.b.size() == 1);
+    ASSERT(s2.c.size() == 1);
 
-	{
-		int size = 0;
-		for (int& i : s2.d)
-			size++;
+    {
+        int size = 0;
+        for (int& i : s2.d)
+            size++;
 
-		ASSERT(size == 1);
-	}
+        ASSERT(size == 1);
+    }
 }
 
 void serialize_deserialize_repeat_string() {
-	string_struct s1, s2;
-	s1.a.push_back('1');
+    string_struct s1, s2;
+    s1.a.push_back('1');
 
-	s2.deserialize(s1.serialize());
+    s2.deserialize(s1.serialize());
 
-	ASSERT(s2.a.size() == 1);
-	ASSERT(s2.a[0] == '1');
+    ASSERT(s2.a.size() == 1);
+    ASSERT(s2.a[0] == '1');
 
-	s2.deserialize(s1.serialize());
+    s2.deserialize(s1.serialize());
 
-	ASSERT(s2.a.size() == 1);
-	ASSERT(s2.a[0] == '1');
+    ASSERT(s2.a.size() == 1);
+    ASSERT(s2.a[0] == '1');
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 2) {
-		serialize_deserialize_standard_layout();
-		serialize_deserialize_standard_layout_containers();
-		serialize_deserialize_strings();
-		serialize_deserialize_serializable();
-		serialize_deserialize_unsupported();
-		serialize_deserialize_repeat_container();
-		serialize_deserialize_repeat_string();
-	}
-	else {
-		switch (std::stoi(argv[1])) {
-			case 0: serialize_deserialize_standard_layout();				break;
-			case 1: serialize_deserialize_standard_layout_containers();		break;
-			case 2: serialize_deserialize_strings();						break;
-			case 3: serialize_deserialize_serializable();					break;
-			case 4: serialize_deserialize_unsupported();					break;
-			case 5: serialize_deserialize_repeat_container();				break;
-			case 6: serialize_deserialize_repeat_string();					break;
-			default: break;
-		}
-	}
+    if (argc != 2) {
+        serialize_deserialize_standard_layout();
+        serialize_deserialize_standard_layout_containers();
+        serialize_deserialize_strings();
+        serialize_deserialize_serializable();
+        serialize_deserialize_unsupported();
+        serialize_deserialize_repeat_container();
+        serialize_deserialize_repeat_string();
+    }
+    else {
+        switch (std::stoi(argv[1])) {
+            case 0: serialize_deserialize_standard_layout();                break;
+            case 1: serialize_deserialize_standard_layout_containers();        break;
+            case 2: serialize_deserialize_strings();                        break;
+            case 3: serialize_deserialize_serializable();                    break;
+            case 4: serialize_deserialize_unsupported();                    break;
+            case 5: serialize_deserialize_repeat_container();                break;
+            case 6: serialize_deserialize_repeat_string();                    break;
+            default: break;
+        }
+    }
 
-	return 0;
+    return 0;
 }
