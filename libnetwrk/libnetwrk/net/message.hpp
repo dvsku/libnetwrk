@@ -53,18 +53,20 @@ namespace libnetwrk::net {
             }
             return *this;
         };
+
+        constexpr size_t size() const {
+            return sizeof(m_command) + sizeof(m_data_len) + sizeof(m_send_timestamp);
+        }
         
         ///////////////////////////////////////////////////////////////////////
         // Serializable
         ///////////////////////////////////////////////////////////////////////
 
-        buffer_t serialize() const override {
-            buffer_t buffer;
+        void serialize(buffer_t& buffer) const override {
             buffer << m_command << m_send_timestamp << m_data_len;
-            return buffer;
         }
 
-        void deserialize(buffer_t serialized) override {
+        void deserialize(buffer_t& serialized) override {
             serialized >> m_command >> m_send_timestamp >> m_data_len;
         }
     };
@@ -84,7 +86,7 @@ namespace libnetwrk::net {
                 LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
                     "message command_type template arg can only be an enum");
 
-                m_head_data.resize(m_head.serialize().size());
+                m_head_data.resize(m_head.size());
             }
 
             message(command_type command) {
@@ -92,7 +94,7 @@ namespace libnetwrk::net {
                     "message command_type template arg can only be an enum");
 
                 m_head.m_command = command;
-                m_head_data.resize(m_head.serialize().size());
+                m_head_data.resize(m_head.size());
             }
 
             message(const message_t& msg) = default;

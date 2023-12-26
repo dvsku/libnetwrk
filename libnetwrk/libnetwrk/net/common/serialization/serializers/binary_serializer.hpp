@@ -54,7 +54,8 @@ namespace libnetwrk::net::common {
         static void serialize(buffer_t& buffer, const T& obj,
             typename std::enable_if<is_serializable<T, binary_serializer>, bool>::type = true) 
         {
-            buffer_t serialized = obj.serialize();
+            buffer_t serialized;
+            obj.serialize(serialized);
             serialize(buffer, serialized.size());
             buffer.push_back(serialized);
         }
@@ -75,7 +76,8 @@ namespace libnetwrk::net::common {
         {
             size_t size = 0;
             deserialize(buffer, size);
-            obj.deserialize(buffer.get_range(size));
+            auto range = buffer.get_range(size);
+            obj.deserialize(range);
         }
 
         ///////////////////////////////////////////////////////////////////////
