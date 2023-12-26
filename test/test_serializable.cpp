@@ -13,13 +13,11 @@ struct simple_struct : public serializable<binary_serializer> {
     double f        = 8342.2;
     bool g            = false;
 
-    buffer_t serialize() const override {
-        buffer_t buffer;
+    void serialize(buffer_t& buffer) const override {
         buffer << a << b << c << d << e << f << g;
-        return buffer;
     }
 
-    void deserialize(buffer_t serialized) override {
+    void deserialize(buffer_t& serialized) override {
         serialized >> a >> b >> c >> d >> e >> f >> g;
     }
 
@@ -33,7 +31,7 @@ void serialize_deserialize_simple_struct() {
     buffer buff;
     simple_struct ss1{}, ss2{};
 
-    buff = ss1.serialize();
+    ss1.serialize(buff);
     ss2.deserialize(buff);
     
     ASSERT(ss1.equals(ss2));

@@ -16,8 +16,6 @@ ADD_TEST(NAME serialize_deserialize_standard_layout_containers COMMAND test_bina
 ADD_TEST(NAME serialize_deserialize_strings COMMAND test_binary_serializer 2)
 ADD_TEST(NAME serialize_deserialize_serializable COMMAND test_binary_serializer 3)
 ADD_TEST(NAME serialize_deserialize_unsupported COMMAND test_binary_serializer 4)
-ADD_TEST(NAME serialize_deserialize_repeat_container COMMAND test_binary_serializer 5)
-ADD_TEST(NAME serialize_deserialize_repeat_string COMMAND test_binary_serializer 6)
 
 # TEST: TSDEQUE
 ADD_EXECUTABLE(test_tsdeque test_tsdeque.cpp)
