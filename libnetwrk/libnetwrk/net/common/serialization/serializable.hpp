@@ -16,13 +16,13 @@ namespace libnetwrk::net::common {
     // Base struct for every user made serializable object
     template <typename serializer = binary_serializer>
     struct serializable {
-        typedef buffer<serializer> buffer_t;
+        using buffer_t = buffer<serializer>;
 
         // Serializes struct to buffer
-        virtual buffer_t serialize() const = 0;
+        virtual void serialize(buffer_t& buffer) const = 0;
 
         // Deserializes a struct from a buffer
-        virtual void deserialize(buffer_t serialized) = 0;
+        virtual void deserialize(buffer_t& serialized) = 0;
     };
 }
 
