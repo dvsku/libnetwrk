@@ -65,7 +65,7 @@ public:
     void wait_for_msg(const int timeout = 30) {
         int tries = 0;
         while (tries < timeout) {
-            if (process_single_message()) break;
+            if (process_message()) break;
 
             tries++;
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -148,7 +148,7 @@ class uint16_client : public tcp_client<commands_uint16> {
         void wait_for_msg(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
-                if (process_single_message()) break;
+                if (process_message()) break;
 
                 tries++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -231,7 +231,7 @@ class uint32_client : public tcp_client<commands_uint32> {
         void wait_for_msg(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
-                if (process_single_message()) break;
+                if (process_message()) break;
 
                 tries++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -314,7 +314,7 @@ class uint64_client : public tcp_client<commands_uint64> {
         void wait_for_msg(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
-                if (process_single_message()) break;
+                if (process_message()) break;
 
                 tries++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -397,7 +397,7 @@ class int8_client : public tcp_client<commands_int8> {
         void wait_for_msg(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
-                if (process_single_message()) break;
+                if (process_message()) break;
 
                 tries++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -480,7 +480,7 @@ class int16_client : public tcp_client<commands_int16> {
         void wait_for_msg(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
-                if (process_single_message()) break;
+                if (process_message()) break;
 
                 tries++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -563,7 +563,7 @@ class int32_client : public tcp_client<commands_int32> {
         void wait_for_msg(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
-                if (process_single_message()) break;
+                if (process_message()) break;
 
                 tries++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -646,7 +646,7 @@ class int64_client : public tcp_client<commands_int64> {
         void wait_for_msg(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
-                if (process_single_message()) break;
+                if (process_message()) break;
 
                 tries++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -718,7 +718,7 @@ class float_client : public tcp_client<float> {
         void wait_for_msg(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
-                if (process_single_message()) break;
+                if (process_message()) break;
 
                 tries++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -778,7 +778,7 @@ class double_client : public tcp_client<double> {
         void wait_for_msg(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
-                if (process_single_message()) break;
+                if (process_message()) break;
 
                 tries++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -838,7 +838,7 @@ class string_client : public tcp_client<std::string> {
         void wait_for_msg(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
-                if (process_single_message()) break;
+                if (process_message()) break;
 
                 tries++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));

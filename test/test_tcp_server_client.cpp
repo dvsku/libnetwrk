@@ -120,7 +120,7 @@ class test_client : public tcp_client<commands> {
         void wait_for_msg(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
-                if (process_single_message()) break;
+                if (process_message()) break;
 
                 tries++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
