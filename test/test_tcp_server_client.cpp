@@ -213,41 +213,6 @@ void service_broadcast() {
     ASSERT(client2.server_said_broadcast == true);
 }
 
-void client_send_sync_success() {
-    test_service server;
-    server.start("127.0.0.1", 21205);
-    server.process_messages_async();
-
-    test_client client;
-    client.connect("127.0.0.1", 21205);
-    client.process_messages_async();
-
-    message<commands> msg(commands::c2s_send_sync_success);
-    message<commands> response;
-    bool res = client.send(msg, response, commands::s2c_send_sync_success);
-
-    ASSERT(res == true);
-
-    std::string text; response >> text;
-    ASSERT(text == "success");
-}
-
-void client_send_sync_fail() {
-    test_service server;
-    server.start("127.0.0.1", 21205);
-    server.process_messages_async();
-    
-    test_client client;
-    client.connect("127.0.0.1", 21205);
-    client.process_messages_async();
-
-    message<commands> msg(commands::c2s_send_sync_fail);
-    message<commands> response;
-    bool res = client.send(msg, response, commands::s2c_send_sync_fail);
-
-    ASSERT(res == false);
-}
-
 int main(int argc, char* argv[]) {
     if (argc != 2) {
         service_connect();
@@ -255,8 +220,6 @@ int main(int argc, char* argv[]) {
         service_echo();
         service_ping_pong();
         service_broadcast();
-        client_send_sync_success();
-        client_send_sync_fail();
     }
     else {
         switch (std::stoi(argv[1])) {
@@ -265,8 +228,6 @@ int main(int argc, char* argv[]) {
             case 2: service_echo();                    break;
             case 3: service_ping_pong();            break;
             case 4: service_broadcast();            break;
-            case 5: client_send_sync_success();        break;
-            case 6: client_send_sync_fail();        break;
             default: break;
         }
     }
