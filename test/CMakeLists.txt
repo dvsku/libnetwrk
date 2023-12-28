@@ -66,6 +66,10 @@ ADD_TEST(NAME service_broadcast COMMAND test_tcp_server_client 4)
 ADD_TEST(NAME client_send_sync_success COMMAND test_tcp_server_client 5)
 ADD_TEST(NAME client_send_sync_fail COMMAND test_tcp_server_client 6)
 
+# TEST: TCP_TALK
+ADD_EXECUTABLE(test_tcp_talk test_tcp_talk.cpp)
+ADD_TEST(NAME tcp_talk COMMAND test_tcp_talk 0)
+
 # TEST: TCP_COMMAND_TYPE
 ADD_EXECUTABLE(test_tcp_command_type test_tcp_command_type.cpp)
 ADD_TEST(NAME commands_uint8 COMMAND test_tcp_command_type 0)
