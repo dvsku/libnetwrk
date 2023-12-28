@@ -68,9 +68,11 @@ namespace libnetwrk::net::tcp {
             }
 
             void read_message_head() override {
+                base_t::m_temp_message.m_head_data.reset_read_offset();
+
                 asio::async_read(m_socket, 
                     asio::buffer(this->m_temp_message.m_head_data.data(),
-                        this->m_temp_message.m_head_data.size()),
+                        this->m_temp_message.m_head.size()),
                     std::bind(&tcp_connection::read_message_head_callback, 
                         this, std::placeholders::_1, std::placeholders::_2));
             }

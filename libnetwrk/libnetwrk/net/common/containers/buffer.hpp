@@ -102,6 +102,10 @@ namespace libnetwrk::net::common {
 
             void clear() {
                 m_data.clear();
+                reset_read_offset();
+            }
+
+            void reset_read_offset() {
                 m_offset = 0;
             }
 

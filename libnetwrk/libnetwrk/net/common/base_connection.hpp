@@ -188,6 +188,7 @@ namespace libnetwrk::net::common {
                         read_message_body();
                     }
                     else {    // MESSAGE HAS NO BODY
+                        m_temp_message.m_data.clear();
                         add_message_to_queue();
                     }
                 }
