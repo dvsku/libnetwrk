@@ -81,7 +81,7 @@ namespace libnetwrk::net::common {
         /// Processes a single message if the queue is not empty.
         /// </summary>
         /// <returns>true if a message has been processed, false if it hasn't</returns>
-        bool process_single_message() {
+        bool process_message() {
             try {
                 if (!m_connected || this->m_incoming_messages.empty())
                     return false;
@@ -90,11 +90,11 @@ namespace libnetwrk::net::common {
                 on_message(msg);
             }
             catch (const std::exception& e) {
-                LIBNETWRK_ERROR(this->name(), "process_single_message() fail | {}", e.what());
+                LIBNETWRK_ERROR(this->name(), "process_message() fail | {}", e.what());
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(this->name(), "process_single_message() fail | undefined reason");
+                LIBNETWRK_ERROR(this->name(), "process_message() fail | undefined reason");
                 return false;
             }
     
