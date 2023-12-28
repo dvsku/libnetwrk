@@ -31,10 +31,7 @@ namespace libnetwrk::net::common {
             base_context_t& m_parent_context;
             tsdeque<message_t_ptr> m_outgoing_messages;
 
-            std::map<command_type, message_t*> m_waiting_responses;
-            std::mutex m_waiting_responses_mutex;
-
-            uint64_t m_id;
+            uint64_t m_id = 0U;
             storage m_storage;
 
             message_t m_temp_message;
@@ -112,31 +109,6 @@ namespace libnetwrk::net::common {
             /// <param name="message">: message to send</param>
             void send(message_t& message) {
                 send(std::make_shared<message_t>(std::move(message)));
-            }
-
-            /// <summary>
-            /// Send message and block until a response arives or timeout elapses. 
-            /// Message object after sending should be considered in an undefined state and
-            /// shouldn't be used further without reassigning.
-            /// </summary>
-            bool send(const message_t_ptr& message, message_t& response, command_type response_type, 
-                std::chrono::milliseconds timeout = std::chrono::milliseconds(5000)) 
-            {
-                send(message);
-
-                if (wait_for_response(response, response_type, timeout)) {
-                    return true;
-                }
-                else {
-                    LIBNETWRK_ERROR(m_parent_context.name(), "send failed, timeout elapsed");
-                    return false;
-                }
-            }
-
-            bool send(message_t& message, message_t& response, command_type response_type, 
-                std::chrono::milliseconds timeout = std::chrono::milliseconds(5000)) 
-            {
-                return send(std::make_shared<message_t>(std::move(message)), response_type, timeout);
             }
 
         protected:
@@ -260,20 +232,8 @@ namespace libnetwrk::net::common {
                     m_parent_context.m_incoming_messages.push_back(owned_message);
                 }
                 else {
-                    libnetwrk_guard guard(m_waiting_responses_mutex);
-                    command_type cmd = owned_message.m_msg.m_head.m_command;
-
-                    auto iter = m_waiting_responses.find(cmd);
-                    if (iter != m_waiting_responses.end()) {
-                        if(iter->second)
-                            *iter->second = std::move(owned_message.m_msg);
-
-                        m_waiting_responses.erase(cmd);
-                    }
-                    else {
-                        owned_message.m_client = nullptr;
-                        m_parent_context.m_incoming_messages.push_back(owned_message);
-                    }
+                    owned_message.m_client = nullptr;
+                    m_parent_context.m_incoming_messages.push_back(owned_message);
                 }
                     
                 read_message_head();
@@ -288,34 +248,6 @@ namespace libnetwrk::net::common {
                 stop();
                 LIBNETWRK_ERROR(this->m_parent_context.name(),
                     "failed during read/write | {}", ec.message().c_str());
-            }
-
-            bool wait_for_response(message_t& response_out, command_type response_type, std::chrono::milliseconds timeout) {
-                {
-                    libnetwrk_guard guard(m_waiting_responses_mutex);
-                    if (m_waiting_responses.find(response_type) != m_waiting_responses.end()) return false;
-                    m_waiting_responses.insert({ response_type, &response_out });
-                }
-                
-                auto end_time = std::chrono::system_clock::now() + timeout;
-
-                while (std::chrono::system_clock::now() < end_time) {
-                    {
-                        libnetwrk_guard guard(m_waiting_responses_mutex);
-                        if (m_waiting_responses.find(response_type) == m_waiting_responses.end())
-                            return true;
-                    }
-
-                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-                }
-
-                {
-                    libnetwrk_guard guard(m_waiting_responses_mutex);
-                    if (m_waiting_responses.find(response_type) != m_waiting_responses.end())
-                        m_waiting_responses.erase(response_type);
-                }
-
-                return false;
             }
 
             uint32_t generate_verification_code() {

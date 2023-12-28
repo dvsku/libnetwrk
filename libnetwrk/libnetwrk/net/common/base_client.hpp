@@ -130,20 +130,7 @@ namespace libnetwrk::net::common {
                 }
             }
         }
-    
-        bool send(message_t& message, message_t& response, command_type response_type, 
-            std::chrono::milliseconds timeout = std::chrono::milliseconds(5000)) 
-        {
-            if (!m_connection || !m_connected) return false;
-            
-            if (!m_connection->is_alive()) {
-                disconnect();
-                return false;
-            }
-    
-            return m_connection->send(std::make_shared<message_t>(std::move(message)), response, response_type, timeout);
-        }
-    
+
     protected:
         bool m_connected = false;
         base_connection_t_ptr m_connection;
