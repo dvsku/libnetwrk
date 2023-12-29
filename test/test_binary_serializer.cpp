@@ -64,7 +64,7 @@ struct string_struct : public serializable<binary_serializer> {
     }
 };
 
-void serialize_deserialize_standard_layout() {
+static void serialize_deserialize_standard_layout() {
     buffer buffer;
 
     int i1 = 156, i2 = 0;
@@ -93,7 +93,7 @@ void serialize_deserialize_standard_layout() {
     ASSERT(w1 == w2);
 }
 
-void serialize_deserialize_standard_layout_containers() {
+static void serialize_deserialize_standard_layout_containers() {
     buffer buffer;
     std::vector<int> v1({ 123, 534, 346, 5432, 242, 735 });
     std::vector<int> v2;
@@ -135,7 +135,7 @@ void serialize_deserialize_standard_layout_containers() {
     ASSERT(ar1 == ar2);
 }
 
-void serialize_deserialize_serializable() {
+static void serialize_deserialize_serializable() {
     simple_struct ss1(16, "test_1");
     simple_struct ss2(524, "test_2");
     simple_struct ss3, ss4, ss5;
@@ -151,7 +151,7 @@ void serialize_deserialize_serializable() {
     ASSERT(ss2.equals(ss5));
 }
 
-void serialize_deserialize_strings() {
+static void serialize_deserialize_strings() {
     buffer buffer;
 
     std::string s1("SeRiaLiZE mE");
@@ -168,7 +168,7 @@ void serialize_deserialize_strings() {
         ASSERT(vs1[i] == vs2[i]);
 }
 
-void serialize_deserialize_unsupported() {
+static void serialize_deserialize_unsupported() {
     buffer buffer;
     
     std::stack<int> stack;
@@ -205,6 +205,37 @@ void serialize_deserialize_unsupported() {
     ASSERT_THROWS(buffer << ummap);
 }
 
+static void serialize_deserialize_multiple_containers() {
+    buffer buffer;
+    container_struct cs1, cs2;
+
+    cs1.a.push_back(435921472);
+    cs1.a.push_back(123);
+    cs1.a.push_back(85447);
+
+    cs1.b.push_back(476516);
+    cs1.b.push_back(176541697);
+
+    cs1.c.push_back(778987562);
+
+    cs1.d.push_front(778151561);
+    cs1.d.push_front(111474);
+    cs1.d.push_front(87916);
+
+    buffer << cs1;
+    buffer >> cs2;
+
+    ASSERT(cs1.a.size() == cs2.a.size());
+    ASSERT(cs1.b.size() == cs2.b.size());
+    ASSERT(cs1.c.size() == cs2.c.size());
+    ASSERT(std::distance(cs1.d.begin(), cs1.d.end()) == std::distance(cs2.d.begin(), cs2.d.end()));
+
+    ASSERT(std::equal(cs1.a.begin(), cs1.a.end(), cs2.a.begin()));
+    ASSERT(std::equal(cs1.b.begin(), cs1.b.end(), cs2.b.begin()));
+    ASSERT(std::equal(cs1.c.begin(), cs1.c.end(), cs2.c.begin()));
+    ASSERT(std::equal(cs1.d.begin(), cs1.d.end(), cs2.d.begin()));
+}
+
 int main(int argc, char* argv[]) {
     if (argc != 2) {
         serialize_deserialize_standard_layout();
@@ -212,6 +243,7 @@ int main(int argc, char* argv[]) {
         serialize_deserialize_strings();
         serialize_deserialize_serializable();
         serialize_deserialize_unsupported();
+        serialize_deserialize_multiple_containers();
     }
     else {
         switch (std::stoi(argv[1])) {
@@ -220,6 +252,7 @@ int main(int argc, char* argv[]) {
             case 2: serialize_deserialize_strings();                        break;
             case 3: serialize_deserialize_serializable();                    break;
             case 4: serialize_deserialize_unsupported();                    break;
+            case 5: serialize_deserialize_multiple_containers(); break;
             default: break;
         }
     }
