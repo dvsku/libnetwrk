@@ -19,30 +19,28 @@
 
 namespace libnetwrk::net::common {
     struct binary_serializer {
-        typedef buffer<binary_serializer> buffer_t;
+        using serializer_t = binary_serializer;
+        using buffer_t     = buffer<binary_serializer>;
 
         ///////////////////////////////////////////////////////////////////////
         // Standard layout
         ///////////////////////////////////////////////////////////////////////
 
-        template <typename T>
-        static void serialize(buffer_t& buffer, const T& value,
-            typename std::enable_if<is_arithmetic_or_enum<T>, bool>::type = true)
-        {
+        template<typename T>
+        requires is_arithmentic_or_enum<T>
+        static void serialize(buffer_t& buffer, const T& value) {
             buffer.push_back(&value, sizeof(T));
         }
 
-        template <typename T>
-        static void serialize(buffer_t& buffer, const T& value, const size_t offset,
-            typename std::enable_if<is_arithmetic_or_enum<T>, bool>::type = true)
-        {
+        template<typename T>
+        requires is_arithmentic_or_enum<T>
+        static void serialize(buffer_t& buffer, const T& value, const size_t offset) {
             buffer.push_at(&value, sizeof(T), offset);
         }
 
-        template <typename T>
-        static void deserialize(buffer_t& buffer, T& obj,
-            typename std::enable_if<is_arithmetic_or_enum<T>, bool>::type = true)
-        {
+        template<typename T>
+        requires is_arithmentic_or_enum<T>
+        static void deserialize(buffer_t& buffer, T& obj) {
             buffer.get_range(&obj, sizeof(obj));
         }
 
@@ -51,29 +49,26 @@ namespace libnetwrk::net::common {
         ///////////////////////////////////////////////////////////////////////
 
         template <typename T>
-        static void serialize(buffer_t& buffer, const T& obj,
-            typename std::enable_if<is_serializable<T, binary_serializer>, bool>::type = true) 
-        {
+        requires is_serializable<T, serializer_t>
+        static void serialize(buffer_t& buffer, const T& obj) {
             buffer_t serialized;
             obj.serialize(serialized);
             serialize(buffer, serialized.size());
             buffer.push_back(serialized);
         }
 
-        template <typename T>
-        static void serialize(buffer_t& buffer, const T& obj, const size_t offset,
-            typename std::enable_if<is_serializable<T, binary_serializer>, bool>::type = true)
-        {
+        template<typename T>
+        requires is_serializable<T, serializer_t>
+        static void serialize(buffer_t& buffer, const T& obj, const size_t offset) {
             buffer_t serialized = obj.serialize();
             size_t size = serialized.size();
             buffer.push_at(&size, sizeof(size_t), offset);
             buffer.push_at(serialized, offset + sizeof(size_t));
         }
 
-        template <typename T>
-        static void deserialize(buffer_t& buffer, T& obj,
-            typename std::enable_if<is_serializable<T, binary_serializer>, bool>::type = true)
-        {
+        template<typename T>
+        requires is_serializable<T, serializer_t>
+        static void deserialize(buffer_t& buffer, T& obj) {
             size_t size = 0;
             deserialize(buffer, size);
             auto range = buffer.get_range(size);
