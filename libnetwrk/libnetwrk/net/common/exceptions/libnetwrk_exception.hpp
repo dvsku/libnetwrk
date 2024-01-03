@@ -1,22 +1,15 @@
-#ifndef LIBNETWRK_NET_COMMON_EXCEPTIONS_LIBNETWRK_EXCEPTION_HPP
-#define LIBNETWRK_NET_COMMON_EXCEPTIONS_LIBNETWRK_EXCEPTION_HPP
+#pragma once
 
-#include <exception>
+#include <stdexcept>
 #include <string>
 
-namespace libnetwrk::net::common {
-    class libnetwrk_exception : public std::exception {
-        private:
-            std::string m_message;
+namespace libnetwrk {
+    class libnetwrk_exception : public std::runtime_error {
+    public:
+        libnetwrk_exception()
+            : std::runtime_error("undefined") {}
 
-        public:
-            libnetwrk_exception() : m_message("undefined") {}
-            libnetwrk_exception(const char* msg) : m_message(msg) {}
-
-            const char* msg() {
-                return m_message.c_str();
-            }
+        libnetwrk_exception(const std::string& msg)
+            : std::runtime_error(msg) {}
     };
 }
-
-#endif
