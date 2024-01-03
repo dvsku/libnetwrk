@@ -5,7 +5,7 @@
 #include <string>
 #include <memory>
 
-#include "libnetwrk/asio/asio.hpp"
+#include "lib/asio/asio.hpp"
 #include "libnetwrk/utilities/log.hpp"
 
 namespace libnetwrk {
