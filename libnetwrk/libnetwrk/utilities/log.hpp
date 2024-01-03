@@ -8,9 +8,9 @@
 #include <chrono>
 
 #define FMT_HEADER_ONLY
-#include "libnetwrk/fmt/format.h"
-#include "libnetwrk/fmt/chrono.h"
-#include "libnetwrk/fmt/color.h"
+#include "lib/fmt/format.h"
+#include "lib/fmt/chrono.h"
+#include "lib/fmt/color.h"
 
 #include "libnetwrk/utilities/traits/non_copyable.hpp"
 #include "libnetwrk/utilities/traits/non_moveable.hpp"
