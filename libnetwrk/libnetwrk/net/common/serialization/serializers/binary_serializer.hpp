@@ -1,5 +1,9 @@
-#ifndef LIBNETWRK_NET_COMMON_BINARY_SERIALIZER_HPP
-#define LIBNETWRK_NET_COMMON_BINARY_SERIALIZER_HPP
+#pragma once
+
+#include "libnetwrk/net/macros.hpp"
+#include "libnetwrk/net/common/containers/buffer.hpp"
+#include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
+#include "libnetwrk/net/type_traits.hpp"
 
 #include <vector>
 #include <deque>
@@ -12,19 +16,13 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "libnetwrk/net/macros.hpp"
-#include "libnetwrk/net/common/containers/buffer.hpp"
-#include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
-#include "libnetwrk/net/type_traits.hpp"
-
-namespace libnetwrk::net::common {
+namespace libnetwrk {
     struct binary_serializer {
         using serializer_t = binary_serializer;
         using buffer_t     = buffer<binary_serializer>;
 
         ///////////////////////////////////////////////////////////////////////
-        // Standard layout
-        ///////////////////////////////////////////////////////////////////////
+        // STANDARD LAYOUT
 
         template<typename T>
         requires is_arithmentic_or_enum<T>
@@ -34,74 +32,53 @@ namespace libnetwrk::net::common {
 
         template<typename T>
         requires is_arithmentic_or_enum<T>
-        static void serialize(buffer_t& buffer, const T& value, const size_t offset) {
-            buffer.push_at(&value, sizeof(T), offset);
-        }
-
-        template<typename T>
-        requires is_arithmentic_or_enum<T>
         static void deserialize(buffer_t& buffer, T& obj) {
             buffer.get_range(&obj, sizeof(obj));
         }
 
         ///////////////////////////////////////////////////////////////////////
-        // Serializable
-        ///////////////////////////////////////////////////////////////////////
+        // SERIALIZABLE
 
         template <typename T>
         requires is_serializable<T, serializer_t>
         static void serialize(buffer_t& buffer, const T& obj) {
-            buffer_t serialized;
-            obj.serialize(serialized);
-            serialize(buffer, serialized.size());
-            buffer.push_back(serialized);
-        }
-
-        template<typename T>
-        requires is_serializable<T, serializer_t>
-        static void serialize(buffer_t& buffer, const T& obj, const size_t offset) {
-            buffer_t serialized = obj.serialize();
-            size_t size = serialized.size();
-            buffer.push_at(&size, sizeof(size_t), offset);
-            buffer.push_at(serialized, offset + sizeof(size_t));
+            obj.serialize(buffer);
         }
 
         template<typename T>
         requires is_serializable<T, serializer_t>
         static void deserialize(buffer_t& buffer, T& obj) {
-            size_t size = 0;
-            deserialize(buffer, size);
-            auto range = buffer.get_range(size);
-            obj.deserialize(range);
+            obj.deserialize(buffer);
         }
 
         ///////////////////////////////////////////////////////////////////////
-        // std::string
-        ///////////////////////////////////////////////////////////////////////
+        // STD::STRING
 
         static void serialize(buffer_t& buffer, const std::string& str) {
             serialize(buffer, str.size());
-            for (const char& element : str)
-                serialize(buffer, element);
+            buffer.push_back(str.data(), str.size());
         }
 
         static void deserialize(buffer_t& buffer, std::string& str) {
-            size_t size = 0;
-
-            // Get # of elements
+            size_t size = 0U;
             deserialize(buffer, size);
 
-            str = std::string();
-            for (size_t i = 0; i < size; i++) {
-                char element = 0;
-                deserialize(buffer, element);
-                str.push_back(element);
-            }
+            // Resize string to size
+            str.resize(size);
+
+            // Get data from buffer
+            buffer.get_range(str.data(), size);
         }
 
         ///////////////////////////////////////////////////////////////////////
-        // std::array
-        ///////////////////////////////////////////////////////////////////////
+        // STD::ARRAY
+
+        template <typename T, std::size_t N>
+        requires is_arithmentic_or_enum<T>
+        static void serialize(buffer_t& buffer, const std::array<T, N>& container) {
+            serialize(buffer, container.size());
+            buffer.push_back(container.data(), container.size() * sizeof(T));
+        }
 
         template <typename T, std::size_t N>
         static void serialize(buffer_t& buffer, const std::array<T, N>& container) {
@@ -111,112 +88,146 @@ namespace libnetwrk::net::common {
         }
 
         template <typename T, std::size_t N>
+        requires is_arithmentic_or_enum<T>
         static void deserialize(buffer_t& buffer, std::array<T, N>& container) {
-            size_t size = 0;
-
-            // Get # of elements
+            size_t size = 0U;
             deserialize(buffer, size);
 
             if (size > N)
-                throw libnetwrk::net::common::libnetwrk_exception();
+                throw libnetwrk_exception("out of bounds");
+
+            buffer.get_range(container.data(), size * sizeof(T));
+        }
+
+        template <typename T, std::size_t N>
+        static void deserialize(buffer_t& buffer, std::array<T, N>& container) {
+            size_t size = 0U;
+            deserialize(buffer, size);
+
+            if (size > N)
+                throw libnetwrk_exception("out of bounds");
+
+            for (size_t i = 0U; i < size; i++)
+                deserialize(buffer, container[i]);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+        // STD::VECTOR
+
+        template <typename T>
+        requires is_arithmentic_or_enum<T>
+        static void serialize(buffer_t& buffer, const std::vector<T>& container) {
+            serialize(buffer, container.size());
+            buffer.push_back(container.data(), container.size() * sizeof(T));
+        }
+
+        template <typename T>
+        static void serialize(buffer_t& buffer, const std::vector<T>& container) {
+            serialize(buffer, container.size());
+            for (const T& element : container)
+                serialize(buffer, element);
+        }
+
+        template <typename T>
+        requires is_arithmentic_or_enum<T>
+        static void deserialize(buffer_t& buffer, std::vector<T>& container) {
+            size_t size = 0U;
+            deserialize(buffer, size);
+
+            container.resize(size);
+            buffer.get_range(container.data(), size * sizeof(T));
+        }
+
+        template <typename T>
+        static void deserialize(buffer_t& buffer, std::vector<T>& container) {
+            size_t size = 0;
+            deserialize(buffer, size);
+
+            container.resize(size);
+            container.clear();
 
             for (size_t i = 0; i < size; i++) {
                 T element{};
                 deserialize(buffer, element);
-                container[i] = element;
+                container.push_back(element);
             }
         }
 
         ///////////////////////////////////////////////////////////////////////
-        // std::vector
-        ///////////////////////////////////////////////////////////////////////
+        // STD::DEQUE
 
-        SERIALIZER_SUPPORTED_SERIALIZE_SINGLE(std::vector) {
+        template <typename T>
+        static void serialize(buffer_t& buffer, const std::deque<T>& container) {
             serialize(buffer, container.size());
-            for (const TValue& element : container)
+            for (const T& element : container)
                 serialize(buffer, element);
         }
 
-        SERIALIZER_SUPPORTED_DESERIALIZE_SINGLE(std::vector) {
+        template <typename T>
+        static void deserialize(buffer_t& buffer, std::deque<T>& container) {
             size_t size = 0;
             deserialize(buffer, size);
 
-            container = std::vector<TValue>();
+            container = std::deque<T>();
             for (size_t i = 0; i < size; i++) {
-                TValue element{};
+                T element{};
                 deserialize(buffer, element);
                 container.push_back(element);
             }
         }
 
         ///////////////////////////////////////////////////////////////////////
-        // std::deque
-        ///////////////////////////////////////////////////////////////////////
+        // STD::LIST
 
-        SERIALIZER_SUPPORTED_SERIALIZE_SINGLE(std::deque) {
+        template <typename T>
+        static void serialize(buffer_t& buffer, const std::list<T>& container) {
             serialize(buffer, container.size());
-            for (const TValue& element : container)
+            for (const T& element : container)
                 serialize(buffer, element);
         }
 
-        SERIALIZER_SUPPORTED_DESERIALIZE_SINGLE(std::deque) {
+        template <typename T>
+        static void deserialize(buffer_t& buffer, std::list<T>& container) {
             size_t size = 0;
             deserialize(buffer, size);
 
-            container = std::deque<TValue>();
+            container = std::list<T>();
             for (size_t i = 0; i < size; i++) {
-                TValue element{};
+                T element{};
                 deserialize(buffer, element);
                 container.push_back(element);
             }
         }
 
         ///////////////////////////////////////////////////////////////////////
-        // std::list
-        ///////////////////////////////////////////////////////////////////////
+        // STD::FORWARD_LIST
 
-        SERIALIZER_SUPPORTED_SERIALIZE_SINGLE(std::list) {
-            serialize(buffer, container.size());
-            for (const TValue& element : container)
-                serialize(buffer, element);
-        }
-
-        SERIALIZER_SUPPORTED_DESERIALIZE_SINGLE(std::list) {
+        template <typename T>
+        static void serialize(buffer_t& buffer, const std::forward_list<T>& container) {
+            size_t placeholder_offset = buffer.size();
             size_t size = 0;
-            deserialize(buffer, size);
 
-            container = std::list<TValue>();
-            for (size_t i = 0; i < size; i++) {
-                TValue element{};
-                deserialize(buffer, element);
-                container.push_back(element);
-            }
-        }
-
-        ///////////////////////////////////////////////////////////////////////
-        // std::forward_list
-        ///////////////////////////////////////////////////////////////////////
-
-        SERIALIZER_SUPPORTED_SERIALIZE_SINGLE(std::forward_list) {
-            size_t size = 0, offset = buffer.size();
+            // Push a placeholder
+            serialize(buffer, size);
 
             // Serialize elements and increase size count
-            for (const TValue& element : container) {
+            for (const T& element : container) {
                 serialize(buffer, element);
                 size++;
             }
 
-            // After we know the size, serialize it before elements
-            serialize(buffer, size, offset);
+            // Swap placeholder with real size
+            buffer.swap_at(&size, sizeof(size_t), placeholder_offset);
         }
 
-        SERIALIZER_SUPPORTED_DESERIALIZE_SINGLE(std::forward_list) {
+        template <typename T>
+        static void deserialize(buffer_t& buffer, std::forward_list<T>& container) {
             size_t size = 0;
             deserialize(buffer, size);
 
-            container = std::forward_list<TValue>();
+            container = std::forward_list<T>();
             for (size_t i = 0; i < size; i++) {
-                TValue element{};
+                T element{};
                 deserialize(buffer, element);
                 container.push_front(element);
             }
@@ -225,23 +236,20 @@ namespace libnetwrk::net::common {
         }
 
         ///////////////////////////////////////////////////////////////////////
-        // Unsupported types
-        ///////////////////////////////////////////////////////////////////////
+        // UNSUPPORTED
 
-        SERIALIZER_UNSUPPORTED_SINGLE(std::stack);
-        SERIALIZER_UNSUPPORTED_SINGLE(std::queue);
-        SERIALIZER_UNSUPPORTED_SINGLE(std::priority_queue);
-        SERIALIZER_UNSUPPORTED_SINGLE(std::set);
-        SERIALIZER_UNSUPPORTED_SINGLE(std::multiset);
-        SERIALIZER_UNSUPPORTED_SINGLE(std::unordered_set);
-        SERIALIZER_UNSUPPORTED_SINGLE(std::unordered_multiset);
+        SERIALIZER_UNSUPPORTED_CONTAINER(std::stack);
+        SERIALIZER_UNSUPPORTED_CONTAINER(std::queue);
+        SERIALIZER_UNSUPPORTED_CONTAINER(std::priority_queue);
+        SERIALIZER_UNSUPPORTED_CONTAINER(std::set);
+        SERIALIZER_UNSUPPORTED_CONTAINER(std::multiset);
+        SERIALIZER_UNSUPPORTED_CONTAINER(std::unordered_set);
+        SERIALIZER_UNSUPPORTED_CONTAINER(std::unordered_multiset);
 
-        SERIALIZER_UNSUPPORTED_PAIR(std::map);
-        SERIALIZER_UNSUPPORTED_PAIR(std::multimap);
-        SERIALIZER_UNSUPPORTED_PAIR(std::unordered_map);
-        SERIALIZER_UNSUPPORTED_PAIR(std::unordered_multimap);
+        SERIALIZER_UNSUPPORTED_KVP_CONTAINER(std::map);
+        SERIALIZER_UNSUPPORTED_KVP_CONTAINER(std::multimap);
+        SERIALIZER_UNSUPPORTED_KVP_CONTAINER(std::unordered_map);
+        SERIALIZER_UNSUPPORTED_KVP_CONTAINER(std::unordered_multimap);
 
     };
 }
-
-#endif

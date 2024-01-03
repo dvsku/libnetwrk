@@ -1,96 +1,64 @@
-#ifndef LIBNETWRK_NET_MACROS_HPP
-#define LIBNETWRK_NET_MACROS_HPP
+#pragma once
 
 #ifdef LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
-    #include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
-#endif
 
-// Define supported serialize function for container that has a type.
-#define SERIALIZER_SUPPORTED_SERIALIZE_SINGLE(type)                                            \
-    template<typename TValue>                                                                \
-    static void serialize(buffer_t& buffer, const type<TValue>& container)                    \
+// Defines unsupported serialize and deserialize functions for containers that have a type.
+// Functions will throw an exception during runtime if called.
+// Useful for testing, not recommended for use outside of tests.
+#define SERIALIZER_UNSUPPORTED_CONTAINER(container)                                                                                                 \
+    template<typename T>                                                                                                                            \
+    static void serialize(buffer_t& buffer, const container<T>& value) {                                                                            \
+        throw libnetwrk::libnetwrk_exception("serialize() doesn't support " #container " containers");                                              \
+    }                                                                                                                                               \
+                                                                                                                                                    \
+    template<typename T>                                                                                                                            \
+    static void deserialize(buffer_t& buffer, container<T>& value) {                                                                                \
+        throw libnetwrk::libnetwrk_exception("deserialize() doesn't support " #container " containers");                                            \
+    }
 
-// Define supported deserialize function for container that has a type.
-#define SERIALIZER_SUPPORTED_DESERIALIZE_SINGLE(type)                                        \
-    template<typename TValue>                                                                \
-    static void deserialize(buffer_t& buffer, type<TValue>& container)                        \
+// Defines unsupported serialize and deserialize functions for containers that have a key-value pair.
+// Functions will throw an exception during runtime if called.
+// Useful for testing, not recommended for use outside of tests.
+#define SERIALIZER_UNSUPPORTED_KVP_CONTAINER(container)                                                                                             \
+    template<typename Tkey, typename Tvalue>                                                                                                        \
+    static void serialize(buffer_t& buffer, const container<Tkey, Tvalue>& value) {                                                                 \
+        throw libnetwrk::libnetwrk_exception("serialize() doesn't support " #container " containers");                                              \
+    }                                                                                                                                               \
+                                                                                                                                                    \
+    template<typename Tkey, typename Tvalue>                                                                                                        \
+    static void deserialize(buffer_t& buffer, container<Tkey, Tvalue>& value) {                                                                     \
+        throw libnetwrk::libnetwrk_exception("deserialize() doesn't support " #container " containers");                                            \
+    }
 
-// Define supported serialize function for container that has a key-value pair.
-#define SERIALIZER_SUPPORTED_SERIALIZE_PAIR(type)                                            \
-    template<typename TKey, typename TValue>                                                \
-    static void serialize(buffer_t& buffer, const type<TKey, TValue>& container)            \
-
-// Define supported deserialize function for container that has a key-value pair.
-#define SERIALIZER_SUPPORTED_DESERIALIZE_PAIR(type)                                            \
-    template<typename TKey, typename TValue>                                                \
-    static void deserialize(buffer_t& buffer, type<TKey, TValue>& container)                \
-
-#ifdef LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
-    #define LIBNETWRK_STATIC_ASSERT_OR_THROW(expression, err_msg)                            \
-    if(!expression)                                                                            \
-        throw libnetwrk::net::common::libnetwrk_exception(err_msg);
 #else
-    #define LIBNETWRK_STATIC_ASSERT_OR_THROW(expression, err_msg)                            \
-    static_assert(expression, err_msg);
-#endif
 
-#ifdef LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
-    // Defines unsupported serialize and deserialize functions for containers that have a type.
-    // Functions will throw an exception during runtime if called.
-    // Useful for testing, not recommended for use outside of tests.
-    #define SERIALIZER_UNSUPPORTED_SINGLE(type)                                                                            \
-        template<typename TValue>                                                                                        \
-        static void serialize(buffer_t& buffer, const type<TValue>& container) {                                        \
-            throw libnetwrk::net::common::libnetwrk_exception("serialize() doesn't support " #type " containers");        \
-        }                                                                                                                \
-                                                                                                                        \
-        template<typename TValue>                                                                                        \
-        static void deserialize(buffer_t& buffer, type<TValue>& container) {                                            \
-            throw libnetwrk::net::common::libnetwrk_exception("deserialize() doesn't support " #type " containers");    \
-        }
+template <typename...>
+inline constexpr bool always_false = false;
 
-    // Defines unsupported serialize and deserialize functions for containers that have a key-value pair.
-    // Functions will throw an exception during runtime if called.
-    // Useful for testing, not recommended for use outside of tests.
-    #define SERIALIZER_UNSUPPORTED_PAIR(type)                                                                            \
-        template<typename TKey, typename TValue>                                                                        \
-        static void serialize(buffer_t& buffer, const type<TKey, TValue>& container) {                                    \
-            throw libnetwrk::net::common::libnetwrk_exception("serialize() doesn't support " #type " containers");        \
-        }                                                                                                                \
-                                                                                                                        \
-        template<typename TKey, typename TValue>                                                                        \
-        static void deserialize(buffer_t& buffer, type<TKey, TValue>& container) {                                        \
-            throw libnetwrk::net::common::libnetwrk_exception("deserialize() doesn't support " #type " containers");    \
-        }
-#else
-    template <typename...>
-    inline constexpr bool always_false = false;
+// Defines unsupported serialize and deserialize functions for containers that have a type.
+// Functions will output an error during compilation if referenced.
+#define SERIALIZER_UNSUPPORTED_CONTAINER(container)                                                                                                 \
+    template<typename T>                                                                                                                            \
+    static void serialize(buffer_t& buffer, const container<T>& value) {                                                                            \
+        static_assert(always_false<container<T>>, "serialize() doesn't support " #container " containers");                                         \
+    }                                                                                                                                               \
+                                                                                                                                                    \
+    template<typename T>                                                                                                                            \
+    static void deserialize(buffer_t& buffer, container<T>& value) {                                                                                \
+        static_assert(always_false<container<T>>, "deserialize() doesn't support " #container " containers");                                       \
+    }
 
-    // Defines unsupported serialize and deserialize functions for containers that have a type.
-    // Functions will output an error during compilation if referenced.
-    #define SERIALIZER_UNSUPPORTED_SINGLE(type)                                                                         \
-        template<typename TValue>                                                                                    \
-        static void serialize(buffer_t& buffer, const type<TValue>& container) {                                    \
-            static_assert(always_false<type<TValue>>, "serialize() doesn't support " #type " containers");            \
-        }                                                                                                            \
-                                                                                                                    \
-        template<typename TValue>                                                                                    \
-        static void deserialize(buffer_t& buffer, type<TValue>& container) {                                        \
-            static_assert(always_false<type<TValue>>, "deserialize() doesn't support " #type " containers");        \
-        }
-
-    // Defines unsupported serialize and deserialize functions for containers that have a key-value pair.
-    // Functions will output an error during compilation if referenced.
-    #define SERIALIZER_UNSUPPORTED_PAIR(type)                                                                        \
-        template<typename TKey, typename TValue>                                                                    \
-        static void serialize(buffer_t& buffer, const type<TKey, TValue>& container) {                                \
-            static_assert(always_false<type<TKey, TValue>>, "serialize() doesn't support " #type " containers");    \
-        }                                                                                                            \
-                                                                                                                    \
-        template<typename TKey, typename TValue>                                                                    \
-        static void deserialize(buffer_t& buffer, type<TKey, TValue>& container) {                                    \
-            static_assert(always_false<type<TKey, TValue>>, "deserialize() doesn't support " #type " containers");    \
-        }
-#endif
+// Defines unsupported serialize and deserialize functions for containers that have a key-value pair.
+// Functions will output an error during compilation if referenced.
+#define SERIALIZER_UNSUPPORTED_KVP_CONTAINER(container)                                                                                             \
+    template<typename Tkey, typename Tvalue>                                                                                                        \
+    static void serialize(buffer_t& buffer, const container<Tkey, Tvalue>& value) {                                                                 \
+        static_assert(always_false<container<Tkey, Tvalue>>, "serialize() doesn't support " #container " containers");                              \
+    }                                                                                                                                               \
+                                                                                                                                                    \
+    template<typename Tkey, typename Tvalue>                                                                                                        \
+    static void deserialize(buffer_t& buffer, container<Tkey, Tvalue>& value) {                                                                     \
+        static_assert(always_false<container<Tkey, Tvalue>>, "deserialize() doesn't support " #container " containers");                            \
+    }
 
 #endif
