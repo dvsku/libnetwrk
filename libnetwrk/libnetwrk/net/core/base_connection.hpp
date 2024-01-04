@@ -146,6 +146,7 @@ namespace libnetwrk {
 
         void read_message_head_callback(std::error_code ec, std::size_t len) {
             if (!ec) {
+                m_recv_message.data_head.reset_read_offset();
                 m_recv_message.head.deserialize(m_recv_message.data_head);
 
                 m_recv_message.head.recv_timestamp =
