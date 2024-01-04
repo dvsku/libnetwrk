@@ -23,17 +23,13 @@ namespace libnetwrk {
         buffer_t       data_head;
 
     public:
-        message() {
-            data_head.resize(head.size());
-        }
+        message()                 = default;
+        message(const message_t&) = default;
+        message(message_t&&)      = default;
 
         message(command_t command) {
             head.command = command;
-            data_head.resize(head.size());
         }
-
-        message(const message_t&) = default;
-        message(message_t&&)      = default;
 
         message_t& operator=(const message_t&) = default;
         message_t& operator=(message_t&&)      = default;
