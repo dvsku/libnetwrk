@@ -1,183 +1,175 @@
-#ifndef LIBNETWRK_NET_COMMON_BUFFER_HPP
-#define LIBNETWRK_NET_COMMON_BUFFER_HPP
+#pragma once
+
+#include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
 
 #include <vector>
 
-#include "libnetwrk/net/type_traits.hpp"
-#include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
-
-namespace libnetwrk::net::common {
-    // Forward declare
-    struct binary_serializer;
-
-    template<typename serializer = binary_serializer>
+namespace libnetwrk {
+    template<typename Tserializer>
     class buffer {
-        public:
-            typedef std::vector<uint8_t>::iterator iterator;
-            typedef std::vector<uint8_t>::const_iterator const_iterator;
-            typedef buffer<serializer> buffer_t;
+    public:
+        using value_t        = uint8_t;
+        using container_t    = std::vector<value_t>;
+        using iterator       = std::vector<uint8_t>::iterator;
+        using const_iterator = std::vector<uint8_t>::const_iterator;
+        using serializer_t   = Tserializer;
+        using buffer_t       = buffer<serializer_t>;
 
-        protected:
-            std::vector<uint8_t> m_data;
-            size_t m_offset = 0;
+    public:
+        buffer() {
+            m_data.resize(0);
+        }
 
-        public:
-            buffer() {
-                m_data.resize(0);
-            }
+        buffer(const_iterator first, const_iterator last) {
+            m_data = container_t(first, last);
+        }
 
-            buffer(const_iterator first, const_iterator last) {
-                m_data = std::vector<uint8_t>(first, last);
-            }
+    public:
+        container_t& underlying() {
+            return m_data;
+        }
 
-            ///////////////////////////////////////////////////////////////////
-            // Element access
-            ///////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////
+        // ELEMENT ACCESS
 
-            std::vector<uint8_t>& container() {
-                return m_data;
-            }
+        const value_t& operator [] (const size_t pos) const {
+            return m_data[pos];
+        }
 
-            const uint8_t& operator [] (const size_t pos) const {
-                return m_data[pos];
-            }
+        value_t* data() {
+            return m_data.data();
+        }
 
-            uint8_t* data() {
-                return m_data.data();
-            }
+        const value_t* data() const {
+            return m_data.data();
+        }
 
-            const uint8_t* data() const {
-                return m_data.data();
-            }
+        /// <summary>
+        /// Get range from current read offset
+        /// </summary>
+        /// <param name="size"></param>
+        /// <exception cref="libnetwrk_exception">thrown when accessing data out of bounds</exception>
+        /// <returns>buffer with requested data</returns>
+        buffer_t get_range(size_t size) {
+            buffer_t buffer;
+            buffer.resize(size);
 
-            /// <summary>
-            /// Get range from current read offset
-            /// </summary>
-            /// <param name="size"></param>
-            /// <exception cref="libnetwrk_exception">thrown when accessing data out of bounds</exception>
-            /// <returns>buffer with requested data</returns>
-            buffer_t get_range(size_t size) {
-                if (m_offset + size > m_data.size())
-                    throw libnetwrk_exception("out of bounds, buffer doesn't have more data");
+            get_range(buffer.data(), size);
+            return buffer;
+        }
 
-                buffer_t b(m_data.begin() + m_offset, m_data.begin() + m_offset + size);
-                advance(size);
-                return b;
-            }
+        /// <summary>
+        /// Get range from current read offset into dst. dst must be large enough to accept the range or
+        /// the behaviour is undefined. 
+        /// </summary>
+        /// <param name="dst">destination addr</param>
+        /// <param name="size">size of range</param>
+        /// <exception cref="libnetwrk_exception">thrown when accessing data out of bounds</exception>
+        void get_range(void* dst, size_t size) {
+            if (!dst)
+                throw libnetwrk_exception("dst is null");
 
-            /// <summary>
-            /// Get range from current read offset into dst. dst must be large enough to accept the range or
-            /// the behaviour is undefined. 
-            /// </summary>
-            /// <param name="dst">destination addr</param>
-            /// <param name="size">size of range</param>
-            /// <exception cref="libnetwrk_exception">thrown when accessing data out of bounds</exception>
-            void get_range(void* dst, size_t size) {
-                if (m_offset + size > m_data.size())
-                    throw libnetwrk_exception("out of bounds, buffer doesn't have more data");
+            if (m_offset + size > m_data.size())
+                throw libnetwrk_exception("out of bounds");
 
-                std::memcpy(dst, m_data.data() + m_offset, size);
-                advance(size);
-            }
+            std::memcpy(dst, m_data.data() + m_offset, size);
+            _advance(size);
+        }
 
-            ///////////////////////////////////////////////////////////////////
-            // Capacity
-            ///////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////
+        // CAPACITY
 
-            bool empty() const {
-                return m_data.empty();
-            }
+        bool empty() const {
+            return m_data.empty();
+        }
 
-            size_t size() const {
-                return m_data.size();
-            }
+        size_t size() const {
+            return m_data.size();
+        }
 
-            void resize(size_t new_size) {
-                m_data.resize(new_size);
-            }
+        void resize(size_t new_size) {
+            m_data.resize(new_size);
+        }
 
-            ///////////////////////////////////////////////////////////////////
-            // Modifiers
-            ///////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////
+        // MODIFIERS
 
-            void clear() {
-                m_data.clear();
-                reset_read_offset();
-            }
+        void clear() {
+            m_data.clear();
+            reset_read_offset();
+        }
 
-            void reset_read_offset() {
-                m_offset = 0;
-            }
+        void reset_read_offset() {
+            m_offset = 0;
+        }
 
-            void push_back(const buffer_t& buffer) {
-                m_data.insert(end(), buffer.begin(), buffer.end());
-            }
+        void push_back(const buffer_t& buffer) {
+            push_back(buffer.data(), buffer.size());
+        }
 
-            void push_back(const void* src, const size_t size) {
-                uint8_t* ptr = (uint8_t*)src;
-                m_data.insert(end(), ptr, ptr + size);
-            }
+        void push_back(const void* src, const size_t size) {
+            m_data.insert(end(), (uint8_t*)src, (uint8_t*)src + size);
+        }
 
-            void push_at(const buffer_t& buffer, const size_t offset) {
-                m_data.insert(begin() + offset, buffer.begin(), buffer.end());
-            }
+        void swap_at(const buffer_t& buffer, const size_t offset) {
+            swap_at(buffer.data(), buffer.size(), offset);
+        }
 
-            void push_at(const void* src, const size_t size, const size_t offset) {
-                uint8_t* ptr = (uint8_t*)src;
-                m_data.insert(begin() + offset, ptr, ptr + size);
-            }
+        void swap_at(const void* src, const size_t size, const size_t offset) {
+            if (!src)
+                throw libnetwrk_exception("src is null");
 
-            ///////////////////////////////////////////////////////////////////
-            // Iterators
-            ///////////////////////////////////////////////////////////////////
+            if (offset + size > m_data.size())
+                throw libnetwrk_exception("out of bounds");
 
-            iterator begin() {
-                return m_data.begin();
-            }
+            std::memcpy(m_data.data() + offset, src, size);
+        }
 
-            const_iterator begin() const {
-                return m_data.begin();
-            }
+        ///////////////////////////////////////////////////////////////////
+        // Iterators
+        ///////////////////////////////////////////////////////////////////
 
-            iterator end() {
-                return m_data.end();
-            }
+        iterator begin() {
+            return m_data.begin();
+        }
 
-            const_iterator end() const {
-                return m_data.end();
-            }
+        const_iterator begin() const {
+            return m_data.begin();
+        }
 
-            ///////////////////////////////////////////////////////////////////
-            // Serialization
-            ///////////////////////////////////////////////////////////////////
+        iterator end() {
+            return m_data.end();
+        }
 
-            /// <summary>
-            /// Serialize obj
-            /// </summary>
-            template <typename T>
-            friend buffer_t& operator << (buffer_t& buffer, const T& value) {
-                serializer::serialize(buffer, value);
-                return buffer;
-            }
+        const_iterator end() const {
+            return m_data.end();
+        }
 
-            ///////////////////////////////////////////////////////////////////
-            // Deserialization
-            ///////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////
+        // SERIALIZATION
 
-            /// <summary>
-            /// Deserialize obj
-            /// </summary>
-            template <typename T>
-            friend buffer_t& operator >> (buffer_t& buffer, T& obj) {
-                serializer::deserialize(buffer, obj);
-                return buffer;
-            }
+        template <typename T>
+        friend buffer_t& operator<<(buffer_t& buffer, const T& value) {
+            serializer_t::serialize(buffer, value);
+            return buffer;
+        }
 
-        private:
-            void advance(size_t value) {
-                m_offset += value;
-            }
+        ///////////////////////////////////////////////////////////////////
+        // DESERIALIZATION
+
+        template <typename T>
+        friend buffer_t& operator>>(buffer_t& buffer, T& value) {
+            serializer_t::deserialize(buffer, value);
+            return buffer;
+        }
+
+    protected:
+        container_t m_data;
+        size_t      m_offset = 0;
+
+    private:
+        void _advance(size_t value) {
+            m_offset += value;
+        }
     };
 }
-
-#endif
