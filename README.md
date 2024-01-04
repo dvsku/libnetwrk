@@ -14,7 +14,7 @@
   <p>
     Cross-platform header only networking library.
   </p>
-</div></br></br>
+</div></br>
 
 ## About
 Based heavily on <a href="https://www.youtube.com/@javidx9">javidx9</a>'s work with networking. Relies on embedded ASIO 1.14.0 library. <br/> Recommended for use on small personal projects as it's not heavily tested.
@@ -30,3 +30,57 @@ Based heavily on <a href="https://www.youtube.com/@javidx9">javidx9</a>'s work w
 ## Limitations
 - currently only supports TCP
 - libnetwrk uses a simple binary serializer by default, so cross-platform compatibility is not guaranteed. You can implement your own serializer by looking at ``bin_serialize.hpp`` as an example.
+
+## Usage examples
+### Making a custom object serializeable
+
+```
+template<typename T>
+void serialize(buffer<T>& buffer) const {
+    ...
+}
+
+template<typename T>
+void deserialize(buffer<T>& buffer) {
+    ...
+}
+```
+To make an object serializable you need to add and implement these functions. </br>
+
+```
+#include "libnetwrk.hpp"
+
+struct object {
+    std::string string_1;
+  
+    template<typename T>
+    void serialize(buffer<T>& buffer) const {
+        buffer << string_1;
+    }
+  
+    template<typename T>
+    void deserialize(buffer<T>& buffer) {
+        buffer >> string_1;
+    }
+}
+
+struct derived_object : object {
+    std::string string_2;
+  
+    template<typename T>
+    void serialize(buffer<T>& buffer) const {
+        object::serialize(buffer);
+        buffer << string_2;
+    }
+  
+    template<typename T>
+    void deserialize(buffer<T>& buffer) {
+        object::deserialize(buffer);
+        buffer >> string_2;
+    }
+}
+```
+## Changes
+
+- 05 Jan 2024
+    - Changed custom object serialization. Previous serialization requried a separate object for each serializer type.
