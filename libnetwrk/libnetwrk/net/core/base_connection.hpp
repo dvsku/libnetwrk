@@ -1,6 +1,5 @@
 #pragma once
 
-#include "lib/asio/asio.hpp"
 #include "libnetwrk/net/core/context.hpp"
 #include "libnetwrk/net/core/containers/tsdeque.hpp"
 #include "libnetwrk/net/core/messages/owned_message.hpp"
