@@ -11,11 +11,11 @@ namespace libnetwrk {
         client = 0x1
     };
 
-    template<typename Tcommand, typename Tserialize, typename Tstorage>
+    template<typename Command, typename Serialize, typename Storage>
     class context {
     public:
         using context_t       = asio::io_context;
-        using owned_message_t = owned_message<Tcommand, Tserialize, Tstorage>;
+        using owned_message_t = owned_message<Command, Serialize, Storage>;
 
     public:
         const std::string   name;

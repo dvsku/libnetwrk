@@ -8,14 +8,14 @@
 #include <list>
 
 namespace libnetwrk {
-    template<typename Tcommand, typename Tserialize, typename Tstorage>
-    class base_server : public context<Tcommand, Tserialize, Tstorage> {
+    template<typename Command, typename Serialize, typename Storage>
+    class base_server : public context<Command, Serialize, Storage> {
     public:
-        using base_server_t   = base_server<Tcommand, Tserialize, Tstorage>;
-        using base_context_t  = context<Tcommand, Tserialize, Tstorage>;
-        using message_t       = message<Tcommand, Tserialize>;
-        using owned_message_t = owned_message<Tcommand, Tserialize, Tstorage>;
-        using connection_t    = base_connection<Tcommand, Tserialize, Tstorage>;
+        using base_server_t   = base_server<Command, Serialize, Storage>;
+        using base_context_t  = context<Command, Serialize, Storage>;
+        using message_t       = message<Command, Serialize>;
+        using owned_message_t = owned_message<Command, Serialize, Storage>;
+        using connection_t    = base_connection<Command, Serialize, Storage>;
         
         using guard_t = std::lock_guard<std::mutex>;
 

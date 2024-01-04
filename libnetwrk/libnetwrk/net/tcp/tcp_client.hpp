@@ -8,15 +8,15 @@
 #include <thread>
 
 namespace libnetwrk::tcp {
-    template <typename Tcommand, typename Tserialize = libnetwrk::bin_serialize, typename Tstorage = libnetwrk::nothing>
-    requires is_enum<Tcommand>
-    class tcp_client : public libnetwrk::base_client<Tcommand, Tserialize, Tstorage> {
+    template<typename Command, typename Serialize = libnetwrk::bin_serialize, typename Storage = libnetwrk::nothing>
+    requires is_enum<Command>
+    class tcp_client : public libnetwrk::base_client<Command, Serialize, Storage> {
     public:
-        using base_t          = libnetwrk::base_client<Tcommand, Tserialize, Tstorage>;
-        using connection_t    = tcp_connection<Tcommand, Tserialize, Tstorage>;
+        using base_t          = libnetwrk::base_client<Command, Serialize, Storage>;
+        using connection_t    = tcp_connection<Command, Serialize, Storage>;
         using message_t       = base_t::message_t;
         using owned_message_t = base_t::owned_message_t;
-        using command_t       = Tcommand;
+        using command_t       = Command;
 
     public:
         tcp_client(const std::string& name = "tcp client") 

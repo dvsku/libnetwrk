@@ -5,14 +5,14 @@
 #include <vector>
 
 namespace libnetwrk {
-    template<typename Tserializer>
+    template<typename Serialize>
     class buffer {
     public:
         using value_t        = uint8_t;
         using container_t    = std::vector<value_t>;
         using iterator       = std::vector<uint8_t>::iterator;
         using const_iterator = std::vector<uint8_t>::const_iterator;
-        using serializer_t   = Tserializer;
+        using serializer_t   = Serialize;
         using buffer_t       = buffer<serializer_t>;
 
     public:

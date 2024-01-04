@@ -12,14 +12,14 @@
 namespace libnetwrk {
     struct nothing {};
 
-    template<typename Tcommand, typename Tserialize, typename Tstorage>
-    class base_connection : public std::enable_shared_from_this<base_connection<Tcommand, Tserialize, Tstorage>> {
+    template<typename Command, typename Serialize, typename Storage>
+    class base_connection : public std::enable_shared_from_this<base_connection<Command, Serialize, Storage>> {
     public:
-        using base_connection_t = base_connection<Tcommand, Tserialize, Tstorage>;
-        using base_context_t    = context<Tcommand, Tserialize, Tstorage>;
-        using message_t         = message<Tcommand, Tserialize>;
-        using owned_message_t   = owned_message<Tcommand, Tserialize, Tstorage>;
-        using storage_t         = Tstorage;
+        using base_connection_t = base_connection<Command, Serialize, Storage>;
+        using base_context_t    = context<Command, Serialize, Storage>;
+        using message_t         = message<Command, Serialize>;
+        using owned_message_t   = owned_message<Command, Serialize, Storage>;
+        using storage_t         = Storage;
 
     public:
         base_connection()                       = delete;

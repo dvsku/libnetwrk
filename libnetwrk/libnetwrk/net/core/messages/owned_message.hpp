@@ -3,15 +3,15 @@
 #include "libnetwrk/net/core/messages/message.hpp"
 
 namespace libnetwrk {
-    template<typename Tcommand, typename Tserialize, typename Tstorage>
+    template<typename Command, typename Serialize, typename Storage>
     class base_connection;
 
-    template<typename Tcommand, typename Tserialize, typename Tstorage>
+    template<typename Command, typename Serialize, typename Storage>
     class owned_message {
     public:
-        using owned_message_t = owned_message<Tcommand, Tserialize, Tstorage>;
-        using message_t       = message<Tcommand, Tserialize>;
-        using client_t        = base_connection<Tcommand, Tserialize, Tstorage>;
+        using owned_message_t = owned_message<Command, Serialize, Storage>;
+        using message_t       = message<Command, Serialize>;
+        using client_t        = base_connection<Command, Serialize, Storage>;
 
     public:
         owned_message()                       = default;

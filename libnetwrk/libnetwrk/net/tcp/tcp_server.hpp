@@ -8,15 +8,15 @@
 #include <thread>
 
 namespace libnetwrk::tcp {
-    template<typename Tcommand, typename Tserialize = libnetwrk::bin_serialize, typename Tstorage = libnetwrk::nothing>
-    class tcp_server : public libnetwrk::base_server<Tcommand, Tserialize, Tstorage> {
+    template<typename Command, typename Serialize = libnetwrk::bin_serialize, typename Storage = libnetwrk::nothing>
+    class tcp_server : public libnetwrk::base_server<Command, Serialize, Storage> {
     public:
-        using tcp_server_t      = tcp_server<Tcommand, Tserialize, Tstorage>;
-        using base_t            = libnetwrk::base_server<Tcommand, Tserialize, Tstorage>;
+        using tcp_server_t      = tcp_server<Command, Serialize, Storage>;
+        using base_t            = libnetwrk::base_server<Command, Serialize, Storage>;
         using message_t         = base_t::message_t;
         using owned_message_t   = base_t::owned_message_t;
-        using command_t         = Tcommand;
-        using connection_t      = tcp_connection<Tcommand, Tserialize, Tstorage>;
+        using command_t         = Command;
+        using connection_t      = tcp_connection<Command, Serialize, Storage>;
         using base_connection_t = base_t::connection_t;
 
         using guard_t    = std::lock_guard<std::mutex>;

@@ -8,14 +8,14 @@ namespace libnetwrk {
         user   = 0x1
     };
 
-    template <typename Tcommand, typename Tserialize>
-    requires is_enum<Tcommand>
+    template<typename Command, typename Serialize>
+    requires is_enum<Command>
     class message_head {
     public:
-        using message_head_t = message_head<Tcommand, Tserialize>;
+        using message_head_t = message_head<Command, Serialize>;
         using message_type_t = message_type;
-        using command_t      = Tcommand;
-        using buffer_t       = buffer<Tserialize>;
+        using command_t      = Command;
+        using buffer_t       = buffer<Serialize>;
 
     public:
         message_type_t type{};

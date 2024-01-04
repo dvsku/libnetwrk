@@ -3,10 +3,10 @@
 #include "libnetwrk/net/core/base_connection.hpp"
 
 namespace libnetwrk::tcp {
-    template<typename Tcommand, typename Tserialize, typename Tstorage>
-    class tcp_connection : public libnetwrk::base_connection<Tcommand, Tserialize, Tstorage> {
+    template<typename Command, typename Serialize, typename Storage>
+    class tcp_connection : public libnetwrk::base_connection<Command, Serialize, Storage> {
     public:
-        using base_t          = libnetwrk::base_connection<Tcommand, Tserialize, Tstorage>;
+        using base_t          = libnetwrk::base_connection<Command, Serialize, Storage>;
         using base_context_t  = base_t::base_context_t;
         using owned_message_t = base_t::owned_message_t;
         using socket_t        = asio::ip::tcp::socket;
