@@ -2,9 +2,9 @@
 #include "libnetwrk.hpp"
 #include "utilities_assert.hpp"
 
-using namespace libnetwrk::net::common;
+using namespace libnetwrk;
 
-struct simple_struct : public serializable<binary_serializer> {
+struct simple_struct : public serializable<bin_serialize> {
     uint8_t a        = 1;
     uint16_t b        = 1337;
     uint32_t c        = 420;
@@ -28,7 +28,7 @@ struct simple_struct : public serializable<binary_serializer> {
 };
 
 void serialize_deserialize_simple_struct() {
-    buffer buff;
+    buffer<bin_serialize> buff;
     simple_struct ss1{}, ss2{};
 
     ss1.serialize(buff);
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     }
     else {
         switch (std::stoi(argv[1])) {
-            case 0: serialize_deserialize_simple_struct();            break;
+            case 0: serialize_deserialize_simple_struct(); break;
             default: break;
         }
     }

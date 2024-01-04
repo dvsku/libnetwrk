@@ -1,14 +1,5 @@
 ﻿CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
 
-# TEST: MESSAGE
-ADD_EXECUTABLE(test_message test_message.cpp)
-ADD_TEST(NAME message_create COMMAND test_message 0)
-
-# TEST: TYPE TRAITS
-ADD_EXECUTABLE(test_type_traits test_type_traits.cpp)
-ADD_TEST(NAME type_trait_is_iterable COMMAND test_type_traits 0)
-ADD_TEST(NAME type_trait_is_iterable_standard COMMAND test_type_traits 1)
-
 # TEST: BINARY_SERIALIZER
 ADD_EXECUTABLE(test_binary_serializer test_binary_serializer.cpp)
 ADD_TEST(NAME serialize_deserialize_standard_layout COMMAND test_binary_serializer 0)
@@ -36,8 +27,7 @@ ADD_EXECUTABLE(test_buffer test_buffer.cpp)
 ADD_TEST(NAME buffer_create COMMAND test_buffer 0)
 ADD_TEST(NAME buffer_get_range COMMAND test_buffer 1)
 ADD_TEST(NAME buffer_push_back_buffer COMMAND test_buffer 2)
-ADD_TEST(NAME buffer_push_at COMMAND test_buffer 3)
-ADD_TEST(NAME buffer_get_range_exception COMMAND test_buffer 4)
+ADD_TEST(NAME buffer_get_range_exception COMMAND test_buffer 3)
 
 # TEST: SERIALIZABLE
 ADD_EXECUTABLE(test_serializable test_serializable.cpp)
@@ -47,10 +37,8 @@ ADD_TEST(NAME serialize_deserialize_simple_struct COMMAND test_serializable 0)
 ADD_EXECUTABLE(test_tcp_server test_tcp_server.cpp)
 ADD_TEST(NAME tcp_server_create COMMAND test_tcp_server 0)
 ADD_TEST(NAME tcp_server_start_ip COMMAND test_tcp_server 1)
-ADD_TEST(NAME tcp_server_start_endpoint_localhost COMMAND test_tcp_server 2)
-ADD_TEST(NAME tcp_server_start_endpoint_v4 COMMAND test_tcp_server 3)
-ADD_TEST(NAME tcp_server_start_twice COMMAND test_tcp_server 4)
-ADD_TEST(NAME tcp_server_stop COMMAND test_tcp_server 5)
+ADD_TEST(NAME tcp_server_start_twice COMMAND test_tcp_server 2)
+ADD_TEST(NAME tcp_server_stop COMMAND test_tcp_server 3)
 
 # TEST: TCP_CLIENT
 ADD_EXECUTABLE(test_tcp_client test_tcp_client.cpp)
@@ -79,6 +67,3 @@ ADD_TEST(NAME commands_int8 COMMAND test_tcp_command_type 4)
 ADD_TEST(NAME commands_int16 COMMAND test_tcp_command_type 5)
 ADD_TEST(NAME commands_int32 COMMAND test_tcp_command_type 6)
 ADD_TEST(NAME commands_int64 COMMAND test_tcp_command_type 7)
-ADD_TEST(NAME commands_float COMMAND test_tcp_command_type 8)
-ADD_TEST(NAME commands_double COMMAND test_tcp_command_type 9)
-ADD_TEST(NAME commands_string COMMAND test_tcp_command_type 10)

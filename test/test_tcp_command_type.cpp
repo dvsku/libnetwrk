@@ -5,8 +5,8 @@
 #include <thread>
 #include <chrono>
 
-using namespace libnetwrk::net::tcp;
-using namespace libnetwrk::net;
+using namespace libnetwrk::tcp;
+using namespace libnetwrk;
 
 ///////////////////////////////////////////////////////////////////////////////
 // unsigned char
@@ -23,20 +23,20 @@ public:
 
     std::string ping = "";
 
-    void on_message(owned_message_t& msg) override {
-        switch (msg.m_msg.m_head.m_command) {
-            case cmd_t::c2s_ping: {
-                msg.m_msg >> ping;
-                message_t response(cmd_t::s2c_pong);
+    void on_message(owned_message_t& message) override {
+        switch (message.message.head.command) {
+            case command_t::c2s_ping: {
+                message.message >> ping;
+                message_t response(command_t::s2c_pong);
                 response << std::string("pOnG");
-                msg.m_client->send(response);
+                message.client->send(response);
                 break;
             }
             default: break;
         }
     }
 
-    void wait_for_msg(const int timeout = 30) {
+    void wait_for_message(const int timeout = 30) {
         int tries = 0;
         while (tries < timeout) {
             if (process_message()) break;
@@ -53,16 +53,16 @@ public:
 
     std::string pong = "";
 
-    void on_message(message_t& msg) override {
-        switch (msg.m_head.m_command) {
-            case cmd_t::s2c_pong:
-                msg >> pong;
+    void on_message(message_t& message) override {
+        switch (message.head.command) {
+            case command_t::s2c_pong:
+                message >> pong;
                 break;
             default: break;
         }
     }
 
-    void wait_for_msg(const int timeout = 30) {
+    void wait_for_message(const int timeout = 30) {
         int tries = 0;
         while (tries < timeout) {
             if (process_message()) break;
@@ -80,14 +80,14 @@ void t_commands_uint8() {
     ASSERT_NOT_THROWS_CTOR(uint8_client client);
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint8_client::message_t msg(uint8_client::cmd_t::c2s_ping));
-    msg << std::string("PiNg");
-    client.send(msg);
+    ASSERT_NOT_THROWS_CTOR(uint8_client::message_t message(uint8_client::command_t::c2s_ping));
+    message << std::string("PiNg");
+    client.send(message);
 
-    server.wait_for_msg();
+    server.wait_for_message();
     ASSERT(server.ping == "PiNg");
 
-    client.wait_for_msg();
+    client.wait_for_message();
     ASSERT(client.pong == "pOnG");
 }
 
@@ -106,20 +106,20 @@ class uint16_server : public tcp_server<commands_uint16> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& msg) override {
-            switch (msg.m_msg.m_head.m_command) {
-                case cmd_t::c2s_ping: {
-                    msg.m_msg >> ping;
-                    message_t response(cmd_t::s2c_pong);
+        void on_message(owned_message_t& message) override {
+            switch (message.message.head.command) {
+                case command_t::c2s_ping: {
+                    message.message >> ping;
+                    message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    msg.m_client->send(response);
+                    message.client->send(response);
                     break;
                 }
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -136,16 +136,16 @@ class uint16_client : public tcp_client<commands_uint16> {
 
         std::string pong = "";
 
-        void on_message(message_t& msg) override {
-            switch (msg.m_head.m_command) {
-                case cmd_t::s2c_pong:
-                    msg >> pong;
+        void on_message(message_t& message) override {
+            switch (message.head.command) {
+                case command_t::s2c_pong:
+                    message >> pong;
                     break;
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -163,14 +163,14 @@ void t_commands_uint16() {
     ASSERT_NOT_THROWS_CTOR(uint16_client client);
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint16_client::message_t msg(uint16_client::cmd_t::c2s_ping));
-    msg << std::string("PiNg");
-    client.send(msg);
+    ASSERT_NOT_THROWS_CTOR(uint16_client::message_t message(uint16_client::command_t::c2s_ping));
+    message << std::string("PiNg");
+    client.send(message);
 
-    server.wait_for_msg();
+    server.wait_for_message();
     ASSERT(server.ping == "PiNg");
 
-    client.wait_for_msg();
+    client.wait_for_message();
     ASSERT(client.pong == "pOnG");
 }
 
@@ -189,20 +189,20 @@ class uint32_server : public tcp_server<commands_uint32> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& msg) override {
-            switch (msg.m_msg.m_head.m_command) {
-                case cmd_t::c2s_ping: {
-                    msg.m_msg >> ping;
-                    message_t response(cmd_t::s2c_pong);
+        void on_message(owned_message_t& message) override {
+            switch (message.message.head.command) {
+                case command_t::c2s_ping: {
+                    message.message >> ping;
+                    message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    msg.m_client->send(response);
+                    message.client->send(response);
                     break;
                 }
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -219,16 +219,16 @@ class uint32_client : public tcp_client<commands_uint32> {
 
         std::string pong = "";
 
-        void on_message(message_t& msg) override {
-            switch (msg.m_head.m_command) {
-                case cmd_t::s2c_pong:
-                    msg >> pong;
+        void on_message(message_t& message) override {
+            switch (message.head.command) {
+                case command_t::s2c_pong:
+                    message >> pong;
                     break;
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -246,14 +246,14 @@ void t_commands_uint32() {
     ASSERT_NOT_THROWS_CTOR(uint32_client client);
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint32_client::message_t msg(uint32_client::cmd_t::c2s_ping));
-    msg << std::string("PiNg");
-    client.send(msg);
+    ASSERT_NOT_THROWS_CTOR(uint32_client::message_t message(uint32_client::command_t::c2s_ping));
+    message << std::string("PiNg");
+    client.send(message);
 
-    server.wait_for_msg();
+    server.wait_for_message();
     ASSERT(server.ping == "PiNg");
 
-    client.wait_for_msg();
+    client.wait_for_message();
     ASSERT(client.pong == "pOnG");
 }
 
@@ -272,20 +272,20 @@ class uint64_server : public tcp_server<commands_uint64> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& msg) override {
-            switch (msg.m_msg.m_head.m_command) {
-                case cmd_t::c2s_ping: {
-                    msg.m_msg >> ping;
-                    message_t response(cmd_t::s2c_pong);
+        void on_message(owned_message_t& message) override {
+            switch (message.message.head.command) {
+                case command_t::c2s_ping: {
+                    message.message >> ping;
+                    message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    msg.m_client->send(response);
+                    message.client->send(response);
                     break;
                 }
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -302,16 +302,16 @@ class uint64_client : public tcp_client<commands_uint64> {
 
         std::string pong = "";
 
-        void on_message(message_t& msg) override {
-            switch (msg.m_head.m_command) {
-                case cmd_t::s2c_pong:
-                    msg >> pong;
+        void on_message(message_t& message) override {
+            switch (message.head.command) {
+                case command_t::s2c_pong:
+                    message >> pong;
                     break;
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -329,14 +329,14 @@ void t_commands_uint64() {
     ASSERT_NOT_THROWS_CTOR(uint64_client client);
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint64_client::message_t msg(uint64_client::cmd_t::c2s_ping));
-    msg << std::string("PiNg");
-    client.send(msg);
+    ASSERT_NOT_THROWS_CTOR(uint64_client::message_t message(uint64_client::command_t::c2s_ping));
+    message << std::string("PiNg");
+    client.send(message);
 
-    server.wait_for_msg();
+    server.wait_for_message();
     ASSERT(server.ping == "PiNg");
 
-    client.wait_for_msg();
+    client.wait_for_message();
     ASSERT(client.pong == "pOnG");
 }
 
@@ -355,20 +355,20 @@ class int8_server : public tcp_server<commands_int8> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& msg) override {
-            switch (msg.m_msg.m_head.m_command) {
-                case cmd_t::c2s_ping: {
-                    msg.m_msg >> ping;
-                    message_t response(cmd_t::s2c_pong);
+        void on_message(owned_message_t& message) override {
+            switch (message.message.head.command) {
+                case command_t::c2s_ping: {
+                    message.message >> ping;
+                    message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    msg.m_client->send(response);
+                    message.client->send(response);
                     break;
                 }
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -385,16 +385,16 @@ class int8_client : public tcp_client<commands_int8> {
 
         std::string pong = "";
 
-        void on_message(message_t& msg) override {
-            switch (msg.m_head.m_command) {
-                case cmd_t::s2c_pong:
-                    msg >> pong;
+        void on_message(message_t& message) override {
+            switch (message.head.command) {
+                case command_t::s2c_pong:
+                    message >> pong;
                     break;
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -412,14 +412,14 @@ void t_commands_int8() {
     ASSERT_NOT_THROWS_CTOR(int8_client client);
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int8_client::message_t msg(int8_client::cmd_t::c2s_ping));
-    msg << std::string("PiNg");
-    client.send(msg);
+    ASSERT_NOT_THROWS_CTOR(int8_client::message_t message(int8_client::command_t::c2s_ping));
+    message << std::string("PiNg");
+    client.send(message);
 
-    server.wait_for_msg();
+    server.wait_for_message();
     ASSERT(server.ping == "PiNg");
 
-    client.wait_for_msg();
+    client.wait_for_message();
     ASSERT(client.pong == "pOnG");
 }
 
@@ -438,20 +438,20 @@ class int16_server : public tcp_server<commands_int16> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& msg) override {
-            switch (msg.m_msg.m_head.m_command) {
-                case cmd_t::c2s_ping: {
-                    msg.m_msg >> ping;
-                    message_t response(cmd_t::s2c_pong);
+        void on_message(owned_message_t& message) override {
+            switch (message.message.head.command) {
+                case command_t::c2s_ping: {
+                    message.message >> ping;
+                    message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    msg.m_client->send(response);
+                    message.client->send(response);
                     break;
                 }
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -468,16 +468,16 @@ class int16_client : public tcp_client<commands_int16> {
 
         std::string pong = "";
 
-        void on_message(message_t& msg) override {
-            switch (msg.m_head.m_command) {
-                case cmd_t::s2c_pong:
-                    msg >> pong;
+        void on_message(message_t& message) override {
+            switch (message.head.command) {
+                case command_t::s2c_pong:
+                    message >> pong;
                     break;
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -495,14 +495,14 @@ void t_commands_int16() {
     ASSERT_NOT_THROWS_CTOR(int16_client client);
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int16_client::message_t msg(int16_client::cmd_t::c2s_ping));
-    msg << std::string("PiNg");
-    client.send(msg);
+    ASSERT_NOT_THROWS_CTOR(int16_client::message_t message(int16_client::command_t::c2s_ping));
+    message << std::string("PiNg");
+    client.send(message);
 
-    server.wait_for_msg();
+    server.wait_for_message();
     ASSERT(server.ping == "PiNg");
 
-    client.wait_for_msg();
+    client.wait_for_message();
     ASSERT(client.pong == "pOnG");
 }
 
@@ -521,20 +521,20 @@ class int32_server : public tcp_server<commands_int32> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& msg) override {
-            switch (msg.m_msg.m_head.m_command) {
-                case cmd_t::c2s_ping: {
-                    msg.m_msg >> ping;
-                    message_t response(cmd_t::s2c_pong);
+        void on_message(owned_message_t& message) override {
+            switch (message.message.head.command) {
+                case command_t::c2s_ping: {
+                    message.message >> ping;
+                    message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    msg.m_client->send(response);
+                    message.client->send(response);
                     break;
                 }
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -551,16 +551,16 @@ class int32_client : public tcp_client<commands_int32> {
 
         std::string pong = "";
 
-        void on_message(message_t& msg) override {
-            switch (msg.m_head.m_command) {
-                case cmd_t::s2c_pong:
-                    msg >> pong;
+        void on_message(message_t& message) override {
+            switch (message.head.command) {
+                case command_t::s2c_pong:
+                    message >> pong;
                     break;
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -578,14 +578,14 @@ void t_commands_int32() {
     ASSERT_NOT_THROWS_CTOR(int32_client client);
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int32_client::message_t msg(int32_client::cmd_t::c2s_ping));
-    msg << std::string("PiNg");
-    client.send(msg);
+    ASSERT_NOT_THROWS_CTOR(int32_client::message_t message(int32_client::command_t::c2s_ping));
+    message << std::string("PiNg");
+    client.send(message);
 
-    server.wait_for_msg();
+    server.wait_for_message();
     ASSERT(server.ping == "PiNg");
 
-    client.wait_for_msg();
+    client.wait_for_message();
     ASSERT(client.pong == "pOnG");
 }
 
@@ -604,20 +604,20 @@ class int64_server : public tcp_server<commands_int64> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& msg) override {
-            switch (msg.m_msg.m_head.m_command) {
-                case cmd_t::c2s_ping: {
-                    msg.m_msg >> ping;
-                    message_t response(cmd_t::s2c_pong);
+        void on_message(owned_message_t& message) override {
+            switch (message.message.head.command) {
+                case command_t::c2s_ping: {
+                    message.message >> ping;
+                    message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    msg.m_client->send(response);
+                    message.client->send(response);
                     break;
                 }
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -634,16 +634,16 @@ class int64_client : public tcp_client<commands_int64> {
 
         std::string pong = "";
 
-        void on_message(message_t& msg) override {
-            switch (msg.m_head.m_command) {
-                case cmd_t::s2c_pong:
-                    msg >> pong;
+        void on_message(message_t& message) override {
+            switch (message.head.command) {
+                case command_t::s2c_pong:
+                    message >> pong;
                     break;
                 default: break;
             }
         }
 
-        void wait_for_msg(const int timeout = 30) {
+        void wait_for_message(const int timeout = 30) {
             int tries = 0;
             while (tries < timeout) {
                 if (process_message()) break;
@@ -661,195 +661,15 @@ void t_commands_int64() {
     ASSERT_NOT_THROWS_CTOR(int64_client client);
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int64_client::message_t msg(int64_client::cmd_t::c2s_ping));
-    msg << std::string("PiNg");
-    client.send(msg);
+    ASSERT_NOT_THROWS_CTOR(int64_client::message_t message(int64_client::command_t::c2s_ping));
+    message << std::string("PiNg");
+    client.send(message);
 
-    server.wait_for_msg();
+    server.wait_for_message();
     ASSERT(server.ping == "PiNg");
 
-    client.wait_for_msg();
+    client.wait_for_message();
     ASSERT(client.pong == "pOnG");
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// float
-///////////////////////////////////////////////////////////////////////////////
-
-const float commands_float[] = { -1.0f, 1.0f };
-
-class float_server : public tcp_server<float> {
-    public:
-        float_server() : tcp_server() {}
-
-        std::string ping = "";
-
-        void on_message(owned_message_t& msg) override {
-            if (msg.m_msg.m_head.m_command == commands_float[0]) {
-                msg.m_msg >> ping;
-                message_t response(commands_float[1]);
-                response << std::string("pOnG");
-                msg.m_client->send(response);
-            }
-        }
-
-        void wait_for_msg(const int timeout = 30) {
-            int tries = 0;
-            while (tries < timeout) {
-                if (process_message()) break;
-
-                tries++;
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            }
-        }
-};
-
-class float_client : public tcp_client<float> {
-    public:
-        float_client() : tcp_client() {}
-
-        std::string pong = "";
-
-        void on_message(message_t& msg) override {
-            if (msg.m_head.m_command == commands_float[1])
-                msg >> pong;
-        }
-
-        void wait_for_msg(const int timeout = 30) {
-            int tries = 0;
-            while (tries < timeout) {
-                if (process_message()) break;
-
-                tries++;
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            }
-        }
-};
-
-void t_commands_float() {
-    ASSERT_THROWS(float_server server);
-    ASSERT_THROWS(float_client client);
-    ASSERT_THROWS(float_client::message_t msg(commands_float[0]));
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// double
-///////////////////////////////////////////////////////////////////////////////
-
-const double commands_double[] = { -1.0, 1.0 };
-
-class double_server : public tcp_server<double> {
-    public:
-        double_server() : tcp_server() {}
-
-        std::string ping = "";
-
-        void on_message(owned_message_t& msg) override {
-            if (msg.m_msg.m_head.m_command == commands_double[0]) {
-                msg.m_msg >> ping;
-                message_t response(commands_double[1]);
-                response << std::string("pOnG");
-                msg.m_client->send(response);
-            }
-        }
-
-        void wait_for_msg(const int timeout = 30) {
-            int tries = 0;
-            while (tries < timeout) {
-                if (process_message()) break;
-
-                tries++;
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            }
-        }
-};
-
-class double_client : public tcp_client<double> {
-    public:
-        double_client() : tcp_client() {}
-
-        std::string pong = "";
-
-        void on_message(message_t& msg) override {
-            if (msg.m_head.m_command == commands_double[1])
-                msg >> pong;
-        }
-
-        void wait_for_msg(const int timeout = 30) {
-            int tries = 0;
-            while (tries < timeout) {
-                if (process_message()) break;
-
-                tries++;
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            }
-        }
-};
-
-void t_commands_double() {
-    ASSERT_THROWS(double_server server);
-    ASSERT_THROWS(double_client client);
-    ASSERT_THROWS(double_client::message_t msg(commands_double[0]));
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// std::string
-///////////////////////////////////////////////////////////////////////////////
-
-const std::string commands_string[] = { "c2s_ping", "s2c_pong" };
-
-class string_server : public tcp_server<std::string> {
-    public:
-        string_server() : tcp_server() {}
-
-        std::string ping = "";
-
-        void on_message(owned_message_t& msg) override {
-            if (msg.m_msg.m_head.m_command == commands_string[0]) {
-                msg.m_msg >> ping;
-                message_t response(commands_string[1]);
-                response << std::string("pOnG");
-                msg.m_client->send(response);
-            }
-        }
-
-        void wait_for_msg(const int timeout = 30) {
-            int tries = 0;
-            while (tries < timeout) {
-                if (process_message()) break;
-
-                tries++;
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            }
-        }
-};
-
-class string_client : public tcp_client<std::string> {
-    public:
-        string_client() : tcp_client() {}
-
-        std::string pong = "";
-
-        void on_message(message_t& msg) override {
-            if (msg.m_head.m_command == commands_string[1])
-                msg >> pong;
-        }
-
-        void wait_for_msg(const int timeout = 30) {
-            int tries = 0;
-            while (tries < timeout) {
-                if (process_message()) break;
-
-                tries++;
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            }
-        }
-};
-
-void t_commands_string() {
-    ASSERT_THROWS(string_server server);
-    ASSERT_THROWS(string_client client);
-    ASSERT_THROWS(string_client::message_t msg(commands_string[0]));
 }
 
 int main(int argc, char* argv[]) {
@@ -862,23 +682,17 @@ int main(int argc, char* argv[]) {
         t_commands_int16();
         t_commands_int32();
         t_commands_int64();
-        t_commands_float();
-        t_commands_double();
-        t_commands_string();
     }
     else {
         switch (std::stoi(argv[1])) {
-            case 0: t_commands_uint8();            break;
-            case 1: t_commands_uint16();        break;
-            case 2: t_commands_uint32();        break;
-            case 3: t_commands_uint64();        break;
-            case 4: t_commands_int8();            break;
-            case 5: t_commands_int16();            break;
-            case 6: t_commands_int32();            break;
-            case 7: t_commands_int64();            break;    
-            case 8: t_commands_float();            break;
-            case 9: t_commands_double();        break;
-            case 10: t_commands_string();        break;
+            case 0: t_commands_uint8();  break;
+            case 1: t_commands_uint16(); break;
+            case 2: t_commands_uint32(); break;
+            case 3: t_commands_uint64(); break;
+            case 4: t_commands_int8();   break;
+            case 5: t_commands_int16();  break;
+            case 6: t_commands_int32();  break;
+            case 7: t_commands_int64();  break;    
             default: break;
         }
     }

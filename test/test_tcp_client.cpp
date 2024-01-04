@@ -2,7 +2,7 @@
 #include "libnetwrk.hpp"
 #include "utilities_assert.hpp"
 
-using namespace libnetwrk::net::tcp;
+using namespace libnetwrk::tcp;
 
 enum class commands : int {
     hello,
@@ -25,8 +25,8 @@ int main(int argc, char* argv[]) {
     }
     else {
         switch (std::stoi(argv[1])) {
-            case 0: tcp_client_create();            break;
-            case 1: tcp_client_connect_fail();        break;
+            case 0: tcp_client_create();       break;
+            case 1: tcp_client_connect_fail(); break;
             default: break;
         }
     }

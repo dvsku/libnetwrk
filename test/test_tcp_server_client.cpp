@@ -5,8 +5,8 @@
 #include <thread>
 #include <chrono>
 
-using namespace libnetwrk::net::tcp;
-using namespace libnetwrk::net;
+using namespace libnetwrk::tcp;
+using namespace libnetwrk;
 
 enum class commands : unsigned int {
     c2s_hello,
@@ -32,37 +32,37 @@ class test_service : public tcp_server<commands> {
         std::string ping = "";
         
         void on_message(owned_message_t& msg) override {
-            message<commands> response;
-            switch (msg.m_msg.m_head.m_command) {
+            message_t response;
+            switch (msg.message.head.command) {
                 case commands::c2s_hello:
                     client_said_hello = true;
                     break;
                 case commands::c2s_echo:
                     client_said_echo = true;
-                    response.m_head.m_command = commands::s2c_echo;
-                    msg.m_client->send(response);
+                    response.head.command = commands::s2c_echo;
+                    msg.client->send(response);
                     break;
                 case commands::c2s_ping:
-                    msg.m_msg >> ping;
-                    response.m_head.m_command = commands::s2c_pong;
+                    msg.message >> ping;
+                    response.head.command = commands::s2c_pong;
                     response << std::string("pOnG");
-                    msg.m_client->send(response);
+                    msg.client->send(response);
                     break;
                 case commands::c2s_broadcast:
                     client_said_broadcast = true;
-                    response.m_head.m_command = commands::s2c_broadcast;
+                    response.head.command = commands::s2c_broadcast;
                     send_all(response);
                     break;
                 case commands::c2s_send_sync_success:
-                    response.m_head.m_command = commands::s2c_send_sync_success;
+                    response.head.command = commands::s2c_send_sync_success;
                     response << std::string("success");
-                    msg.m_client->send(response);
+                    msg.client->send(response);
                     break;
                 case commands::c2s_send_sync_fail:
-                    response.m_head.m_command = commands::s2c_send_sync_fail;
+                    response.head.command = commands::s2c_send_sync_fail;
                     response << std::string("fail");
                     std::this_thread::sleep_for(std::chrono::milliseconds(5500));
-                    msg.m_client->send(response);
+                    msg.client->send(response);
                     break;
                 default:
                     break;
@@ -96,8 +96,8 @@ class test_client : public tcp_client<commands> {
         bool server_said_broadcast = false;
         std::string pong = "";
 
-        void on_message(message<commands>& msg) override {
-            switch (msg.m_head.m_command) {
+        void on_message(message_t& msg) override {
+            switch (msg.head.command) {
                 case commands::s2c_echo:
                     server_said_echo = true;
                     break;
@@ -145,7 +145,7 @@ void service_client_hello() {
     test_client client;
     client.connect("127.0.0.1", 21205);
 
-    message<commands> msg(commands::c2s_hello);
+    test_client::message_t msg(commands::c2s_hello);
     client.send(msg);
 
     server.wait_for_msg();
@@ -159,7 +159,7 @@ void service_echo() {
     test_client client;
     client.connect("127.0.0.1", 21205);
 
-    message<commands> msg(commands::c2s_echo);
+    test_client::message_t msg(commands::c2s_echo);
     client.send(msg);
 
     server.wait_for_msg();
@@ -176,7 +176,7 @@ void service_ping_pong() {
     test_client client;
     client.connect("127.0.0.1", 21205);
 
-    message<commands> msg(commands::c2s_ping);
+    test_client::message_t msg(commands::c2s_ping);
     msg << std::string("PiNg");
     client.send(msg);
 
@@ -200,7 +200,7 @@ void service_broadcast() {
     ASSERT(server.is_correct_id(0, 1));
     ASSERT(server.is_correct_id(1, 2));
 
-    message<commands> msg(commands::c2s_broadcast);
+    test_client::message_t msg(commands::c2s_broadcast);
     client1.send(msg);
 
     server.wait_for_msg();
@@ -223,11 +223,11 @@ int main(int argc, char* argv[]) {
     }
     else {
         switch (std::stoi(argv[1])) {
-            case 0: service_connect();                break;
-            case 1: service_client_hello();            break;
-            case 2: service_echo();                    break;
-            case 3: service_ping_pong();            break;
-            case 4: service_broadcast();            break;
+            case 0: service_connect();      break;
+            case 1: service_client_hello(); break;
+            case 2: service_echo();         break;
+            case 3: service_ping_pong();    break;
+            case 4: service_broadcast();    break;
             default: break;
         }
     }

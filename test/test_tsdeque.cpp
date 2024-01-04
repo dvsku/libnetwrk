@@ -2,7 +2,7 @@
 #include "libnetwrk.hpp"
 #include "utilities_assert.hpp"
 
-using namespace libnetwrk::net::common;
+using namespace libnetwrk;
 
 void tsdeque_create() {
     tsdeque<int> deque;
@@ -119,16 +119,16 @@ int main(int argc, char* argv[]) {
     }
     else {
         switch (std::stoi(argv[1])) {
-            case 0: tsdeque_create();                break;
-            case 1: tsdeque_push_front();            break;
-            case 2: tsdeque_push_back();            break;
-            case 3: tsdeque_front();                break;
-            case 4: tsdeque_back();                    break;
-            case 5: tsdeque_pop_front();            break;
-            case 6: tsdeque_pop_back();                break;
-            case 7: tsdeque_clear();                break;
-            case 8: tsdeque_empty();                break;
-            case 9: tsdeque_count();                break;
+            case 0: tsdeque_create();     break;
+            case 1: tsdeque_push_front(); break;
+            case 2: tsdeque_push_back();  break;
+            case 3: tsdeque_front();      break;
+            case 4: tsdeque_back();       break;
+            case 5: tsdeque_pop_front();  break;
+            case 6: tsdeque_pop_back();   break;
+            case 7: tsdeque_clear();      break;
+            case 8: tsdeque_empty();      break;
+            case 9: tsdeque_count();      break;
             default: break;
         }
     }

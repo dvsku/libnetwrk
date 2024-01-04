@@ -2,9 +2,9 @@
 #include "libnetwrk.hpp"
 #include "utilities_assert.hpp"
 
-using namespace libnetwrk::net::common;
+using namespace libnetwrk;
 
-struct simple_struct : public serializable<binary_serializer> {
+struct simple_struct : public serializable<bin_serialize> {
     uint32_t a = 420;
     std::string b = "";
 
@@ -14,7 +14,7 @@ struct simple_struct : public serializable<binary_serializer> {
         this->a = a;
         this->b = b;
     }
-    
+
     void serialize(buffer_t& buffer) const override {
         buffer << a;
         buffer << b;
@@ -29,7 +29,7 @@ struct simple_struct : public serializable<binary_serializer> {
     }
 };
 
-struct container_struct : public serializable<binary_serializer> {
+struct container_struct : public serializable<bin_serialize> {
     std::vector<int> a;
     std::deque<int> b;
     std::list<int> c;
@@ -48,7 +48,7 @@ struct container_struct : public serializable<binary_serializer> {
     }
 };
 
-struct string_struct : public serializable<binary_serializer> {
+struct string_struct : public serializable<bin_serialize> {
     std::string a;
 
     void serialize(buffer_t& buffer) const override {
@@ -65,14 +65,14 @@ struct string_struct : public serializable<binary_serializer> {
 };
 
 static void serialize_deserialize_standard_layout() {
-    buffer buffer;
+    buffer<bin_serialize> buffer;
 
     int i1 = 156, i2 = 0;
     buffer << i1 >> i2;
     ASSERT(i1 == i2);
 
     bool b1 = true, b2 = false;
-    buffer << b1; 
+    buffer << b1;
     buffer >> b2;
     ASSERT(b1 == b2);
 
@@ -94,7 +94,7 @@ static void serialize_deserialize_standard_layout() {
 }
 
 static void serialize_deserialize_standard_layout_containers() {
-    buffer buffer;
+    buffer<bin_serialize> buffer;
     std::vector<int> v1({ 123, 534, 346, 5432, 242, 735 });
     std::vector<int> v2;
 
@@ -140,7 +140,7 @@ static void serialize_deserialize_serializable() {
     simple_struct ss2(524, "test_2");
     simple_struct ss3, ss4, ss5;
 
-    buffer buffer;
+    buffer<bin_serialize> buffer;
     buffer << ss1 >> ss3;
     ASSERT(ss1.equals(ss3));
 
@@ -152,7 +152,7 @@ static void serialize_deserialize_serializable() {
 }
 
 static void serialize_deserialize_strings() {
-    buffer buffer;
+    buffer<bin_serialize> buffer;
 
     std::string s1("SeRiaLiZE mE");
     std::string s2;
@@ -169,8 +169,8 @@ static void serialize_deserialize_strings() {
 }
 
 static void serialize_deserialize_unsupported() {
-    buffer buffer;
-    
+    buffer<bin_serialize> buffer;
+
     std::stack<int> stack;
     ASSERT_THROWS(buffer << stack);
 
@@ -206,7 +206,7 @@ static void serialize_deserialize_unsupported() {
 }
 
 static void serialize_deserialize_multiple_containers() {
-    buffer buffer;
+    buffer<bin_serialize> buffer;
     container_struct cs1, cs2;
 
     cs1.a.push_back(435921472);
@@ -247,12 +247,12 @@ int main(int argc, char* argv[]) {
     }
     else {
         switch (std::stoi(argv[1])) {
-            case 0: serialize_deserialize_standard_layout();                break;
-            case 1: serialize_deserialize_standard_layout_containers();        break;
-            case 2: serialize_deserialize_strings();                        break;
-            case 3: serialize_deserialize_serializable();                    break;
-            case 4: serialize_deserialize_unsupported();                    break;
-            case 5: serialize_deserialize_multiple_containers(); break;
+            case 0: serialize_deserialize_standard_layout();            break;
+            case 1: serialize_deserialize_standard_layout_containers(); break;
+            case 2: serialize_deserialize_strings();                    break;
+            case 3: serialize_deserialize_serializable();               break;
+            case 4: serialize_deserialize_unsupported();                break;
+            case 5: serialize_deserialize_multiple_containers();        break;
             default: break;
         }
     }
