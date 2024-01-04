@@ -5,7 +5,7 @@ ENABLE_TESTING()
 
 IF(UNIX)
     SET(CMAKE_CXX_STANDARD 20)
-    SET(CMAKE_CXX_FLAGS "-pthread")
+    SET(CMAKE_CXX_FLAGS "-pthread -fconcepts")
 ENDIF()
     
 IF(WIN32)
