@@ -158,8 +158,8 @@ namespace libnetwrk {
 
             m_running = false;
 
-            if (this->context && !this->context->stopped())
-                this->context->stop();
+            if (this->asio_context && !this->asio_context->stopped())
+                this->asio_context->stop();
 
             if (m_context_thread.joinable())
                 m_context_thread.join();
@@ -196,7 +196,7 @@ namespace libnetwrk {
         virtual void _accept() = 0;
 
         void start_context() {
-            m_context_thread = std::thread([this] { this->context->run(); });
+            m_context_thread = std::thread([this] { this->asio_context->run(); });
         }
 
     private:

@@ -34,13 +34,13 @@ namespace libnetwrk::tcp {
         bool _connect(const char* host, const unsigned short port) override {
             try {
                 // Create ASIO context
-                this->context = std::make_unique<asio::io_context>(1);
+                this->asio_context = std::make_unique<asio::io_context>(1);
 
                 // Create ASIO endpoint
                 asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
 
                 // Create ASIO socket
-                asio::ip::tcp::socket socket(*(this->context), ep.protocol());
+                asio::ip::tcp::socket socket(*(this->asio_context), ep.protocol());
 
                 // Connect
                 socket.connect(ep);

@@ -21,7 +21,7 @@ namespace libnetwrk {
         const std::string   name;
         const context_owner owner;
 
-        std::unique_ptr<context_t> context;
+        std::unique_ptr<context_t> asio_context;
         tsdeque<owned_message_t>   incoming_messages;
 
     public:

@@ -132,9 +132,9 @@ namespace libnetwrk {
 
     protected:
         void teardown() {
-            if (this->context)
-                if (!this->context->stopped())
-                    this->context->stop();
+            if (this->asio_context)
+                if (!this->asio_context->stopped())
+                    this->asio_context->stop();
     
             if (m_connection)
                 if (m_connection->is_alive())
@@ -153,7 +153,7 @@ namespace libnetwrk {
         }
     
         void start_context() {
-            m_context_thread = std::thread([this] { this->context->run(); });
+            m_context_thread = std::thread([this] { this->asio_context->run(); });
         }
 
     private:

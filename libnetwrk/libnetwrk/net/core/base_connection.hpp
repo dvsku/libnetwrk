@@ -75,7 +75,7 @@ namespace libnetwrk {
         /// </summary>
         /// <param name="message">ptr to message</param>
         void send(const std::shared_ptr<message_t> message) {
-            asio::post(*m_context.context, [this, message]() {
+            asio::post(*m_context.asio_context, [this, message]() {
                 bool was_empty = m_outgoing_messages.empty();
                 m_outgoing_messages.push_back(message);
 

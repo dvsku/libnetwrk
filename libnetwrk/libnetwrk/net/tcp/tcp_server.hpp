@@ -61,11 +61,11 @@ namespace libnetwrk::tcp {
         bool _start(const char* host, const unsigned short port) override {
             try {
                 // Create ASIO context
-                this->context = std::make_unique<asio::io_context>(1);
+                this->asio_context = std::make_unique<asio::io_context>(1);
 
                 // Create ASIO acceptor
                 m_acceptor = std::make_unique<acceptor_t>
-                    (*(this->context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
+                    (*(this->asio_context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
 
                 // Start listening for and accepting connections
                 _accept();
