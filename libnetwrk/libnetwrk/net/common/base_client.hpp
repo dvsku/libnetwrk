@@ -1,29 +1,18 @@
-#ifndef LIBNETWRK_NET_COMMON_BASE_CLIENT_HPP
-#define LIBNETWRK_NET_COMMON_BASE_CLIENT_HPP
+#pragma once
 
-#include "libnetwrk/net/definitions.hpp"
-#include "libnetwrk/net/message.hpp"
-#include "libnetwrk/net/macros.hpp"
-#include "libnetwrk/net/common/base_context.hpp"
 #include "libnetwrk/net/common/base_connection.hpp"
-#include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
-#include "libnetwrk/net/common/containers/tsdeque.hpp"
+#include "libnetwrk/net/common/base_context.hpp"
+#include "libnetwrk/net/common/messages/owned_message.hpp"
 
-namespace libnetwrk::net::common {
-    template<typename command_type,
-             typename serializer = libnetwrk::net::common::binary_serializer,
-             typename storage    = libnetwrk::nothing>
-    class base_client 
-        : public base_context<command_type, serializer, storage>
-    {
+namespace libnetwrk {
+    template<typename Tcommand, typename Tserialize, typename Tstorage>
+    class base_client : public base_context<Tcommand, Tserialize, Tstorage> {
     public:
-        typedef libnetwrk::net::message<command_type, serializer>                message_t;
-        typedef std::shared_ptr<message_t>                                       message_t_ptr;
-        typedef libnetwrk::net::owned_message<command_type, serializer, storage> owned_message_t;
-    
-        typedef base_context<command_type, serializer, storage>    base_context_t;
-        typedef base_connection<command_type, serializer, storage> base_connection_t;
-        typedef std::shared_ptr<base_connection_t>                 base_connection_t_ptr;
+        using base_client_t   = base_client<Tcommand, Tserialize, Tstorage>;
+        using base_context_t  = base_context<Tcommand, Tserialize, Tstorage>;
+        using message_t       = message<Tcommand, Tserialize>;
+        using owned_message_t = owned_message<Tcommand, Tserialize, Tstorage>;
+        using connection_t    = base_connection<Tcommand, Tserialize, Tstorage>;
 
     public:
         base_client()                   = delete;
@@ -31,18 +20,14 @@ namespace libnetwrk::net::common {
         base_client(base_client&&)      = default;
     
         base_client(const std::string& name = "base client") 
-            : base_context_t(name, connection_owner::client) 
-        {
-            LIBNETWRK_STATIC_ASSERT_OR_THROW(std::is_enum<command_type>::value,
-                "client command_type template arg can only be an enum");
-        }
-    
-        base_client& operator=(const base_client&) = delete;
-        base_client& operator=(base_client&&)      = default;
+            : base_context_t(name, connection_owner::client) {}
     
         virtual ~base_client() {
             disconnect();
         }
+
+        base_client_t& operator=(const base_client_t&) = delete;
+        base_client_t& operator=(base_client_t&&)      = default;
 
     public:
         /// <summary>
@@ -86,7 +71,7 @@ namespace libnetwrk::net::common {
                 if (!m_connected || this->m_incoming_messages.empty())
                     return false;
     
-                message_t msg = this->m_incoming_messages.pop_front().m_msg;
+                message_t msg = this->m_incoming_messages.pop_front().message;
                 on_message(msg);
             }
             catch (const std::exception& e) {
@@ -132,8 +117,8 @@ namespace libnetwrk::net::common {
         }
 
     protected:
-        bool m_connected = false;
-        base_connection_t_ptr m_connection;
+        bool                          m_connected = false;
+        std::shared_ptr<connection_t> m_connection;
     
     protected:
         virtual void on_message(message_t& msg) {}
@@ -182,7 +167,7 @@ namespace libnetwrk::net::common {
     
                 try {
                     while (!this->m_incoming_messages.empty()) {
-                        message_t msg = this->m_incoming_messages.pop_front().m_msg;
+                        message_t msg = this->m_incoming_messages.pop_front().message;
                         on_message(msg);
                     }
                 }
@@ -196,5 +181,3 @@ namespace libnetwrk::net::common {
         }
     };
 }
-
-#endif
