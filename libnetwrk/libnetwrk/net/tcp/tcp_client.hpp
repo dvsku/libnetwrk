@@ -2,14 +2,14 @@
 
 #include "lib/asio/asio.hpp"
 #include "libnetwrk/net/common/base_client.hpp"
-#include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
+#include "libnetwrk/net/common/serialization/serializers/bin_serialize.hpp"
 #include "libnetwrk/net/tcp/tcp_connection.hpp"
 
 #include <exception>
 #include <thread>
 
 namespace libnetwrk::tcp {
-    template <typename Tcommand, typename Tserialize = libnetwrk::bin_serializer, typename Tstorage = libnetwrk::nothing>
+    template <typename Tcommand, typename Tserialize = libnetwrk::bin_serialize, typename Tstorage = libnetwrk::nothing>
     requires is_enum<Tcommand>
     class tcp_client : public libnetwrk::base_client<Tcommand, Tserialize, Tstorage> {
     public:

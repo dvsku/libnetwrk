@@ -1,14 +1,14 @@
 #pragma once
 
 #include "libnetwrk/net/common/base_server.hpp"
-#include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
+#include "libnetwrk/net/common/serialization/serializers/bin_serialize.hpp"
 #include "libnetwrk/net/tcp/tcp_connection.hpp"
 
 #include <exception>
 #include <thread>
 
 namespace libnetwrk::tcp {
-    template<typename Tcommand, typename Tserialize = libnetwrk::bin_serializer, typename Tstorage = libnetwrk::nothing>
+    template<typename Tcommand, typename Tserialize = libnetwrk::bin_serialize, typename Tstorage = libnetwrk::nothing>
     class tcp_server : public libnetwrk::base_server<Tcommand, Tserialize, Tstorage> {
     public:
         using tcp_server_t      = tcp_server<Tcommand, Tserialize, Tstorage>;

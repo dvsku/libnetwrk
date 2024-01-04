@@ -17,9 +17,9 @@
 #include <unordered_map>
 
 namespace libnetwrk {
-    struct bin_serializer {
-        using serializer_t = bin_serializer;
-        using buffer_t     = buffer<bin_serializer>;
+    struct bin_serialize {
+        using serializer_t = bin_serialize;
+        using buffer_t     = buffer<bin_serialize>;
 
         ///////////////////////////////////////////////////////////////////////
         // STANDARD LAYOUT
