@@ -23,10 +23,10 @@ Based heavily on <a href="https://www.youtube.com/@javidx9">javidx9</a>'s work w
 - c++20 or later compiler
 
 ## Usage
-- Copy libnetwrk folder to your project
-- Include ``libnetwrk`` directories in your project
+- Copy libnetwrk directory to your project
+- Include ``libnetwrk`` directory in your project
 - Include ``libnetwrk.hpp``
 
 ## Limitations
 - currently only supports TCP
-- libnetwrk uses a simple binary serializer by default, so cross-platform compatibility is not guaranteed. You can implement your own serializer by looking at ``binary_serializer.hpp`` as an example.
+- libnetwrk uses a simple binary serializer by default, so cross-platform compatibility is not guaranteed. You can implement your own serializer by looking at ``bin_serialize.hpp`` as an example.
