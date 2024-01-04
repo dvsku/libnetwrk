@@ -1,6 +1,5 @@
 #pragma once
 
-#include "libnetwrk/net/core/serialization/serializable.hpp"
 #include "libnetwrk/net/type_traits.hpp"
 
 namespace libnetwrk {
@@ -11,7 +10,7 @@ namespace libnetwrk {
 
     template <typename Tcommand, typename Tserialize>
     requires is_enum<Tcommand>
-    class message_head : public serializable<Tserialize> {
+    class message_head {
     public:
         using message_head_t = message_head<Tcommand, Tserialize>;
         using message_type_t = message_type;
@@ -67,11 +66,13 @@ namespace libnetwrk {
             return sizeof(type) + sizeof(command) + sizeof(send_timestamp) + sizeof(data_size);
         }
 
-        void serialize(buffer_t& buffer) const override final {
+        template<typename T>
+        void serialize(buffer<T>& buffer) const {
             buffer << type << command << send_timestamp << data_size;
         }
 
-        void deserialize(buffer_t& buffer) override final {
+        template<typename T>
+        void deserialize(buffer<T>& buffer) {
             buffer >> type >> command >> send_timestamp >> data_size;
         }
     };
