@@ -221,7 +221,7 @@ namespace libnetwrk {
             owned_message_t owned_message;
             // MIGHT CAUSE ERRORS
             //owned_message.message = std::move(m_recv_message);
-            owned_message.message = m_recv_message;
+            owned_message.msg = m_recv_message;
 
             if (m_context.owner == context_owner::server) {
                 owned_message.client = this->shared_from_this();

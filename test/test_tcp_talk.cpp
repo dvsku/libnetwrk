@@ -25,9 +25,9 @@ public:
         message_t response;
         
         std::string received;
-        msg.message >> received;
+        msg.msg >> received;
 
-        switch (msg.message.head.command) {
+        switch (msg.msg.head.command) {
             case commands::c2s_msg1: {
                 ASSERT(received == "request_1");
 

@@ -71,7 +71,7 @@ namespace libnetwrk {
                 if (!m_connected || this->incoming_messages.empty())
                     return false;
     
-                message_t msg = this->incoming_messages.pop_front().message;
+                message_t msg = this->incoming_messages.pop_front().msg;
                 on_message(msg);
             }
             catch (const std::exception& e) {
@@ -167,7 +167,7 @@ namespace libnetwrk {
     
                 try {
                     while (!this->incoming_messages.empty()) {
-                        message_t msg = this->incoming_messages.pop_front().message;
+                        message_t msg = this->incoming_messages.pop_front().msg;
                         on_message(msg);
                     }
                 }

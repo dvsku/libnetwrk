@@ -10,10 +10,10 @@ public:
 
     void on_message(owned_message_t& msg) override {
         message_t response;
-        switch (msg.message.head.command) {
+        switch (msg.msg.head.command) {
             case commands::c2s_echo: {
                 std::string text;
-                msg.message >> text;
+                msg.msg >> text;
 
                 LIBNETWRK_INFO(this->name, "{}:{}\t{}",
                     msg.client->remote_address().c_str(), msg.client->remote_port(), text);

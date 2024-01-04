@@ -33,7 +33,7 @@ class test_service : public tcp_server<commands> {
         
         void on_message(owned_message_t& msg) override {
             message_t response;
-            switch (msg.message.head.command) {
+            switch (msg.msg.head.command) {
                 case commands::c2s_hello:
                     client_said_hello = true;
                     break;
@@ -43,7 +43,7 @@ class test_service : public tcp_server<commands> {
                     msg.client->send(response);
                     break;
                 case commands::c2s_ping:
-                    msg.message >> ping;
+                    msg.msg >> ping;
                     response.head.command = commands::s2c_pong;
                     response << std::string("pOnG");
                     msg.client->send(response);

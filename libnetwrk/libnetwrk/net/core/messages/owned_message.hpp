@@ -22,7 +22,7 @@ namespace libnetwrk {
         owned_message_t& operator=(owned_message_t&&)      = default;
 
     public:
-        message_t                 message;
+        message_t                 msg;
         std::shared_ptr<client_t> client;
     };
 }
