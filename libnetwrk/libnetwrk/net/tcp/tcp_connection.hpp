@@ -94,11 +94,12 @@ namespace libnetwrk::tcp {
         }
 
         void write_message_head() override {
-            this->m_outgoing_messages.front()->head.send_timestamp =
-                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            if (this->m_outgoing_messages.front()->data_head.empty()) {
+                this->m_outgoing_messages.front()->head.send_timestamp =
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-            this->m_outgoing_messages.front()->data_head.clear();
-            this->m_outgoing_messages.front()->head.serialize(this->m_outgoing_messages.front()->data_head);
+                this->m_outgoing_messages.front()->head.serialize(this->m_outgoing_messages.front()->data_head);
+            }
 
             asio::async_write(m_socket,
                 asio::buffer(this->m_outgoing_messages.front()->data_head.data(),
