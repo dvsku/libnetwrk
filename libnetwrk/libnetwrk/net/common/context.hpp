@@ -1,9 +1,8 @@
 #pragma once
 
-#include "libnetwrk/net/definitions.hpp"
 #include "libnetwrk/net/common/messages/owned_message.hpp"
 #include "libnetwrk/net/common/containers/tsdeque.hpp"
-#include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
+#include "libnetwrk/utilities/log.hpp"
 
 #include <string>
 

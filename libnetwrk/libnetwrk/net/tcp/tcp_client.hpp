@@ -2,6 +2,7 @@
 
 #include "lib/asio/asio.hpp"
 #include "libnetwrk/net/common/base_client.hpp"
+#include "libnetwrk/net/common/serialization/serializers/binary_serializer.hpp"
 #include "libnetwrk/net/tcp/tcp_connection.hpp"
 
 #include <exception>
