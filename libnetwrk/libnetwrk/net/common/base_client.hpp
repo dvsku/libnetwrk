@@ -1,15 +1,15 @@
 #pragma once
 
 #include "libnetwrk/net/common/base_connection.hpp"
-#include "libnetwrk/net/common/base_context.hpp"
+#include "libnetwrk/net/common/context.hpp"
 #include "libnetwrk/net/common/messages/owned_message.hpp"
 
 namespace libnetwrk {
     template<typename Tcommand, typename Tserialize, typename Tstorage>
-    class base_client : public base_context<Tcommand, Tserialize, Tstorage> {
+    class base_client : public context<Tcommand, Tserialize, Tstorage> {
     public:
         using base_client_t   = base_client<Tcommand, Tserialize, Tstorage>;
-        using base_context_t  = base_context<Tcommand, Tserialize, Tstorage>;
+        using base_context_t  = context<Tcommand, Tserialize, Tstorage>;
         using message_t       = message<Tcommand, Tserialize>;
         using owned_message_t = owned_message<Tcommand, Tserialize, Tstorage>;
         using connection_t    = base_connection<Tcommand, Tserialize, Tstorage>;
@@ -20,7 +20,7 @@ namespace libnetwrk {
         base_client(base_client&&)      = default;
     
         base_client(const std::string& name = "base client") 
-            : base_context_t(name, connection_owner::client) {}
+            : base_context_t(name, context_owner::client) {}
     
         virtual ~base_client() {
             disconnect();
@@ -59,7 +59,7 @@ namespace libnetwrk {
             on_disconnect();
             teardown();
     
-            LIBNETWRK_INFO(this->name(), "disconnected");
+            LIBNETWRK_INFO(this->name, "disconnected");
         }
     
         /// <summary>
@@ -68,18 +68,18 @@ namespace libnetwrk {
         /// <returns>true if a message has been processed, false if it hasn't</returns>
         bool process_message() {
             try {
-                if (!m_connected || this->m_incoming_messages.empty())
+                if (!m_connected || this->incoming_messages.empty())
                     return false;
     
-                message_t msg = this->m_incoming_messages.pop_front().message;
+                message_t msg = this->incoming_messages.pop_front().message;
                 on_message(msg);
             }
             catch (const std::exception& e) {
-                LIBNETWRK_ERROR(this->name(), "process_message() fail | {}", e.what());
+                LIBNETWRK_ERROR(this->name, "process_message() fail | {}", e.what());
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(this->name(), "process_message() fail | undefined reason");
+                LIBNETWRK_ERROR(this->name, "process_message() fail | undefined reason");
                 return false;
             }
     
@@ -132,9 +132,9 @@ namespace libnetwrk {
 
     protected:
         void teardown() {
-            if (this->m_context)
-                if (!this->m_context->stopped())
-                    this->m_context->stop();
+            if (this->context)
+                if (!this->context->stopped())
+                    this->context->stop();
     
             if (m_connection)
                 if (m_connection->is_alive())
@@ -142,8 +142,8 @@ namespace libnetwrk {
     
             m_connection.reset();
     
-            this->m_incoming_messages.cancel_wait();
-            this->m_incoming_messages.clear();
+            this->incoming_messages.cancel_wait();
+            this->incoming_messages.clear();
     
             if (m_context_thread.joinable())
                 m_context_thread.join();
@@ -153,7 +153,7 @@ namespace libnetwrk {
         }
     
         void start_context() {
-            m_context_thread = std::thread([this] { this->m_context->run(); });
+            m_context_thread = std::thread([this] { this->context->run(); });
         }
 
     private:
@@ -163,19 +163,19 @@ namespace libnetwrk {
     private:
         void _process_messages() {
             while (m_connected) {
-                this->m_incoming_messages.wait();
+                this->incoming_messages.wait();
     
                 try {
-                    while (!this->m_incoming_messages.empty()) {
-                        message_t msg = this->m_incoming_messages.pop_front().message;
+                    while (!this->incoming_messages.empty()) {
+                        message_t msg = this->incoming_messages.pop_front().message;
                         on_message(msg);
                     }
                 }
                 catch (const std::exception& e) {
-                    LIBNETWRK_ERROR(this->name(), "_process_messages() fail | {}", e.what());
+                    LIBNETWRK_ERROR(this->name, "_process_messages() fail | {}", e.what());
                 }
                 catch (...) {
-                    LIBNETWRK_ERROR(this->name(), "_process_messages() fail | undefined reason");
+                    LIBNETWRK_ERROR(this->name, "_process_messages() fail | undefined reason");
                 }
             }
         }

@@ -49,7 +49,7 @@ namespace libnetwrk::tcp {
 
     protected:
         void read_verification_message() override {
-            if (this->m_context.m_owner == connection_owner::server) {
+            if (this->m_context.owner == context_owner::server) {
                 asio::async_read(m_socket, asio::buffer(&this->m_verification_code, sizeof(uint32_t)),
                     std::bind(&tcp_connection::read_verification_message_callback,
                         this, std::placeholders::_1, std::placeholders::_2));
@@ -80,7 +80,7 @@ namespace libnetwrk::tcp {
         }
 
         void write_verification_message() override {
-            if (this->m_context.m_owner == connection_owner::server) {
+            if (this->m_context.owner == context_owner::server) {
                 asio::async_write(m_socket, asio::buffer(&this->m_verification_code, sizeof(uint32_t)),
                     std::bind(&tcp_connection::write_verification_message_callback,
                         this, std::placeholders::_1, std::placeholders::_2));

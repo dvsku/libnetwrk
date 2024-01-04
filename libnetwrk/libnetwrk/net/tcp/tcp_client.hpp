@@ -34,13 +34,13 @@ namespace libnetwrk::tcp {
         bool _connect(const char* host, const unsigned short port) override {
             try {
                 // Create ASIO context
-                this->m_context = std::make_shared<asio::io_context>(1);
+                this->context = std::make_unique<asio::io_context>(1);
 
                 // Create ASIO endpoint
                 asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
 
                 // Create ASIO socket
-                asio::ip::tcp::socket socket(*(this->m_context), ep.protocol());
+                asio::ip::tcp::socket socket(*(this->context), ep.protocol());
 
                 // Connect
                 socket.connect(ep);
@@ -59,15 +59,15 @@ namespace libnetwrk::tcp {
 
                 on_connect();
 
-                LIBNETWRK_INFO(this->name(), "connected to {}:{}", host, port);
+                LIBNETWRK_INFO(this->name, "connected to {}:{}", host, port);
             }
             catch (const std::exception& e) {
-                LIBNETWRK_ERROR(this->name(), "failed to connect | {}", e.what());
+                LIBNETWRK_ERROR(this->name, "failed to connect | {}", e.what());
                 this->teardown();
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(this->name(), "failed to connect | fatal error");
+                LIBNETWRK_ERROR(this->name, "failed to connect | fatal error");
                 this->teardown();
                 return false;
             }

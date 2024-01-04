@@ -1,7 +1,7 @@
 #pragma once
 
 #include "lib/asio/asio.hpp"
-#include "libnetwrk/net/common/base_context.hpp"
+#include "libnetwrk/net/common/context.hpp"
 #include "libnetwrk/net/common/containers/tsdeque.hpp"
 #include "libnetwrk/net/common/messages/owned_message.hpp"
 
@@ -17,7 +17,7 @@ namespace libnetwrk {
     class base_connection : public std::enable_shared_from_this<base_connection<Tcommand, Tserialize, Tstorage>> {
     public:
         using base_connection_t = base_connection<Tcommand, Tserialize, Tstorage>;
-        using base_context_t    = base_context<Tcommand, Tserialize, Tstorage>;
+        using base_context_t    = context<Tcommand, Tserialize, Tstorage>;
         using message_t         = message<Tcommand, Tserialize>;
         using owned_message_t   = owned_message<Tcommand, Tserialize, Tstorage>;
         using storage_t         = Tstorage;
@@ -53,7 +53,7 @@ namespace libnetwrk {
         /// Start reading connection messages 
         /// </summary>
         void start() {
-            if (m_context.m_owner == connection_owner::server) {
+            if (m_context.owner == context_owner::server) {
                 m_verification_code = generate_verification_code();
                 m_verification_ans  = generate_verification_answer(m_verification_code);
                 write_verification_message();
@@ -76,7 +76,7 @@ namespace libnetwrk {
         /// </summary>
         /// <param name="message">ptr to message</param>
         void send(const std::shared_ptr<message_t> message) {
-            asio::post(*m_context.m_context, [this, message]() {
+            asio::post(*m_context.context, [this, message]() {
                 bool was_empty = m_outgoing_messages.empty();
                 m_outgoing_messages.push_back(message);
 
@@ -121,12 +121,12 @@ namespace libnetwrk {
 
         void read_verification_message_callback(std::error_code ec, std::size_t len) {
             if (!ec) {
-                if (m_context.m_owner == connection_owner::server) {
+                if (m_context.owner == context_owner::server) {
                     if (m_verification_code == m_verification_ans) {
                         read_message_head();
                     }
                     else {
-                        LIBNETWRK_WARNING(this->m_context.name(),
+                        LIBNETWRK_WARNING(this->m_context.name,
                             "client verification failed; disconnecting client");
                         stop();
                     }
@@ -176,7 +176,7 @@ namespace libnetwrk {
 
         void write_verification_message_callback(std::error_code ec, std::size_t len) {
             if (!ec) {
-                if (m_context.m_owner == connection_owner::server)
+                if (this->m_context.owner == context_owner::server)
                     read_verification_message();
                 else
                     read_message_head();
@@ -224,13 +224,13 @@ namespace libnetwrk {
             //owned_message.message = std::move(m_recv_message);
             owned_message.message = m_recv_message;
 
-            if (m_context.m_owner == connection_owner::server) {
+            if (m_context.owner == context_owner::server) {
                 owned_message.client = this->shared_from_this();
-                m_context.m_incoming_messages.push_back(owned_message);
+                m_context.incoming_messages.push_back(owned_message);
             }
             else {
                 owned_message.client = nullptr;
-                m_context.m_incoming_messages.push_back(owned_message);
+                m_context.incoming_messages.push_back(owned_message);
             }
 
             read_message_head();
@@ -243,8 +243,8 @@ namespace libnetwrk {
 
         void on_error(std::error_code ec) {
             stop();
-            LIBNETWRK_ERROR(this->m_context.name(),
-                "failed during read/write | {}", ec.message().c_str());
+            LIBNETWRK_ERROR(this->m_context.name,
+                "failed during read/write | {}", ec.message());
         }
 
         uint32_t generate_verification_code() {

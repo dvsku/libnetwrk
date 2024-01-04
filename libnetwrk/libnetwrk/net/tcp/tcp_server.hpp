@@ -60,11 +60,11 @@ namespace libnetwrk::tcp {
         bool _start(const char* host, const unsigned short port) override {
             try {
                 // Create ASIO context
-                this->m_context = std::make_shared<asio::io_context>(1);
+                this->context = std::make_unique<asio::io_context>(1);
 
                 // Create ASIO acceptor
                 m_acceptor = std::make_unique<acceptor_t>
-                    (*(this->m_context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
+                    (*(this->context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
 
                 // Start listening for and accepting connections
                 _accept();
@@ -74,15 +74,15 @@ namespace libnetwrk::tcp {
 
                 this->m_running = true;
 
-                LIBNETWRK_INFO(this->name(), "listening for connections on {}:{}", host, port);
+                LIBNETWRK_INFO(this->name, "listening for connections on {}:{}", host, port);
             }
             catch (const std::exception& e) {
-                LIBNETWRK_ERROR(this->name(), "failed to start listening | {}", e.what());
+                LIBNETWRK_ERROR(this->name, "failed to start listening | {}", e.what());
                 stop();
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(this->name(), "failed to start listening | fatal error");
+                LIBNETWRK_ERROR(this->name, "failed to start listening | fatal error");
                 stop();
                 return false;
             }
@@ -94,7 +94,7 @@ namespace libnetwrk::tcp {
             m_acceptor->async_accept(
                 [this](std::error_code ec, socket_t socket) {
                     if (!ec) {
-                        LIBNETWRK_VERBOSE(this->name(), "attempted connection from {}:{}",
+                        LIBNETWRK_VERBOSE(this->name, "attempted connection from {}:{}",
                             socket.remote_endpoint().address().to_string(),
                             socket.remote_endpoint().port());
 
@@ -108,20 +108,20 @@ namespace libnetwrk::tcp {
                             this->m_connections.back()->start();
                             on_client_connect(new_connection);
 
-                            LIBNETWRK_INFO(this->name(), "connection success from {}:{}",
+                            LIBNETWRK_INFO(this->name, "connection success from {}:{}",
                                 this->m_connections.back()->remote_address(),
                                 this->m_connections.back()->remote_port());
                         }
                         else {
-                            LIBNETWRK_WARNING(this->name(), "connection denied");
+                            LIBNETWRK_WARNING(this->name, "connection denied");
                         }
                     }
                     else if (ec == asio::error::operation_aborted) {
-                        LIBNETWRK_INFO(this->name(), "listening stopped");
+                        LIBNETWRK_INFO(this->name, "listening stopped");
                         return;
                     }
                     else {
-                        LIBNETWRK_ERROR(this->name(), "failed to accept connection | {}", ec.message());
+                        LIBNETWRK_ERROR(this->name, "failed to accept connection | {}", ec.message());
                     }
 
                     _accept();
