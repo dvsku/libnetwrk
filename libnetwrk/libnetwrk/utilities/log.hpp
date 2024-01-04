@@ -12,9 +12,6 @@
 #include "lib/fmt/chrono.h"
 #include "lib/fmt/color.h"
 
-#include "libnetwrk/utilities/traits/non_copyable.hpp"
-#include "libnetwrk/utilities/traits/non_moveable.hpp"
-
 #if defined(_WIN32) || defined(WIN32)
 #include "windows.h"
 #endif
@@ -84,7 +81,7 @@ namespace libnetwrk {
         verbose            = 0x05        // logs everything
     };
     
-    class log : public non_copyable, public non_moveable {
+    class log {
     public:
         static void init(log_level level, bool log_to_console = true, bool log_to_file = false) {
             if (m_logger) return;
@@ -128,7 +125,7 @@ namespace libnetwrk {
         }
 
     private:
-        class logger : public non_copyable, public non_moveable {
+        class logger {
         public:
             log_level level            = log_level::error;
             bool log_to_console        = true;
