@@ -1,22 +1,14 @@
-#ifndef LIBNETWRK_NET_COMMON_SERIALIZABLE_HPP
-#define LIBNETWRK_NET_COMMON_SERIALIZABLE_HPP
+#pragma once
 
-#include "libnetwrk/net/definitions.hpp"
-#include "libnetwrk/net/type_traits.hpp"
-
-namespace libnetwrk::net::common {
-    
-    // Forward declare binary_serializer
-    struct binary_serializer;
-    
+namespace libnetwrk {
     // Forward declare buffer
-    template<typename serializer>
+    template<typename Tserialize>
     class buffer;
 
     // Base struct for every user made serializable object
-    template <typename serializer = binary_serializer>
+    template <typename Tserialize>
     struct serializable {
-        using buffer_t = buffer<serializer>;
+        using buffer_t = buffer<Tserialize>;
 
         // Serializes struct to buffer
         virtual void serialize(buffer_t& buffer) const = 0;
@@ -25,5 +17,3 @@ namespace libnetwrk::net::common {
         virtual void deserialize(buffer_t& serialized) = 0;
     };
 }
-
-#endif
