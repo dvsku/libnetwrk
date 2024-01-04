@@ -16,12 +16,31 @@ namespace libnetwrk {
         using buffer_t       = buffer<serializer_t>;
 
     public:
-        buffer() {
-            m_data.resize(0);
+        buffer()                = default;
+        buffer(const buffer_t&) = default;
+
+        buffer(buffer_t&& rhs) noexcept {
+            this->m_data   = std::move(rhs.m_data);
+            this->m_offset = rhs.m_offset;
+
+            rhs.m_offset = 0U;
         }
 
         buffer(const_iterator first, const_iterator last) {
             m_data = container_t(first, last);
+        }
+
+        buffer_t& operator=(const buffer_t&) = default;
+
+        buffer_t& operator=(buffer_t&& rhs) noexcept {
+            if (this == &rhs) return *this;
+                
+            this->m_data   = std::move(rhs.m_data);
+            this->m_offset = rhs.m_offset;
+
+            rhs.m_offset = 0U;
+
+            return *this;
         }
 
     public:
