@@ -4,7 +4,7 @@
 
 using namespace libnetwrk;
 
-struct simple_struct : public serializable<bin_serialize> {
+struct simple_struct {
     uint8_t a        = 1;
     uint16_t b        = 1337;
     uint32_t c        = 420;
@@ -13,12 +13,14 @@ struct simple_struct : public serializable<bin_serialize> {
     double f        = 8342.2;
     bool g            = false;
 
-    void serialize(buffer_t& buffer) const override {
+    template<typename Tserialize>
+    void serialize(buffer<Tserialize>& buffer) const {
         buffer << a << b << c << d << e << f << g;
     }
 
-    void deserialize(buffer_t& serialized) override {
-        serialized >> a >> b >> c >> d >> e >> f >> g;
+    template<typename Tserialize>
+    void deserialize(buffer<Tserialize>& buffer) {
+        buffer >> a >> b >> c >> d >> e >> f >> g;
     }
 
     bool equals(const simple_struct& obj) {
@@ -27,7 +29,27 @@ struct simple_struct : public serializable<bin_serialize> {
     }
 };
 
-void serialize_deserialize_simple_struct() {
+struct derived_struct : simple_struct {
+    uint32_t h = 365464;
+
+    template<typename Tserialize>
+    void serialize(buffer<Tserialize>& buffer) const {
+        simple_struct::serialize<Tserialize>(buffer);
+        buffer << h;
+    }
+
+    template<typename Tserialize>
+    void deserialize(buffer<Tserialize>& buffer) {
+        simple_struct::deserialize<Tserialize>(buffer);
+        buffer >> h;
+    }
+
+    bool equals(const derived_struct& obj) {
+        return simple_struct::equals(obj) && h == obj.h;
+    }
+};
+
+static void serialize_deserialize_simple_struct() {
     buffer<bin_serialize> buff;
     simple_struct ss1{}, ss2{};
 
@@ -37,13 +59,30 @@ void serialize_deserialize_simple_struct() {
     ASSERT(ss1.equals(ss2));
 }
 
+static void serialize_deserialize_derived_struct() {
+    buffer<bin_serialize> buff;
+
+    derived_struct ss1{}, ss2{};
+    ss2.a = 5;
+    ss2.h = 777;
+
+    ASSERT(!ss1.equals(ss2));
+
+    ss1.serialize(buff);
+    ss2.deserialize(buff);
+
+    ASSERT(ss1.equals(ss2));
+}
+
 int main(int argc, char* argv[]) {
     if (argc != 2) {
         serialize_deserialize_simple_struct();
+        serialize_deserialize_derived_struct();
     }
     else {
         switch (std::stoi(argv[1])) {
-            case 0: serialize_deserialize_simple_struct(); break;
+            case 0: serialize_deserialize_simple_struct();  break;
+            case 1: serialize_deserialize_derived_struct(); break;
             default: break;
         }
     }

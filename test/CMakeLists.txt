@@ -32,6 +32,7 @@ ADD_TEST(NAME buffer_get_range_exception COMMAND test_buffer 3)
 # TEST: SERIALIZABLE
 ADD_EXECUTABLE(test_serializable test_serializable.cpp)
 ADD_TEST(NAME serialize_deserialize_simple_struct COMMAND test_serializable 0)
+ADD_TEST(NAME serialize_deserialize_derived_struct COMMAND test_serializable 1)
 
 # TEST: TCP_SERVER
 ADD_EXECUTABLE(test_tcp_server test_tcp_server.cpp)

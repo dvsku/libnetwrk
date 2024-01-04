@@ -4,7 +4,7 @@
 
 using namespace libnetwrk;
 
-struct simple_struct : public serializable<bin_serialize> {
+struct simple_struct {
     uint32_t a = 420;
     std::string b = "";
 
@@ -15,13 +15,15 @@ struct simple_struct : public serializable<bin_serialize> {
         this->b = b;
     }
 
-    void serialize(buffer_t& buffer) const override {
+    template<typename Tserialize>
+    void serialize(buffer<Tserialize>& buffer) const {
         buffer << a;
         buffer << b;
     }
 
-    void deserialize(buffer_t& serialized) override {
-        serialized >> a >> b;
+    template<typename Tserialize>
+    void deserialize(buffer<Tserialize>& buffer) {
+        buffer >> a >> b;
     }
 
     bool equals(const simple_struct& obj) {
@@ -29,18 +31,20 @@ struct simple_struct : public serializable<bin_serialize> {
     }
 };
 
-struct container_struct : public serializable<bin_serialize> {
+struct container_struct {
     std::vector<int> a;
     std::deque<int> b;
     std::list<int> c;
     std::forward_list<int> d;
 
-    void serialize(buffer_t& buffer) const override {
+    template<typename Tserialize>
+    void serialize(buffer<Tserialize>& buffer) const {
         buffer << a << b << c << d;
     }
 
-    void deserialize(buffer_t& serialized) override {
-        serialized >> a >> b >> c >> d;
+    template<typename Tserialize>
+    void deserialize(buffer<Tserialize>& buffer) {
+        buffer >> a >> b >> c >> d;
     }
 
     bool equals(const container_struct& obj) {
@@ -48,15 +52,17 @@ struct container_struct : public serializable<bin_serialize> {
     }
 };
 
-struct string_struct : public serializable<bin_serialize> {
+struct string_struct {
     std::string a;
 
-    void serialize(buffer_t& buffer) const override {
+    template<typename Tserialize>
+    void serialize(buffer<Tserialize>& buffer) const {
         buffer << a;
     }
 
-    void deserialize(buffer_t& serialized) override {
-        serialized >> a;
+    template<typename Tserialize>
+    void deserialize(buffer<Tserialize>& buffer) {
+        buffer >> a;
     }
 
     bool equals(const string_struct& obj) {
