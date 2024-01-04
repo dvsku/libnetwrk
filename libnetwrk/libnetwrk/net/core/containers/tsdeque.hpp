@@ -53,12 +53,26 @@ namespace libnetwrk {
 
         void push_front(const T& element) {
             const lock_guard lock(m_mutex_queue);
-            m_deque.emplace_front(std::move(element));
+            m_deque.push_front(element);
             unique_lock ul(m_mutex_wait);
             m_cv_wait.notify_one();
         }
 
         void push_back(const T& element) {
+            const lock_guard lock(m_mutex_queue);
+            m_deque.push_back(element);
+            unique_lock ul(m_mutex_wait);
+            m_cv_wait.notify_one();
+        }
+
+        void emplace_front(T&& element) {
+            const lock_guard lock(m_mutex_queue);
+            m_deque.emplace_front(std::move(element));
+            unique_lock ul(m_mutex_wait);
+            m_cv_wait.notify_one();
+        }
+
+        void emplace_back(T&& element) {
             const lock_guard lock(m_mutex_queue);
             m_deque.emplace_back(std::move(element));
             unique_lock ul(m_mutex_wait);
