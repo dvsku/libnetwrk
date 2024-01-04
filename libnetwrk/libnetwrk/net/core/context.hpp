@@ -1,7 +1,7 @@
 #pragma once
 
-#include "libnetwrk/net/common/messages/owned_message.hpp"
-#include "libnetwrk/net/common/containers/tsdeque.hpp"
+#include "libnetwrk/net/core/messages/owned_message.hpp"
+#include "libnetwrk/net/core/containers/tsdeque.hpp"
 #include "libnetwrk/utilities/log.hpp"
 
 #include <string>

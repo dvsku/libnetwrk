@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libnetwrk/net/common/messages/message.hpp"
+#include "libnetwrk/net/core/messages/message.hpp"
 
 namespace libnetwrk {
     template<typename Tcommand, typename Tserialize, typename Tstorage>

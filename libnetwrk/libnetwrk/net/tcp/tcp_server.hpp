@@ -1,7 +1,7 @@
 #pragma once
 
-#include "libnetwrk/net/common/base_server.hpp"
-#include "libnetwrk/net/common/serialization/serializers/bin_serialize.hpp"
+#include "libnetwrk/net/core/base_server.hpp"
+#include "libnetwrk/net/core/serialization/serializers/bin_serialize.hpp"
 #include "libnetwrk/net/tcp/tcp_connection.hpp"
 
 #include <exception>

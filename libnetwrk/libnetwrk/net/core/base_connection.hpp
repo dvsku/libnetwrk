@@ -1,9 +1,9 @@
 #pragma once
 
 #include "lib/asio/asio.hpp"
-#include "libnetwrk/net/common/context.hpp"
-#include "libnetwrk/net/common/containers/tsdeque.hpp"
-#include "libnetwrk/net/common/messages/owned_message.hpp"
+#include "libnetwrk/net/core/context.hpp"
+#include "libnetwrk/net/core/containers/tsdeque.hpp"
+#include "libnetwrk/net/core/messages/owned_message.hpp"
 
 #include <chrono>
 #include <map>

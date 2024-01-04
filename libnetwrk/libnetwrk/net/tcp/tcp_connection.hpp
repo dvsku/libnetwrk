@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libnetwrk/net/common/base_connection.hpp"
+#include "libnetwrk/net/core/base_connection.hpp"
 
 namespace libnetwrk::tcp {
     template<typename Tcommand, typename Tserialize, typename Tstorage>

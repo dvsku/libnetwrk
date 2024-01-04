@@ -1,8 +1,8 @@
 #pragma once
 
 #include "libnetwrk/net/macros.hpp"
-#include "libnetwrk/net/common/containers/buffer.hpp"
-#include "libnetwrk/net/common/exceptions/libnetwrk_exception.hpp"
+#include "libnetwrk/net/core/containers/buffer.hpp"
+#include "libnetwrk/net/core/exceptions/libnetwrk_exception.hpp"
 #include "libnetwrk/net/type_traits.hpp"
 
 #include <vector>

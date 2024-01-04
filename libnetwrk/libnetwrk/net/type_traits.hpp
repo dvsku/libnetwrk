@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libnetwrk/net/common/serialization/serializable.hpp"
+#include "libnetwrk/net/core/serialization/serializable.hpp"
 
 namespace libnetwrk {
     template<typename T, typename Tserialize>

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "libnetwrk/net/common/base_connection.hpp"
-#include "libnetwrk/net/common/context.hpp"
-#include "libnetwrk/net/common/messages/owned_message.hpp"
+#include "libnetwrk/net/core/base_connection.hpp"
+#include "libnetwrk/net/core/context.hpp"
+#include "libnetwrk/net/core/messages/owned_message.hpp"
 
 namespace libnetwrk {
     template<typename Tcommand, typename Tserialize, typename Tstorage>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "libnetwrk/net/common/messages/message_head.hpp"
-#include "libnetwrk/net/common/containers/buffer.hpp"
+#include "libnetwrk/net/core/messages/message_head.hpp"
+#include "libnetwrk/net/core/containers/buffer.hpp"
 
 #include <chrono>
 

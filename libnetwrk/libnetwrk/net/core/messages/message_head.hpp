@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libnetwrk/net/common/serialization/serializable.hpp"
+#include "libnetwrk/net/core/serialization/serializable.hpp"
 #include "libnetwrk/net/type_traits.hpp"
 
 namespace libnetwrk {
