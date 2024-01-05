@@ -36,12 +36,12 @@ Based heavily on <a href="https://www.youtube.com/@javidx9">javidx9</a>'s work w
 
 ```
 template<typename T>
-void serialize(buffer<T>& buffer) const {
+void serialize(libnetwrk::buffer<T>& buffer) const {
     ...
 }
 
 template<typename T>
-void deserialize(buffer<T>& buffer) {
+void deserialize(libnetwrk::buffer<T>& buffer) {
     ...
 }
 ```
@@ -54,12 +54,12 @@ struct object {
     std::string string_1;
   
     template<typename T>
-    void serialize(buffer<T>& buffer) const {
+    void serialize(libnetwrk::buffer<T>& buffer) const {
         buffer << string_1;
     }
   
     template<typename T>
-    void deserialize(buffer<T>& buffer) {
+    void deserialize(libnetwrk::buffer<T>& buffer) {
         buffer >> string_1;
     }
 }
@@ -68,13 +68,13 @@ struct derived_object : object {
     std::string string_2;
   
     template<typename T>
-    void serialize(buffer<T>& buffer) const {
+    void serialize(libnetwrk::buffer<T>& buffer) const {
         object::serialize(buffer);
         buffer << string_2;
     }
   
     template<typename T>
-    void deserialize(buffer<T>& buffer) {
+    void deserialize(libnetwrk::buffer<T>& buffer) {
         object::deserialize(buffer);
         buffer >> string_2;
     }
