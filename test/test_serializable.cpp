@@ -30,22 +30,23 @@ struct simple_struct {
 };
 
 struct derived_struct : simple_struct {
-    uint32_t h = 365464;
+    uint32_t h     = 365464;
+    char     i[32] = "AsagfiOUSFHfdsifudsf";
 
     template<typename Tserialize>
     void serialize(buffer<Tserialize>& buffer) const {
         simple_struct::serialize<Tserialize>(buffer);
-        buffer << h;
+        buffer << h << i;
     }
 
     template<typename Tserialize>
     void deserialize(buffer<Tserialize>& buffer) {
         simple_struct::deserialize<Tserialize>(buffer);
-        buffer >> h;
+        buffer >> h >> i;
     }
 
     bool equals(const derived_struct& obj) {
-        return simple_struct::equals(obj) && h == obj.h;
+        return simple_struct::equals(obj) && h == obj.h && (strcmp(i, obj.i) == 0);
     }
 };
 

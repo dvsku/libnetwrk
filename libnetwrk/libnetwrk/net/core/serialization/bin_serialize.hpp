@@ -71,6 +71,24 @@ namespace libnetwrk {
         }
 
         ///////////////////////////////////////////////////////////////////////
+        // C STRING
+
+        static void serialize(buffer_t& buffer, const char* str) {
+            size_t size = strlen(str);
+            
+            serialize(buffer, size);
+            buffer.push_back(str, size);
+        }
+
+        static void deserialize(buffer_t& buffer, char* str) {
+            size_t size = 0U;
+            deserialize(buffer, size);
+
+            // Get data from buffer
+            buffer.get_range(str, size);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
         // STD::ARRAY
 
         template <typename T, std::size_t N>
