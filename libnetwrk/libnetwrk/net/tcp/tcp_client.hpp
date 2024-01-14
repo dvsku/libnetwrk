@@ -29,9 +29,7 @@ namespace libnetwrk::tcp {
         virtual void ev_connected() override {};
 
         // Called when disconnected
-        virtual void ev_disconnected() override {
-            LIBNETWRK_INFO(this->name, "disconnected");
-        };
+        virtual void ev_disconnected() override {};
 
         // Called when processing messages
         virtual void ev_message(owned_message_t& msg) override {};
