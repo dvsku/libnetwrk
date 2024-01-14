@@ -34,5 +34,61 @@ namespace libnetwrk {
         virtual void ev_message(owned_message_t& msg) = 0;
 
         virtual void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) = 0;
+
+    public:
+        /// <summary>
+        /// Processes a single message if the queue is not empty.
+        /// </summary>
+        /// <returns>true if a message has been processed, false if it hasn't</returns>
+        bool process_message() {
+            try {
+                if (incoming_messages.empty())
+                    return false;
+
+                owned_message_t msg = incoming_messages.pop_front();
+                ev_message(msg);
+            }
+            catch (const std::exception& e) {
+                LIBNETWRK_ERROR(name, "process_message() fail | {}", e.what());
+                return false;
+            }
+            catch (...) {
+                LIBNETWRK_ERROR(name, "process_message() fail | undefined reason");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Process messages while running. This is a blocking function.
+        /// </summary>
+        void process_messages() {
+            impl_process_messages();
+        }
+
+        /// <summary>
+        /// Process messages while running. 
+        /// This function runs asynchronously.
+        /// </summary>
+        void process_messages_async() {
+            m_process_messages_thread = std::thread([&] { impl_process_messages(); });
+        }
+
+    protected:
+        bool        m_running = false;
+        std::thread m_process_messages_thread;
+
+    private:
+        void impl_process_messages() {
+            while (m_running) {
+                incoming_messages.wait();
+
+                while (!incoming_messages.empty()) {
+                    owned_message_t msg = incoming_messages.pop_front();
+                    ev_message(msg);
+                }
+            }
+        }
     };
 }

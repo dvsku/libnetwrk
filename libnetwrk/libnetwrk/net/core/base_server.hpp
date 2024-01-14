@@ -31,7 +31,7 @@ namespace libnetwrk {
             : base_context_t(name, context_owner::server) {}
 
         virtual ~base_server() {
-            m_running = false;
+            this->m_running = false;
             teardown();
         };
 
@@ -44,7 +44,7 @@ namespace libnetwrk {
         /// </summary>
         /// <returns>true if running, false if stopped</returns>
         bool running() {
-            return m_running;
+            return this->m_running;
         }
 
         /// <summary>
@@ -54,13 +54,13 @@ namespace libnetwrk {
         /// <param name="port">: port</param>
         /// <returns>true if started, false if failed to start</returns>
         bool start(const char* host, const unsigned short port) {
-            if (m_running) return false;
+            if (this->m_running) return false;
 
             bool started = impl_start(host, port);
 
             if (started) {
                 ev_service_started();
-                m_running = true;
+                this->m_running = true;
             }
 
             return started;
@@ -77,46 +77,6 @@ namespace libnetwrk {
         /// <param name="lambda">: function to run</param>
         void queue_async_job(std::function<void()> const& lambda) {
             asio::post(*(this->m_context), lambda);
-        }
-
-        /// <summary>
-        /// Processes a single message if the queue is not empty.
-        /// </summary>
-        /// <returns>true if a message has been processed, false if it hasn't</returns>
-        bool process_message() {
-            try {
-                if (this->incoming_messages.empty())
-                    return false;
-
-                owned_message_t msg = this->incoming_messages.pop_front();
-
-                ev_message(msg);
-            }
-            catch (const std::exception& e) {
-                LIBNETWRK_ERROR(this->name, "process_message() fail | {}", e.what());
-                return false;
-            }
-            catch (...) {
-                LIBNETWRK_ERROR(this->name, "process_message() fail | undefined reason");
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Process messages while server is running. This is a blocking function.
-        /// </summary>
-        void process_messages() {
-            impl_process_messages();
-        }
-
-        /// <summary>
-        /// Process messages while server is running. 
-        /// This function runs asynchronously until the server stops.
-        /// </summary>
-        void process_messages_async() {
-            m_process_messages_thread = std::thread([&] { impl_process_messages(); });
         }
 
         /// <summary>
@@ -163,7 +123,6 @@ namespace libnetwrk {
         }
 
     protected:
-        bool     m_running = false;
         uint64_t m_ids     = 0U;
 
         std::list<std::shared_ptr<base_connection_t>> m_connections;
@@ -175,9 +134,6 @@ namespace libnetwrk {
         
         // Called when service stopped
         virtual void ev_service_stopped() = 0;
-        
-        // Called when processing messages
-        virtual void ev_message(owned_message_t& msg) = 0;
 
         // Called before client is fully accepted
         // Allows performing checks on client before accepting (blacklist, whitelist)
@@ -209,8 +165,8 @@ namespace libnetwrk {
 
             this->incoming_messages.cancel_wait();
 
-            if (m_process_messages_thread.joinable())
-                m_process_messages_thread.join();
+            if (this->m_process_messages_thread.joinable())
+                this->m_process_messages_thread.join();
 
             LIBNETWRK_INFO(this->name, "stopped");
         };
@@ -224,7 +180,7 @@ namespace libnetwrk {
 
     private:
         std::thread m_context_thread;
-        std::thread m_process_messages_thread;
+        
 
         std::unique_ptr<timer_t> m_gc_timer;
 
@@ -238,17 +194,6 @@ namespace libnetwrk {
         void impl_send(std::shared_ptr<base_connection_t>& client, std::shared_ptr<message_t> message) {
             if (client && client->is_alive())
                 client->send(message);
-        }
-
-        void impl_process_messages() {
-            while (m_running) {
-                this->incoming_messages.wait();
-
-                while (!this->incoming_messages.empty()) {
-                    owned_message_t msg = this->incoming_messages.pop_front();
-                    ev_message(msg);
-                }
-            }
         }
 
         void impl_gc(const std::error_code& ec) {

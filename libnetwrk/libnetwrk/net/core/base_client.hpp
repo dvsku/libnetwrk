@@ -23,7 +23,7 @@ namespace libnetwrk {
             : base_context_t(name, context_owner::client) {}
     
         virtual ~base_client() {
-            m_connected = false;
+            this->m_running = false;
             teardown();
         };
 
@@ -36,7 +36,7 @@ namespace libnetwrk {
         /// </summary>
         /// <returns>true if connected, false if disconnected</returns>
         bool connected() {
-            return m_connected;
+            return this->m_running;
         }
     
         /// <summary>
@@ -46,13 +46,13 @@ namespace libnetwrk {
         /// <param name="port">: port</param>
         /// <returns>true if connected, false if not</returns>
         bool connect(const char* host, const unsigned short port) {
-            if (m_connected) return false;
+            if (this->m_running) return false;
 
             bool connected = impl_connect(host, port);
 
             if (connected) {
                 ev_connected();
-                m_connected = true;
+                this->m_running = true;
             }
             
             return connected;
@@ -62,50 +62,11 @@ namespace libnetwrk {
         /// Disconnect the client and clean up
         /// </summary>
         void disconnect() {
-            if (!m_connected) return;
-            m_connected = false;
+            if (!this->m_running) return;
+            this->m_running = false;
 
             teardown();
             ev_disconnected();
-        }
-    
-        /// <summary>
-        /// Processes a single message if the queue is not empty.
-        /// </summary>
-        /// <returns>true if a message has been processed, false if it hasn't</returns>
-        bool process_message() {
-            try {
-                if (!m_connected || this->incoming_messages.empty())
-                    return false;
-    
-                message_t msg = this->incoming_messages.pop_front().msg;
-                ev_message(msg);
-            }
-            catch (const std::exception& e) {
-                LIBNETWRK_ERROR(this->name, "process_message() fail | {}", e.what());
-                return false;
-            }
-            catch (...) {
-                LIBNETWRK_ERROR(this->name, "process_message() fail | undefined reason");
-                return false;
-            }
-    
-            return true;
-        }
-    
-        /// <summary>
-        /// Process messages while client is connected. This is a blocking function.
-        /// </summary>
-        void process_messages() {
-            impl_process_messages();
-        }
-    
-        /// <summary>
-        /// Process messages while client is connected. 
-        /// This function runs asynchronously until the client stops.
-        /// </summary>
-        void process_messages_async() {
-            m_process_messages_thread = std::thread([&] { impl_process_messages(); });
         }
     
         /// <summary>
@@ -113,7 +74,7 @@ namespace libnetwrk {
         /// </summary>
         /// <param name="message">: message to send</param>
         void send(message_t& message) {
-            if (m_connection && m_connected) {
+            if (m_connection && this->m_running) {
                 if (m_connection->is_alive()) {
                     m_connection->send(std::make_shared<message_t>(std::move(message)));
                 }
@@ -124,7 +85,6 @@ namespace libnetwrk {
         }
 
     protected:
-        bool                               m_connected = false;
         std::shared_ptr<base_connection_t> m_connection;
     
     protected:
@@ -156,8 +116,8 @@ namespace libnetwrk {
             if (m_context_thread.joinable())
                 m_context_thread.join();
     
-            if (m_process_messages_thread.joinable())
-                m_process_messages_thread.join();
+            if (this->m_process_messages_thread.joinable())
+                this->m_process_messages_thread.join();
 
             LIBNETWRK_INFO(this->name, "disconnected");
         }
@@ -173,26 +133,6 @@ namespace libnetwrk {
     private:
         void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) override final {
             disconnect();
-        }
-
-    private:
-        void impl_process_messages() {
-            while (m_connected) {
-                this->incoming_messages.wait();
-    
-                try {
-                    while (!this->incoming_messages.empty()) {
-                        message_t msg = this->incoming_messages.pop_front().msg;
-                        ev_message(msg);
-                    }
-                }
-                catch (const std::exception& e) {
-                    LIBNETWRK_ERROR(this->name, "_process_messages() fail | {}", e.what());
-                }
-                catch (...) {
-                    LIBNETWRK_ERROR(this->name, "_process_messages() fail | undefined reason");
-                }
-            }
         }
     };
 }
