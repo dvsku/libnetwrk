@@ -130,20 +130,20 @@ namespace libnetwrk {
 
     protected:
         // Called when the service was successfuly started
-        virtual void ev_service_started() = 0;
+        virtual void ev_service_started() {};
         
         // Called when service stopped
-        virtual void ev_service_stopped() = 0;
+        virtual void ev_service_stopped() {};
 
         // Called before client is fully accepted
         // Allows performing checks on client before accepting (blacklist, whitelist)
-        virtual bool ev_before_client_connected(std::shared_ptr<base_connection_t> client) = 0;
+        virtual bool ev_before_client_connected(std::shared_ptr<base_connection_t> client) { return true; };
 
         // Called when a client has connected
-        virtual void ev_client_connected(std::shared_ptr<base_connection_t> client) = 0;
+        virtual void ev_client_connected(std::shared_ptr<base_connection_t> client) {};
         
         // Called when a client has disconnected
-        virtual void ev_client_disconnected(std::shared_ptr<base_connection_t> client) = 0;
+        virtual void ev_client_disconnected(std::shared_ptr<base_connection_t> client) {};
 
     protected:
         // Service start implementation

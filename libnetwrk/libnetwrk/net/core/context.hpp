@@ -31,7 +31,7 @@ namespace libnetwrk {
 
     public:
         // Called when processing messages
-        virtual void ev_message(owned_message_t& msg) = 0;
+        virtual void ev_message(owned_message_t& msg) {};
 
         virtual void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) = 0;
 

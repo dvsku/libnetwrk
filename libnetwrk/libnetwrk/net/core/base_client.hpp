@@ -89,10 +89,10 @@ namespace libnetwrk {
     
     protected:
         // Called when successfully connected
-        virtual void ev_connected() = 0;
+        virtual void ev_connected() {};
 
         // Called when disconnected
-        virtual void ev_disconnected() = 0;
+        virtual void ev_disconnected() {};
 
     protected:
         // Connect implementation
