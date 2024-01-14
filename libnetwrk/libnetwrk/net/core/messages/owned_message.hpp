@@ -23,6 +23,6 @@ namespace libnetwrk {
 
     public:
         message_t                 msg;
-        std::shared_ptr<client_t> client;
+        std::shared_ptr<client_t> sender;
     };
 }
