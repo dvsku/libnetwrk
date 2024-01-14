@@ -226,14 +226,8 @@ namespace libnetwrk {
             owned_message.msg.head = std::move(m_recv_message.head);
             owned_message.msg.data = std::move(m_recv_message.data);
 
-            if (m_context.owner == context_owner::server) {
-                owned_message.client = this->shared_from_this();
-                m_context.incoming_messages.emplace_back(std::move(owned_message));
-            }
-            else {
-                owned_message.client = nullptr;
-                m_context.incoming_messages.emplace_back(std::move(owned_message));
-            }
+            owned_message.sender = this->shared_from_this();
+            m_context.incoming_messages.emplace_back(std::move(owned_message));
 
             read_message_head();
         }
