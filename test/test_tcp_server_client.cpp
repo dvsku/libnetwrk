@@ -31,7 +31,7 @@ class test_service : public tcp_server<commands> {
         bool client_said_broadcast = false;
         std::string ping = "";
         
-        void on_message(owned_message_t& msg) override {
+        void ev_message(owned_message_t& msg) override {
             message_t response;
             switch (msg.msg.head.command) {
                 case commands::c2s_hello:
@@ -40,13 +40,13 @@ class test_service : public tcp_server<commands> {
                 case commands::c2s_echo:
                     client_said_echo = true;
                     response.head.command = commands::s2c_echo;
-                    msg.client->send(response);
+                    msg.sender->send(response);
                     break;
                 case commands::c2s_ping:
                     msg.msg >> ping;
                     response.head.command = commands::s2c_pong;
                     response << std::string("pOnG");
-                    msg.client->send(response);
+                    msg.sender->send(response);
                     break;
                 case commands::c2s_broadcast:
                     client_said_broadcast = true;
@@ -56,13 +56,13 @@ class test_service : public tcp_server<commands> {
                 case commands::c2s_send_sync_success:
                     response.head.command = commands::s2c_send_sync_success;
                     response << std::string("success");
-                    msg.client->send(response);
+                    msg.sender->send(response);
                     break;
                 case commands::c2s_send_sync_fail:
                     response.head.command = commands::s2c_send_sync_fail;
                     response << std::string("fail");
                     std::this_thread::sleep_for(std::chrono::milliseconds(5500));
-                    msg.client->send(response);
+                    msg.sender->send(response);
                     break;
                 default:
                     break;
@@ -96,13 +96,13 @@ class test_client : public tcp_client<commands> {
         bool server_said_broadcast = false;
         std::string pong = "";
 
-        void on_message(message_t& msg) override {
-            switch (msg.head.command) {
+        void ev_message(owned_message_t& msg) override {
+            switch (msg.msg.head.command) {
                 case commands::s2c_echo:
                     server_said_echo = true;
                     break;
                 case commands::s2c_pong:
-                    msg >> pong;
+                    msg.msg >> pong;
                     break;
                 case commands::s2c_broadcast:
                     server_said_broadcast = true;
@@ -111,10 +111,6 @@ class test_client : public tcp_client<commands> {
                 default:
                     break;
             }
-        }
-
-        void on_disconnect() override {
-
         }
 
         void wait_for_msg(const int timeout = 30) {
@@ -214,6 +210,8 @@ void service_broadcast() {
 }
 
 int main(int argc, char* argv[]) {
+    dvsku::log::init(dvsku::log_level::verbose, true, false);
+
     if (argc != 2) {
         service_connect();
         service_client_hello();

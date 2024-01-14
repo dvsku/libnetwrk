@@ -23,13 +23,13 @@ public:
 
     std::string ping = "";
 
-    void on_message(owned_message_t& message) override {
+    void ev_message(owned_message_t& message) override {
         switch (message.msg.head.command) {
             case command_t::c2s_ping: {
                 message.msg >> ping;
                 message_t response(command_t::s2c_pong);
                 response << std::string("pOnG");
-                message.client->send(response);
+                message.sender->send(response);
                 break;
             }
             default: break;
@@ -53,10 +53,10 @@ public:
 
     std::string pong = "";
 
-    void on_message(message_t& message) override {
-        switch (message.head.command) {
+    void ev_message(owned_message_t& message) override {
+        switch (message.msg.head.command) {
             case command_t::s2c_pong:
-                message >> pong;
+                message.msg >> pong;
                 break;
             default: break;
         }
@@ -106,13 +106,13 @@ class uint16_server : public tcp_server<commands_uint16> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& message) override {
+        void ev_message(owned_message_t& message) override {
             switch (message.msg.head.command) {
                 case command_t::c2s_ping: {
                     message.msg >> ping;
                     message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    message.client->send(response);
+                    message.sender->send(response);
                     break;
                 }
                 default: break;
@@ -136,10 +136,10 @@ class uint16_client : public tcp_client<commands_uint16> {
 
         std::string pong = "";
 
-        void on_message(message_t& message) override {
-            switch (message.head.command) {
+        void ev_message(owned_message_t& message) override {
+            switch (message.msg.head.command) {
                 case command_t::s2c_pong:
-                    message >> pong;
+                    message.msg >> pong;
                     break;
                 default: break;
             }
@@ -189,13 +189,13 @@ class uint32_server : public tcp_server<commands_uint32> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& message) override {
+        void ev_message(owned_message_t& message) override {
             switch (message.msg.head.command) {
                 case command_t::c2s_ping: {
                     message.msg >> ping;
                     message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    message.client->send(response);
+                    message.sender->send(response);
                     break;
                 }
                 default: break;
@@ -219,10 +219,10 @@ class uint32_client : public tcp_client<commands_uint32> {
 
         std::string pong = "";
 
-        void on_message(message_t& message) override {
-            switch (message.head.command) {
+        void ev_message(owned_message_t& message) override {
+            switch (message.msg.head.command) {
                 case command_t::s2c_pong:
-                    message >> pong;
+                    message.msg >> pong;
                     break;
                 default: break;
             }
@@ -272,13 +272,13 @@ class uint64_server : public tcp_server<commands_uint64> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& message) override {
+        void ev_message(owned_message_t& message) override {
             switch (message.msg.head.command) {
                 case command_t::c2s_ping: {
                     message.msg >> ping;
                     message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    message.client->send(response);
+                    message.sender->send(response);
                     break;
                 }
                 default: break;
@@ -302,10 +302,10 @@ class uint64_client : public tcp_client<commands_uint64> {
 
         std::string pong = "";
 
-        void on_message(message_t& message) override {
-            switch (message.head.command) {
+        void ev_message(owned_message_t& message) override {
+            switch (message.msg.head.command) {
                 case command_t::s2c_pong:
-                    message >> pong;
+                    message.msg >> pong;
                     break;
                 default: break;
             }
@@ -355,13 +355,13 @@ class int8_server : public tcp_server<commands_int8> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& message) override {
+        void ev_message(owned_message_t& message) override {
             switch (message.msg.head.command) {
                 case command_t::c2s_ping: {
                     message.msg >> ping;
                     message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    message.client->send(response);
+                    message.sender->send(response);
                     break;
                 }
                 default: break;
@@ -385,10 +385,10 @@ class int8_client : public tcp_client<commands_int8> {
 
         std::string pong = "";
 
-        void on_message(message_t& message) override {
-            switch (message.head.command) {
+        void ev_message(owned_message_t& message) override {
+            switch (message.msg.head.command) {
                 case command_t::s2c_pong:
-                    message >> pong;
+                    message.msg >> pong;
                     break;
                 default: break;
             }
@@ -438,13 +438,13 @@ class int16_server : public tcp_server<commands_int16> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& message) override {
+        void ev_message(owned_message_t& message) override {
             switch (message.msg.head.command) {
                 case command_t::c2s_ping: {
                     message.msg >> ping;
                     message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    message.client->send(response);
+                    message.sender->send(response);
                     break;
                 }
                 default: break;
@@ -468,10 +468,10 @@ class int16_client : public tcp_client<commands_int16> {
 
         std::string pong = "";
 
-        void on_message(message_t& message) override {
-            switch (message.head.command) {
+        void ev_message(owned_message_t& message) override {
+            switch (message.msg.head.command) {
                 case command_t::s2c_pong:
-                    message >> pong;
+                    message.msg >> pong;
                     break;
                 default: break;
             }
@@ -521,13 +521,13 @@ class int32_server : public tcp_server<commands_int32> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& message) override {
+        void ev_message(owned_message_t& message) override {
             switch (message.msg.head.command) {
                 case command_t::c2s_ping: {
                     message.msg >> ping;
                     message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    message.client->send(response);
+                    message.sender->send(response);
                     break;
                 }
                 default: break;
@@ -551,10 +551,10 @@ class int32_client : public tcp_client<commands_int32> {
 
         std::string pong = "";
 
-        void on_message(message_t& message) override {
-            switch (message.head.command) {
+        void ev_message(owned_message_t& message) override {
+            switch (message.msg.head.command) {
                 case command_t::s2c_pong:
-                    message >> pong;
+                    message.msg >> pong;
                     break;
                 default: break;
             }
@@ -604,13 +604,13 @@ class int64_server : public tcp_server<commands_int64> {
 
         std::string ping = "";
 
-        void on_message(owned_message_t& message) override {
+        void ev_message(owned_message_t& message) override {
             switch (message.msg.head.command) {
                 case command_t::c2s_ping: {
                     message.msg >> ping;
                     message_t response(command_t::s2c_pong);
                     response << std::string("pOnG");
-                    message.client->send(response);
+                    message.sender->send(response);
                     break;
                 }
                 default: break;
@@ -634,10 +634,10 @@ class int64_client : public tcp_client<commands_int64> {
 
         std::string pong = "";
 
-        void on_message(message_t& message) override {
-            switch (message.head.command) {
+        void ev_message(owned_message_t& message) override {
+            switch (message.msg.head.command) {
                 case command_t::s2c_pong:
-                    message >> pong;
+                    message.msg >> pong;
                     break;
                 default: break;
             }

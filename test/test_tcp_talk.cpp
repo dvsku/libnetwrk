@@ -21,7 +21,7 @@ class test_service : public tcp_server<commands> {
 public:
     test_service() : tcp_server() {}
 
-    void on_message(owned_message_t& msg) override {
+    void ev_message(owned_message_t& msg) override {
         message_t response;
         
         std::string received;
@@ -33,7 +33,7 @@ public:
 
                 response.head.command = commands::s2c_msg1;
                 response << "response_1";
-                msg.client->send(response);
+                msg.sender->send(response);
                 break;
             }
             case commands::c2s_msg2: {
@@ -41,7 +41,7 @@ public:
 
                 response.head.command = commands::s2c_msg2;
                 response << "response_2";
-                msg.client->send(response);
+                msg.sender->send(response);
                 break;
             }
             case commands::c2s_msg3: {
@@ -49,7 +49,7 @@ public:
 
                 response.head.command = commands::s2c_msg3;
                 response << "response_3";
-                msg.client->send(response);
+                msg.sender->send(response);
                 break;
             }
             case commands::c2s_msg4: {
@@ -57,7 +57,7 @@ public:
 
                 response.head.command = commands::s2c_msg4;
                 response << "response_4";
-                msg.client->send(response);
+                msg.sender->send(response);
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
@@ -74,13 +74,13 @@ class test_client : public tcp_client<commands> {
 public:
     test_client() : tcp_client() {}
 
-    void on_message(message_t& msg) override {
+    void ev_message(owned_message_t& msg) override {
         message_t response;
 
         std::string received;
-        msg >> received;
+        msg.msg >> received;
 
-        switch (msg.head.command) {
+        switch (msg.msg.head.command) {
             case commands::s2c_msg1: {
                 ASSERT(received == "response_1");
 
