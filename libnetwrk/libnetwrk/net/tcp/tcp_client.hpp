@@ -34,7 +34,7 @@ namespace libnetwrk::tcp {
         };
 
         // Called when processing messages
-        virtual void ev_message(message_t& msg) override {};
+        virtual void ev_message(owned_message_t& msg) override {};
 
     private:
         bool impl_connect(const char* host, const unsigned short port) override final {

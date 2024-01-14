@@ -134,9 +134,6 @@ namespace libnetwrk {
         // Called when disconnected
         virtual void ev_disconnected() = 0;
 
-        // Called when processing messages
-        virtual void ev_message(message_t& msg) = 0;
-
     protected:
         // Connect implementation
         virtual bool impl_connect(const char* host, const unsigned short port) = 0;
