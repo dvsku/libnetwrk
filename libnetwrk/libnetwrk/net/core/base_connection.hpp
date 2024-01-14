@@ -235,10 +235,12 @@ namespace libnetwrk {
     private:
         void on_disconnect() {
             stop();
+            m_context.internal_ev_client_disconnected(this->shared_from_this());
         }
 
         void on_error(std::error_code ec) {
             stop();
+            m_context.internal_ev_client_disconnected(this->shared_from_this());
             LIBNETWRK_ERROR(this->m_context.name,
                 "failed during read/write | {}", ec.message());
         }
