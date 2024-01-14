@@ -198,7 +198,9 @@ namespace libnetwrk {
 
         void impl_gc(const std::error_code& ec) {
             if (ec) {
-                LIBNETWRK_ERROR(this->name, "failed to run gc | {}", ec.message());
+                if (ec != asio::error::operation_aborted)
+                    LIBNETWRK_ERROR(this->name, "failed to run gc | {}", ec.message());
+
                 return;
             }
 
