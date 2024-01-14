@@ -18,6 +18,7 @@ namespace libnetwrk {
         using base_connection_t = base_connection<Command, Serialize, Storage>;
         
         using guard_t = std::lock_guard<std::mutex>;
+        using timer_t = asio::steady_timer;
 
         using send_predicate = std::function<bool(std::shared_ptr<base_connection_t>)>;
 
@@ -54,10 +55,11 @@ namespace libnetwrk {
         /// <returns>true if started, false if failed to start</returns>
         bool start(const char* host, const unsigned short port) {
             if (m_running) return false;
+
             bool started = impl_start(host, port);
 
             if (started)
-                m_gc_thread = std::thread([this] { _gc(); });
+                m_running = true;
 
             return started;
         }
@@ -194,6 +196,9 @@ namespace libnetwrk {
 
     protected:
         void teardown() {
+            if (this->m_gc_timer)
+                this->m_gc_timer->cancel();
+
             if (this->asio_context && !this->asio_context->stopped())
                 this->asio_context->stop();
 
@@ -205,15 +210,13 @@ namespace libnetwrk {
             if (m_process_messages_thread.joinable())
                 m_process_messages_thread.join();
 
-            m_gc_cv.notify_all();
-
-            if (m_gc_thread.joinable())
-                m_gc_thread.join();
-
             LIBNETWRK_INFO(this->name, "stopped");
         };
 
         void start_context() {
+            m_gc_timer = std::make_unique<timer_t>(*this->asio_context, std::chrono::seconds(15));
+            m_gc_timer->async_wait(std::bind(&base_server::impl_gc, this, std::placeholders::_1));
+            
             m_context_thread = std::thread([this] { this->asio_context->run(); });
         }
 
@@ -221,8 +224,7 @@ namespace libnetwrk {
         std::thread m_context_thread;
         std::thread m_process_messages_thread;
 
-        std::thread m_gc_thread;
-        std::condition_variable m_gc_cv;
+        std::unique_ptr<timer_t> m_gc_timer;
 
     private:
         void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) override final {
@@ -247,29 +249,32 @@ namespace libnetwrk {
             }
         }
 
-        void _gc() {
-            while (m_running) {
-                std::unique_lock<std::mutex> guard(m_connections_mutex);
-
-                auto prev_size = m_connections.size();
-
-                m_connections.remove_if([this](auto& client) {
-                    if (!client) 
-                        return true;
-
-                    if (!client->is_alive()) {
-                        internal_ev_client_disconnected(client);
-                        return true;
-                    }
-
-                    return false;
-                });
-
-                if (prev_size - m_connections.size())
-                    LIBNETWRK_INFO(this->name, "gc tc: {} rc: {}", m_connections.size(), prev_size - m_connections.size());
-
-                m_gc_cv.wait_for(guard, std::chrono::seconds(15));
+        void impl_gc(const std::error_code& ec) {
+            if (ec) {
+                LIBNETWRK_ERROR(this->name, "failed to run gc | {}", ec.message());
+                return;
             }
+
+            std::unique_lock<std::mutex> guard(m_connections_mutex);
+
+            size_t prev_size = m_connections.size();
+
+            m_connections.remove_if([this](auto& client) {
+                if (!client)
+                    return true;
+
+                if (!client->is_alive()) {
+                    internal_ev_client_disconnected(client);
+                    return true;
+                }
+
+                return false;
+            });
+
+            LIBNETWRK_INFO(this->name, "gc tc: {} rc: {}", m_connections.size(), prev_size - m_connections.size());
+
+            m_gc_timer->expires_at(m_gc_timer->expiry() + std::chrono::seconds(15));
+            m_gc_timer->async_wait(std::bind(&base_server::impl_gc, this, std::placeholders::_1));
         }
     };
 }

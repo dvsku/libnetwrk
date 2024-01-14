@@ -90,8 +90,6 @@ namespace libnetwrk::tcp {
                 // Start ASIO context
                 this->start_context();
 
-                this->m_running = true;
-
                 LIBNETWRK_INFO(this->name, "listening for connections on {}:{}", host, port);
             }
             catch (const std::exception& e) {
