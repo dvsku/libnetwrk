@@ -31,8 +31,11 @@ namespace libnetwrk {
             : base_context_t(name, context_owner::server) {}
 
         virtual ~base_server() {
-            this->m_running = false;
+            if (this->m_status == service_status::stopped)
+                return;
+
             teardown();
+            this->m_status = service_status::stopped;
         };
 
         base_server_t& operator=(const base_server&) = delete;
@@ -44,7 +47,7 @@ namespace libnetwrk {
         /// </summary>
         /// <returns>true if running, false if stopped</returns>
         bool running() {
-            return this->m_running;
+            return this->m_status == service_status::started;
         }
 
         /// <summary>
@@ -54,13 +57,19 @@ namespace libnetwrk {
         /// <param name="port">: port</param>
         /// <returns>true if started, false if failed to start</returns>
         bool start(const char* host, const unsigned short port) {
-            if (this->m_running) return false;
+            if (this->m_status != service_status::stopped)
+                return false;
+
+            this->m_status = service_status::starting;
 
             bool started = impl_start(host, port);
 
             if (started) {
                 ev_service_started();
-                this->m_running = true;
+                this->m_status = service_status::started;
+            }
+            else {
+                this->m_status = service_status::stopped;
             }
 
             return started;
@@ -179,9 +188,7 @@ namespace libnetwrk {
         }
 
     private:
-        std::thread m_context_thread;
-        
-
+        std::thread              m_context_thread;
         std::unique_ptr<timer_t> m_gc_timer;
 
     private:

@@ -28,7 +28,10 @@ namespace libnetwrk::tcp {
             : base_t(name) {};
 
         virtual ~tcp_server() {
-            this->m_running = false;
+            if (this->m_status == service_status::stopped || this->m_status == service_status::stopping)
+                return;
+
+            this->m_status = service_status::stopping;
             teardown();
         }
 
@@ -36,11 +39,15 @@ namespace libnetwrk::tcp {
         /// Stop server
         /// </summary>
         void stop() override final {
-            if (!this->m_running) return;
-            this->m_running = false;
+            if (this->m_status != service_status::started)
+                return;
+
+            this->m_status = service_status::stopping;
 
             teardown();
             base_t::teardown();
+
+            this->m_status = service_status::stopped;
 
             ev_service_stopped();
         }
@@ -133,10 +140,11 @@ namespace libnetwrk::tcp {
                         }
                     }
                     else if (ec == asio::error::operation_aborted) {
-                        LIBNETWRK_INFO(this->name, "stopped listening");
+                        // Cancelled listening
                         return;
                     }
                     else {
+                        // Should probably stop the server here
                         LIBNETWRK_ERROR(this->name, "failed to accept connection | {}", ec.message());
                     }
 

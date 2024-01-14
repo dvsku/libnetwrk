@@ -11,6 +11,13 @@ namespace libnetwrk {
         client = 0x1
     };
 
+    enum class service_status : uint8_t {
+        stopped  = 0x0,
+        starting = 0x1,
+        started  = 0x2,
+        stopping = 0x3
+    };
+
     template<typename Command, typename Serialize, typename Storage>
     class context {
     public:
@@ -76,12 +83,12 @@ namespace libnetwrk {
         }
 
     protected:
-        bool        m_running = false;
-        std::thread m_process_messages_thread;
+        service_status m_status = service_status::stopped;
+        std::thread    m_process_messages_thread;
 
     private:
         void impl_process_messages() {
-            while (m_running) {
+            while (m_status == service_status::started) {
                 incoming_messages.wait();
 
                 while (!incoming_messages.empty()) {

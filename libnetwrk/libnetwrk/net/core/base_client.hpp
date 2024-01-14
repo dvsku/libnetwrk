@@ -23,8 +23,12 @@ namespace libnetwrk {
             : base_context_t(name, context_owner::client) {}
     
         virtual ~base_client() {
-            this->m_running = false;
+            if (this->m_status == service_status::stopped || this->m_status == service_status::stopping)
+                return;
+
+            this->m_status = service_status::stopping;
             teardown();
+            this->m_status = service_status::stopped;
         };
 
         base_client_t& operator=(const base_client_t&) = delete;
@@ -36,7 +40,7 @@ namespace libnetwrk {
         /// </summary>
         /// <returns>true if connected, false if disconnected</returns>
         bool connected() {
-            return this->m_running;
+            return this->m_status == service_status::started;
         }
     
         /// <summary>
@@ -46,13 +50,19 @@ namespace libnetwrk {
         /// <param name="port">: port</param>
         /// <returns>true if connected, false if not</returns>
         bool connect(const char* host, const unsigned short port) {
-            if (this->m_running) return false;
+            if (this->m_status != service_status::stopped) 
+                return false;
+
+            this->m_status = service_status::starting;
 
             bool connected = impl_connect(host, port);
 
             if (connected) {
                 ev_connected();
-                this->m_running = true;
+                this->m_status = service_status::started;
+            }
+            else {
+                this->m_status = service_status::stopped;
             }
             
             return connected;
@@ -62,11 +72,15 @@ namespace libnetwrk {
         /// Disconnect the client and clean up
         /// </summary>
         void disconnect() {
-            if (!this->m_running) return;
-            this->m_running = false;
+            if (this->m_status != service_status::started) 
+                return;
+
+            this->m_status = service_status::stopping;
 
             teardown();
             ev_disconnected();
+
+            this->m_status = service_status::stopped;
         }
     
         /// <summary>
@@ -74,7 +88,7 @@ namespace libnetwrk {
         /// </summary>
         /// <param name="message">: message to send</param>
         void send(message_t& message) {
-            if (m_connection && this->m_running) {
+            if (m_connection && connected()) {
                 if (m_connection->is_alive()) {
                     m_connection->send(std::make_shared<message_t>(std::move(message)));
                 }
@@ -100,13 +114,11 @@ namespace libnetwrk {
 
     protected:
         void teardown() {
-            if (this->asio_context)
-                if (!this->asio_context->stopped())
-                    this->asio_context->stop();
+            if (this->asio_context && !this->asio_context->stopped())
+                this->asio_context->stop();
     
-            if (m_connection)
-                if (m_connection->is_alive())
-                    m_connection->stop();
+            if (m_connection && m_connection->is_alive())
+                m_connection->stop();
     
             m_connection.reset();
     
