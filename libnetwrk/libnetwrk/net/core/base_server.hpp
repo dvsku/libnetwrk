@@ -58,8 +58,10 @@ namespace libnetwrk {
 
             bool started = impl_start(host, port);
 
-            if (started)
+            if (started) {
+                ev_service_started();
                 m_running = true;
+            }
 
             return started;
         }
