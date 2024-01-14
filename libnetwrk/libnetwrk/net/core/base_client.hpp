@@ -128,11 +128,13 @@ namespace libnetwrk {
 
     private:
         std::thread m_context_thread;
-        std::thread m_process_messages_thread;
 
     private:
         void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) override final {
-            disconnect();
+            std::thread thread = std::thread([this] {
+                this->disconnect();
+            });
+            thread.detach();
         }
     };
 }
