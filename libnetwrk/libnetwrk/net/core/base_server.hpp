@@ -11,15 +11,15 @@ namespace libnetwrk {
     template<typename Command, typename Serialize, typename Storage>
     class base_server : public context<Command, Serialize, Storage> {
     public:
-        using base_server_t   = base_server<Command, Serialize, Storage>;
-        using base_context_t  = context<Command, Serialize, Storage>;
-        using message_t       = message<Command, Serialize>;
-        using owned_message_t = owned_message<Command, Serialize, Storage>;
-        using connection_t    = base_connection<Command, Serialize, Storage>;
+        using base_server_t     = base_server<Command, Serialize, Storage>;
+        using base_context_t    = context<Command, Serialize, Storage>;
+        using message_t         = message<Command, Serialize>;
+        using owned_message_t   = owned_message<Command, Serialize, Storage>;
+        using base_connection_t = base_connection<Command, Serialize, Storage>;
         
         using guard_t = std::lock_guard<std::mutex>;
 
-        using send_predicate = std::function<bool(std::shared_ptr<connection_t>)>;
+        using send_predicate = std::function<bool(std::shared_ptr<base_connection_t>)>;
 
     public:
         base_server()                     = delete;
@@ -29,7 +29,10 @@ namespace libnetwrk {
         base_server(const std::string& name = "base server") 
             : base_context_t(name, context_owner::server) {}
 
-        virtual ~base_server() {}
+        virtual ~base_server() {
+            m_running = false;
+            teardown();
+        };
 
         base_server_t& operator=(const base_server&) = delete;
         base_server_t& operator=(base_server&&)      = default;
@@ -51,13 +54,18 @@ namespace libnetwrk {
         /// <returns>true if started, false if failed to start</returns>
         bool start(const char* host, const unsigned short port) {
             if (m_running) return false;
-            bool started = _start(host, port);
+            bool started = impl_start(host, port);
 
             if (started)
                 m_gc_thread = std::thread([this] { _gc(); });
 
             return started;
         }
+
+        /// <summary>
+        /// Stop server
+        /// </summary>
+        virtual void stop() = 0;
 
         /// <summary>
         /// Queue up a function to run
@@ -78,7 +86,7 @@ namespace libnetwrk {
 
                 owned_message_t msg = this->incoming_messages.pop_front();
 
-                on_message(msg);
+                ev_message(msg);
             }
             catch (const std::exception& e) {
                 LIBNETWRK_ERROR(this->name, "process_message() fail | {}", e.what());
@@ -96,7 +104,7 @@ namespace libnetwrk {
         /// Process messages while server is running. This is a blocking function.
         /// </summary>
         void process_messages() {
-            _process_messages();
+            impl_process_messages();
         }
 
         /// <summary>
@@ -104,7 +112,7 @@ namespace libnetwrk {
         /// This function runs asynchronously until the server stops.
         /// </summary>
         void process_messages_async() {
-            m_process_messages_thread = std::thread([&] { _process_messages(); });
+            m_process_messages_thread = std::thread([&] { impl_process_messages(); });
         }
 
         /// <summary>
@@ -114,8 +122,8 @@ namespace libnetwrk {
         /// </summary>
         /// <param name="client">: client to send to</param>
         /// <param name="message">: message to send</param>
-        void send(std::shared_ptr<connection_t> client, message_t& message) {
-            _send(client, std::make_shared<message_t>(std::move(message)));
+        void send(std::shared_ptr<base_connection_t> client, message_t& message) {
+            impl_send(client, std::make_shared<message_t>(std::move(message)));
         }
 
         /// <summary>
@@ -129,7 +137,7 @@ namespace libnetwrk {
 
             guard_t guard(m_connections_mutex);
             for (auto& client : m_connections)
-                _send(client, msg);
+                impl_send(client, msg);
         }
 
         /// <summary>
@@ -145,19 +153,47 @@ namespace libnetwrk {
             guard_t guard(m_connections_mutex);
             for (auto& client : m_connections) {
                 if (client && predicate(client)) {
-                    _send(client, msg);
+                    impl_send(client, msg);
                 }
             }
         }
 
-        /// <summary>
-        /// Stop server
-        /// </summary>
-        virtual void stop() {
-            if (!m_running) return;
+    protected:
+        bool     m_running = false;
+        uint64_t m_ids     = 0U;
 
-            m_running = false;
+        std::list<std::shared_ptr<base_connection_t>> m_connections;
+        std::mutex                                    m_connections_mutex;
 
+    protected:
+        // Called when the service was successfuly started
+        virtual void ev_service_started() = 0;
+        
+        // Called when service stopped
+        virtual void ev_service_stopped() = 0;
+        
+        // Called when processing messages
+        virtual void ev_message(owned_message_t& msg) = 0;
+
+        // Called before client is fully accepted
+        // Allows performing checks on client before accepting (blacklist, whitelist)
+        virtual bool ev_before_client_connected(std::shared_ptr<base_connection_t> client) = 0;
+
+        // Called when a client has connected
+        virtual void ev_client_connected(std::shared_ptr<base_connection_t> client) = 0;
+        
+        // Called when a client has disconnected
+        virtual void ev_client_disconnected(std::shared_ptr<base_connection_t> client) = 0;
+
+    protected:
+        // Service start implementation
+        virtual bool impl_start(const char* host, const unsigned short port) = 0;
+
+        // Client accept implementation
+        virtual void impl_accept() = 0;
+
+    protected:
+        void teardown() {
             if (this->asio_context && !this->asio_context->stopped())
                 this->asio_context->stop();
 
@@ -177,24 +213,6 @@ namespace libnetwrk {
             LIBNETWRK_INFO(this->name, "stopped");
         };
 
-    protected:
-        bool     m_running = false;
-        uint64_t m_ids     = 0U;
-
-        std::list<std::shared_ptr<connection_t>> m_connections;
-        std::mutex                               m_connections_mutex;
-
-    protected:
-        virtual void on_message(owned_message_t& msg) {}
-
-        virtual void on_client_disconnect(std::shared_ptr<connection_t> client) {
-            LIBNETWRK_INFO(this->name, "client disconnected");
-        }
-
-        virtual bool _start(const char* host, const unsigned short port) = 0;
-
-        virtual void _accept() = 0;
-
         void start_context() {
             m_context_thread = std::thread([this] { this->asio_context->run(); });
         }
@@ -207,18 +225,24 @@ namespace libnetwrk {
         std::condition_variable m_gc_cv;
 
     private:
-        void _send(std::shared_ptr<connection_t>& client, std::shared_ptr<message_t> message) {
+        void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) override final {
+            LIBNETWRK_INFO(this->name, "client disconnected");
+            ev_client_disconnected(client);
+        }
+
+    private:
+        void impl_send(std::shared_ptr<base_connection_t>& client, std::shared_ptr<message_t> message) {
             if (client && client->is_alive())
                 client->send(message);
         }
 
-        void _process_messages() {
+        void impl_process_messages() {
             while (m_running) {
                 this->incoming_messages.wait();
 
                 while (!this->incoming_messages.empty()) {
                     owned_message_t msg = this->incoming_messages.pop_front();
-                    on_message(msg);
+                    ev_message(msg);
                 }
             }
         }
@@ -234,7 +258,7 @@ namespace libnetwrk {
                         return true;
 
                     if (!client->is_alive()) {
-                        on_client_disconnect(client);
+                        internal_ev_client_disconnected(client);
                         return true;
                     }
 

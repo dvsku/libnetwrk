@@ -17,7 +17,7 @@ namespace libnetwrk::tcp {
         using owned_message_t   = base_t::owned_message_t;
         using command_t         = Command;
         using connection_t      = tcp_connection<Command, Serialize, Storage>;
-        using base_connection_t = base_t::connection_t;
+        using base_connection_t = base_t::base_connection_t;
 
         using guard_t    = std::lock_guard<std::mutex>;
         using acceptor_t = asio::ip::tcp::acceptor;
@@ -28,37 +28,54 @@ namespace libnetwrk::tcp {
             : base_t(name) {};
 
         virtual ~tcp_server() {
-            stop();
+            this->m_running = false;
+            teardown();
         }
 
         /// <summary>
         /// Stop server
         /// </summary>
-        void stop() override {
-            if (m_acceptor)
-                if (m_acceptor->is_open())
-                    m_acceptor->close();
+        void stop() override final {
+            if (!this->m_running) return;
+            this->m_running = false;
 
-            base_t::stop();
+            teardown();
+            base_t::teardown();
+
+            ev_service_stopped();
         }
 
     protected:
         std::unique_ptr<acceptor_t> m_acceptor;
 
     protected:
-        virtual void on_message(owned_message_t& msg) override {}
+        // Called when the service was successfuly started
+        virtual void ev_service_started() override {};
 
-        virtual bool on_before_client_connect(std::shared_ptr<base_connection_t> client) {
-            return true;
-        }
+        // Called when service stopped
+        virtual void ev_service_stopped() override {};
 
-        virtual void on_client_connect(std::shared_ptr<connection_t> client) {}
+        // Called when processing messages
+        virtual void ev_message(owned_message_t& msg) override {};
 
-        virtual void on_client_disconnect(std::shared_ptr<base_connection_t> client) override {
-            base_t::on_client_disconnect(client);
-        }
+        // Called before client is fully accepted
+        // Allows performing checks on client before accepting (blacklist, whitelist)
+        virtual bool ev_before_client_connected(std::shared_ptr<base_connection_t> client) override { return true; };
 
-        bool _start(const char* host, const unsigned short port) override {
+        // Called when a client has connected
+        virtual void ev_client_connected(std::shared_ptr<base_connection_t> client) override {};
+
+        // Called when a client has disconnected
+        virtual void ev_client_disconnected(std::shared_ptr<base_connection_t> client) override {};
+
+    protected:
+        void teardown() {
+            if (m_acceptor && m_acceptor->is_open())
+                m_acceptor->close();
+        };
+
+    private:
+        bool impl_start(const char* host, const unsigned short port) override final {
             try {
                 // Create ASIO context
                 this->asio_context = std::make_unique<asio::io_context>(1);
@@ -68,7 +85,7 @@ namespace libnetwrk::tcp {
                     (*(this->asio_context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
 
                 // Start listening for and accepting connections
-                _accept();
+                impl_accept();
 
                 // Start ASIO context
                 this->start_context();
@@ -91,7 +108,7 @@ namespace libnetwrk::tcp {
             return true;
         }
 
-        void _accept() override {
+        void impl_accept() override final {
             m_acceptor->async_accept(
                 [this](std::error_code ec, socket_t socket) {
                     if (!ec) {
@@ -101,13 +118,13 @@ namespace libnetwrk::tcp {
 
                         auto new_connection =  std::make_shared<connection_t>(*this, std::move(socket));
 
-                        if (on_before_client_connect(new_connection)) {
+                        if (ev_before_client_connected(new_connection)) {
                             guard_t guard(this->m_connections_mutex);
 
                             this->m_connections.push_back(new_connection);
                             this->m_connections.back()->id() = ++this->m_ids;
                             this->m_connections.back()->start();
-                            on_client_connect(new_connection);
+                            ev_client_connected(new_connection);
 
                             LIBNETWRK_INFO(this->name, "connection success from {}:{}",
                                 this->m_connections.back()->remote_address(),
@@ -118,14 +135,14 @@ namespace libnetwrk::tcp {
                         }
                     }
                     else if (ec == asio::error::operation_aborted) {
-                        LIBNETWRK_INFO(this->name, "listening stopped");
+                        LIBNETWRK_INFO(this->name, "stopped listening");
                         return;
                     }
                     else {
                         LIBNETWRK_ERROR(this->name, "failed to accept connection | {}", ec.message());
                     }
 
-                    _accept();
+                    impl_accept();
                 }
             );
         };

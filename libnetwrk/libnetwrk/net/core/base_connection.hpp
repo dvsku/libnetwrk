@@ -32,8 +32,8 @@ namespace libnetwrk {
             m_recv_message.data_head.resize(m_recv_message.head.size());
         }
 
-        base_connection_t& operator= (const base_connection_t&) = delete;
-        base_connection_t& operator= (base_connection_t&&)      = default;
+        base_connection_t& operator=(const base_connection_t&) = delete;
+        base_connection_t& operator=(base_connection_t&&)      = default;
 
     public:
         /// <summary>

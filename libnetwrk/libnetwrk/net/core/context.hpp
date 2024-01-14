@@ -14,8 +14,9 @@ namespace libnetwrk {
     template<typename Command, typename Serialize, typename Storage>
     class context {
     public:
-        using context_t       = asio::io_context;
-        using owned_message_t = owned_message<Command, Serialize, Storage>;
+        using context_t         = asio::io_context;
+        using owned_message_t   = owned_message<Command, Serialize, Storage>;
+        using base_connection_t = base_connection<Command, Serialize, Storage>;
 
     public:
         const std::string   name;
@@ -28,5 +29,7 @@ namespace libnetwrk {
         context(const std::string& name, context_owner owner)
             : name(name), owner(owner) {}
 
+    public:
+        virtual void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) = 0;
     };
 }

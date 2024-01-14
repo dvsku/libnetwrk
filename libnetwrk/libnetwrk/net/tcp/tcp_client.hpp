@@ -22,16 +22,22 @@ namespace libnetwrk::tcp {
         tcp_client(const std::string& name = "tcp client") 
             : base_t(name) {}
 
-        virtual ~tcp_client() {}
+        virtual ~tcp_client() = default;
 
     protected:
-        virtual void on_message(message_t& msg) override {}
+        // Called when successfully connected
+        virtual void ev_connected() override {};
 
-        virtual void on_connect()    override {}
-        virtual void on_disconnect() override {}
+        // Called when disconnected
+        virtual void ev_disconnected() override {
+            LIBNETWRK_INFO(this->name, "disconnected");
+        };
+
+        // Called when processing messages
+        virtual void ev_message(message_t& msg) override {};
 
     private:
-        bool _connect(const char* host, const unsigned short port) override {
+        bool impl_connect(const char* host, const unsigned short port) override final {
             try {
                 // Create ASIO context
                 this->asio_context = std::make_unique<asio::io_context>(1);
@@ -54,10 +60,6 @@ namespace libnetwrk::tcp {
 
                 // Start ASIO context
                 this->start_context();
-
-                this->m_connected = true;
-
-                on_connect();
 
                 LIBNETWRK_INFO(this->name, "connected to {}:{}", host, port);
             }

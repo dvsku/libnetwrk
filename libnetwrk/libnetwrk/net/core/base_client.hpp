@@ -8,11 +8,11 @@ namespace libnetwrk {
     template<typename Command, typename Serialize, typename Storage>
     class base_client : public context<Command, Serialize, Storage> {
     public:
-        using base_client_t   = base_client<Command, Serialize, Storage>;
-        using base_context_t  = context<Command, Serialize, Storage>;
-        using message_t       = message<Command, Serialize>;
-        using owned_message_t = owned_message<Command, Serialize, Storage>;
-        using connection_t    = base_connection<Command, Serialize, Storage>;
+        using base_client_t     = base_client<Command, Serialize, Storage>;
+        using base_context_t    = context<Command, Serialize, Storage>;
+        using message_t         = message<Command, Serialize>;
+        using owned_message_t   = owned_message<Command, Serialize, Storage>;
+        using base_connection_t = base_connection<Command, Serialize, Storage>;
 
     public:
         base_client()                   = delete;
@@ -23,8 +23,9 @@ namespace libnetwrk {
             : base_context_t(name, context_owner::client) {}
     
         virtual ~base_client() {
-            disconnect();
-        }
+            m_connected = false;
+            teardown();
+        };
 
         base_client_t& operator=(const base_client_t&) = delete;
         base_client_t& operator=(base_client_t&&)      = default;
@@ -46,7 +47,15 @@ namespace libnetwrk {
         /// <returns>true if connected, false if not</returns>
         bool connect(const char* host, const unsigned short port) {
             if (m_connected) return false;
-            return _connect(host, port);
+
+            bool connected = impl_connect(host, port);
+
+            if (connected) {
+                ev_connected();
+                m_connected = true;
+            }
+            
+            return connected;
         }
     
         /// <summary>
@@ -55,11 +64,9 @@ namespace libnetwrk {
         void disconnect() {
             if (!m_connected) return;
             m_connected = false;
-    
-            on_disconnect();
+
             teardown();
-    
-            LIBNETWRK_INFO(this->name, "disconnected");
+            ev_disconnected();
         }
     
         /// <summary>
@@ -72,7 +79,7 @@ namespace libnetwrk {
                     return false;
     
                 message_t msg = this->incoming_messages.pop_front().msg;
-                on_message(msg);
+                ev_message(msg);
             }
             catch (const std::exception& e) {
                 LIBNETWRK_ERROR(this->name, "process_message() fail | {}", e.what());
@@ -90,7 +97,7 @@ namespace libnetwrk {
         /// Process messages while client is connected. This is a blocking function.
         /// </summary>
         void process_messages() {
-            _process_messages();
+            impl_process_messages();
         }
     
         /// <summary>
@@ -98,7 +105,7 @@ namespace libnetwrk {
         /// This function runs asynchronously until the client stops.
         /// </summary>
         void process_messages_async() {
-            m_process_messages_thread = std::thread([&] { _process_messages(); });
+            m_process_messages_thread = std::thread([&] { impl_process_messages(); });
         }
     
         /// <summary>
@@ -117,18 +124,22 @@ namespace libnetwrk {
         }
 
     protected:
-        bool                          m_connected = false;
-        std::shared_ptr<connection_t> m_connection;
+        bool                               m_connected = false;
+        std::shared_ptr<base_connection_t> m_connection;
     
     protected:
-        virtual void on_message(message_t& msg) {}
-    
-        virtual void on_connect()    {}
-        virtual void on_disconnect() {}
-    
-        virtual bool _connect(const char* host, const unsigned short port) {
-            return false;
-        }
+        // Called when successfully connected
+        virtual void ev_connected() = 0;
+
+        // Called when disconnected
+        virtual void ev_disconnected() = 0;
+
+        // Called when processing messages
+        virtual void ev_message(message_t& msg) = 0;
+
+    protected:
+        // Connect implementation
+        virtual bool impl_connect(const char* host, const unsigned short port) = 0;
 
     protected:
         void teardown() {
@@ -150,6 +161,8 @@ namespace libnetwrk {
     
             if (m_process_messages_thread.joinable())
                 m_process_messages_thread.join();
+
+            LIBNETWRK_INFO(this->name, "disconnected");
         }
     
         void start_context() {
@@ -161,14 +174,19 @@ namespace libnetwrk {
         std::thread m_process_messages_thread;
 
     private:
-        void _process_messages() {
+        void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) override final {
+            disconnect();
+        }
+
+    private:
+        void impl_process_messages() {
             while (m_connected) {
                 this->incoming_messages.wait();
     
                 try {
                     while (!this->incoming_messages.empty()) {
                         message_t msg = this->incoming_messages.pop_front().msg;
-                        on_message(msg);
+                        ev_message(msg);
                     }
                 }
                 catch (const std::exception& e) {
