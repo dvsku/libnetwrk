@@ -85,7 +85,7 @@ namespace libnetwrk {
         /// </summary>
         /// <param name="lambda">: function to run</param>
         void queue_async_job(std::function<void()> const& lambda) {
-            asio::post(*(this->m_context), lambda);
+            asio::post(*(this->asio_context), lambda);
         }
 
         /// <summary>
