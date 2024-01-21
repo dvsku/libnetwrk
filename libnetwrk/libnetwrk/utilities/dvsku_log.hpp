@@ -74,7 +74,7 @@ namespace dvsku {
         }
 
         static log_settings* get_settings() {
-            if (m_log_impl) return nullptr;
+            if (!m_log_impl) return nullptr;
 
             return &m_log_impl->settings;
         }
