@@ -1,36 +1,48 @@
 #pragma once
 
-#ifdef LIBNETWRK_DISABLE_EMBEDDED_LOGGING
-    #ifndef LIBNETWRK_INFO
-        #define LIBNETWRK_INFO(name, fmt, ...)    do {} while(0)
+#ifdef LIBNETWRK_DISABLE_LOGGING
+    #ifdef LIBNETWRK_INFO
+        #undef LIBNETWRK_INFO
     #endif
-    #ifndef LIBNETWRK_WARNING
-        #define LIBNETWRK_WARNING(name, fmt, ...) do {} while(0)
+    #define LIBNETWRK_INFO(component, frmt, ...)    do {} while(0)
+
+    #ifdef LIBNETWRK_WARNING
+        #undef LIBNETWRK_WARNING
     #endif
-    #ifndef LIBNETWRK_ERROR
-        #define LIBNETWRK_ERROR(name, fmt, ...)   do {} while(0)
+    #define LIBNETWRK_WARNING(component, frmt, ...) do {} while(0)
+
+    #ifdef LIBNETWRK_ERROR
+        #undef LIBNETWRK_ERROR
     #endif
-    #ifndef LIBNETWRK_DEBUG
-        #define LIBNETWRK_DEBUG(name, fmt, ...)   do {} while(0)
+    #define LIBNETWRK_ERROR(component, frmt, ...)   do {} while(0)
+
+    #ifdef LIBNETWRK_DEBUG
+        #undef LIBNETWRK_DEBUG
     #endif
-    #ifndef LIBNETWRK_VERBOSE
-        #define LIBNETWRK_VERBOSE(name, fmt, ...) do {} while(0)
+    #define LIBNETWRK_DEBUG(component, frmt, ...)   do {} while(0)
+
+    #ifdef LIBNETWRK_VERBOSE
+        #undef LIBNETWRK_VERBOSE
     #endif
+    #define LIBNETWRK_VERBOSE(component, frmt, ...) do {} while(0)
 #else
-    #include "libnetwrk/utilities/dvsku_log.hpp"
+    #ifndef LIBNETWRK_INFO
+        #define LIBNETWRK_INFO(component, frmt, ...)    do {} while(0)
+    #endif
 
-    #define LIBNETWRK_INFO(name, fmt, ...)          \
-        dvsku::log::log_message(dvsku::log_level::informational, name, fmt, ##__VA_ARGS__)
+    #ifndef LIBNETWRK_WARNING
+        #define LIBNETWRK_WARNING(component, frmt, ...) do {} while(0)
+    #endif
 
-    #define LIBNETWRK_WARNING(name, fmt, ...)       \
-        dvsku::log::log_message(dvsku::log_level::warning,       name, fmt, ##__VA_ARGS__)
+    #ifndef LIBNETWRK_ERROR
+        #define LIBNETWRK_ERROR(component, frmt, ...)   do {} while(0)
+    #endif
 
-    #define LIBNETWRK_ERROR(name, fmt, ...)         \
-        dvsku::log::log_message(dvsku::log_level::error,         name, fmt, ##__VA_ARGS__)
+    #ifndef LIBNETWRK_DEBUG
+        #define LIBNETWRK_DEBUG(component, frmt, ...)   do {} while(0)
+    #endif
 
-    #define LIBNETWRK_DEBUG(name, fmt, ...)         \
-        dvsku::log::log_message(dvsku::log_level::debug,         name, fmt, ##__VA_ARGS__)
-
-    #define LIBNETWRK_VERBOSE(name, fmt, ...)       \
-        dvsku::log::log_message(dvsku::log_level::verbose,       name, fmt, ##__VA_ARGS__)
+    #ifndef LIBNETWRK_VERBOSE
+        #define LIBNETWRK_VERBOSE(component, frmt, ...) do {} while(0)
+    #endif
 #endif
