@@ -210,8 +210,6 @@ void service_broadcast() {
 }
 
 int main(int argc, char* argv[]) {
-    dvsku::log::init(dvsku::log_level::verbose, true, false);
-
     if (argc != 2) {
         service_connect();
         service_client_hello();
