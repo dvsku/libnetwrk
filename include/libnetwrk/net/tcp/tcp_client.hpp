@@ -62,6 +62,8 @@ namespace libnetwrk::tcp {
                 LIBNETWRK_INFO(this->name, "connected to {}:{}", host, port);
             }
             catch (const std::exception& e) {
+                (void)e;
+
                 LIBNETWRK_ERROR(this->name, "failed to connect | {}", e.what());
                 this->teardown();
                 return false;

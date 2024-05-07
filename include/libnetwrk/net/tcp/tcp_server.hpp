@@ -100,6 +100,8 @@ namespace libnetwrk::tcp {
                 LIBNETWRK_INFO(this->name, "listening for connections on {}:{}", host, port);
             }
             catch (const std::exception& e) {
+                (void)e;
+
                 LIBNETWRK_ERROR(this->name, "failed to start listening | {}", e.what());
                 stop();
                 return false;

@@ -56,6 +56,8 @@ namespace libnetwrk {
                 ev_message(msg);
             }
             catch (const std::exception& e) {
+                (void)e;
+
                 LIBNETWRK_ERROR(name, "process_message() fail | {}", e.what());
                 return false;
             }
