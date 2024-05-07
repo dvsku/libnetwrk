@@ -1,12 +1,11 @@
-#include "example_logging.hpp"
-#include "commands.hpp"
+#include "service_desc.hpp"
 
 #include <iostream>
 
 using namespace libnetwrk::tcp;
 using namespace libnetwrk;
 
-class tcp_echo_server : public tcp_server<commands> {
+class tcp_echo_server : public tcp_server<service_desc> {
 public:
     tcp_echo_server() : tcp_server() {}
 
