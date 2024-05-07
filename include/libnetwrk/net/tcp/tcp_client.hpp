@@ -1,5 +1,6 @@
 #pragma once
 
+#include "libnetwrk/net/default_service_desc.hpp"
 #include "libnetwrk/net/core/base_client.hpp"
 #include "libnetwrk/net/core/serialization/bin_serialize.hpp"
 #include "libnetwrk/net/tcp/tcp_connection.hpp"
@@ -8,15 +9,15 @@
 #include <thread>
 
 namespace libnetwrk::tcp {
-    template<typename Command, typename Serialize = libnetwrk::bin_serialize, typename Storage = libnetwrk::nothing>
-    requires is_enum<Command>
-    class tcp_client : public libnetwrk::base_client<Command, Serialize, Storage> {
+    template<typename Desc = libnetwrk::default_service_desc>
+    requires is_libnetwrk_service_desc<Desc>
+    class tcp_client : public libnetwrk::base_client<Desc> {
     public:
-        using base_t          = libnetwrk::base_client<Command, Serialize, Storage>;
-        using connection_t    = tcp_connection<Command, Serialize, Storage>;
+        using base_t          = libnetwrk::base_client<Desc>;
         using message_t       = base_t::message_t;
         using owned_message_t = base_t::owned_message_t;
-        using command_t       = Command;
+        using connection_t    = tcp_connection<Desc>;
+        using command_t       = typename Desc::command_t;
 
     public:
         tcp_client(const std::string& name = "tcp client") 

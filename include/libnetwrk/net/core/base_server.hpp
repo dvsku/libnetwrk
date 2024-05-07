@@ -8,14 +8,14 @@
 #include <list>
 
 namespace libnetwrk {
-    template<typename Command, typename Serialize, typename Storage>
-    class base_server : public context<Command, Serialize, Storage> {
+    template<typename Desc>
+    class base_server : public context<Desc> {
     public:
-        using base_server_t     = base_server<Command, Serialize, Storage>;
-        using base_context_t    = context<Command, Serialize, Storage>;
-        using message_t         = message<Command, Serialize>;
-        using owned_message_t   = owned_message<Command, Serialize, Storage>;
-        using base_connection_t = base_connection<Command, Serialize, Storage>;
+        using base_server_t     = base_server<Desc>;
+        using base_context_t    = context<Desc>;
+        using message_t         = message<Desc>;
+        using owned_message_t   = owned_message<Desc>;
+        using base_connection_t = base_connection<Desc>;
         
         using guard_t = std::lock_guard<std::mutex>;
         using timer_t = asio::steady_timer;

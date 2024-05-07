@@ -3,15 +3,16 @@
 #include "libnetwrk/net/core/messages/message.hpp"
 
 namespace libnetwrk {
-    template<typename Command, typename Serialize, typename Storage>
+    template<typename Desc>
     class base_connection;
 
-    template<typename Command, typename Serialize, typename Storage>
+    template<typename Desc>
+    requires is_libnetwrk_service_desc<Desc>
     class owned_message {
     public:
-        using owned_message_t = owned_message<Command, Serialize, Storage>;
-        using message_t       = message<Command, Serialize>;
-        using client_t        = base_connection<Command, Serialize, Storage>;
+        using owned_message_t = owned_message<Desc>;
+        using message_t       = message<Desc>;
+        using client_t        = base_connection<Desc>;
 
     public:
         owned_message()                       = default;

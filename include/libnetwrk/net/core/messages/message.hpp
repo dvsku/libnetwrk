@@ -6,14 +6,14 @@
 #include <chrono>
 
 namespace libnetwrk {
-    template<typename Command, typename Serialize>
-    requires is_enum<Command>
+    template<typename Desc>
+    requires is_libnetwrk_service_desc<Desc>
     class message {
     public:
-        using message_head_t = message_head<Command, Serialize>;
-        using message_t      = message<Command, Serialize>;
-        using buffer_t       = buffer<Serialize>;
-        using command_t      = Command;
+        using message_head_t = message_head<Desc>;
+        using message_t      = message<Desc>;
+        using buffer_t       = buffer<typename Desc::serialize_t>;
+        using command_t      = typename Desc::command_t;
 
         using milliseconds_t = std::chrono::milliseconds;
 

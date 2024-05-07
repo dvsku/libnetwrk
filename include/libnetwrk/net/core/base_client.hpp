@@ -5,14 +5,14 @@
 #include "libnetwrk/net/core/messages/owned_message.hpp"
 
 namespace libnetwrk {
-    template<typename Command, typename Serialize, typename Storage>
-    class base_client : public context<Command, Serialize, Storage> {
+    template<typename Desc>
+    class base_client : public context<Desc> {
     public:
-        using base_client_t     = base_client<Command, Serialize, Storage>;
-        using base_context_t    = context<Command, Serialize, Storage>;
-        using message_t         = message<Command, Serialize>;
-        using owned_message_t   = owned_message<Command, Serialize, Storage>;
-        using base_connection_t = base_connection<Command, Serialize, Storage>;
+        using base_client_t     = base_client<Desc>;
+        using base_context_t    = context<Desc>;
+        using message_t         = message<Desc>;
+        using owned_message_t   = owned_message<Desc>;
+        using base_connection_t = base_connection<Desc>;
 
     public:
         base_client()                   = delete;

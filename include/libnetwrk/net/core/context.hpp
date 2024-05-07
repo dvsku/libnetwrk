@@ -18,12 +18,12 @@ namespace libnetwrk {
         stopping = 0x3
     };
 
-    template<typename Command, typename Serialize, typename Storage>
+    template<typename Desc>
     class context {
     public:
         using context_t         = asio::io_context;
-        using owned_message_t   = owned_message<Command, Serialize, Storage>;
-        using base_connection_t = base_connection<Command, Serialize, Storage>;
+        using owned_message_t   = owned_message<Desc>;
+        using base_connection_t = base_connection<Desc>;
 
     public:
         const std::string   name;

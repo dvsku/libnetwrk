@@ -1,5 +1,6 @@
 #pragma once
 
+#include "libnetwrk/net/default_service_desc.hpp"
 #include "libnetwrk/net/core/base_server.hpp"
 #include "libnetwrk/net/core/serialization/bin_serialize.hpp"
 #include "libnetwrk/net/tcp/tcp_connection.hpp"
@@ -8,16 +9,16 @@
 #include <thread>
 
 namespace libnetwrk::tcp {
-    template<typename Command, typename Serialize = libnetwrk::bin_serialize, typename Storage = libnetwrk::nothing>
-    class tcp_server : public libnetwrk::base_server<Command, Serialize, Storage> {
+    template<typename Desc = libnetwrk::default_service_desc>
+    requires is_libnetwrk_service_desc<Desc>
+    class tcp_server : public libnetwrk::base_server<Desc> {
     public:
-        using tcp_server_t      = tcp_server<Command, Serialize, Storage>;
-        using base_t            = libnetwrk::base_server<Command, Serialize, Storage>;
+        using base_t            = libnetwrk::base_server<Desc>;
         using message_t         = base_t::message_t;
         using owned_message_t   = base_t::owned_message_t;
-        using command_t         = Command;
-        using connection_t      = tcp_connection<Command, Serialize, Storage>;
+        using connection_t      = tcp_connection<Desc>;
         using base_connection_t = base_t::base_connection_t;
+        using command_t         = typename Desc::command_t;
 
         using guard_t    = std::lock_guard<std::mutex>;
         using acceptor_t = asio::ip::tcp::acceptor;

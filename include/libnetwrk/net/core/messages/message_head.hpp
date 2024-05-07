@@ -8,14 +8,14 @@ namespace libnetwrk {
         user   = 0x1
     };
 
-    template<typename Command, typename Serialize>
-    requires is_enum<Command>
+    template<typename Desc>
+    requires is_libnetwrk_service_desc<Desc>
     class message_head {
     public:
-        using message_head_t = message_head<Command, Serialize>;
+        using message_head_t = message_head<Desc>;
         using message_type_t = message_type;
-        using command_t      = Command;
-        using buffer_t       = buffer<Serialize>;
+        using buffer_t       = buffer<typename Desc::serialize_t>;
+        using command_t      = typename Desc::command_t;
 
     public:
         message_type_t type{};
