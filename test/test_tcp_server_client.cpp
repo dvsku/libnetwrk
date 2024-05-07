@@ -22,7 +22,13 @@ enum class commands : unsigned int {
     s2c_send_sync_fail
 };
 
-class test_service : public tcp_server<commands> {
+struct service_desc {
+    using command_t   = commands;
+    using serialize_t = libnetwrk::bin_serialize;
+    using storage_t   = libnetwrk::nothing;
+};
+
+class test_service : public tcp_server<service_desc> {
     public:
         test_service() : tcp_server() {}
 
@@ -88,7 +94,7 @@ class test_service : public tcp_server<commands> {
         }
 };
 
-class test_client : public tcp_client<commands> {
+class test_client : public tcp_client<service_desc> {
     public:
         test_client() : tcp_client() {}
 
