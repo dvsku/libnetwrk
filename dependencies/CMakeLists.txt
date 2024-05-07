@@ -18,3 +18,19 @@ IF(LIBNETWRK_EXAMPLES)
 
     SET(DVUTIL_INCLUDES "${dv_utilities_SOURCE_DIR}/include" PARENT_SCOPE)
 ENDIF()
+
+###############################################################################
+## googletest
+
+IF(LIBNETWRK_TEST)
+	SET(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+	FetchContent_Declare(
+		googletest
+		URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+	)
+
+	FetchContent_MakeAvailable(googletest)
+
+	SET(GTEST_INCLUDES "${googletest_SOURCE_DIR}/googletest/include" PARENT_SCOPE)
+ENDIF()
