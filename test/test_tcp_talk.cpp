@@ -1,6 +1,6 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
-#include "libnetwrk.hpp"
-#include "utilities_assert.hpp"
+#include <libnetwrk.hpp>
+#include <gtest/gtest.h>
 
 using namespace libnetwrk::tcp;
 using namespace libnetwrk;
@@ -29,7 +29,7 @@ public:
 
         switch (msg.msg.head.command) {
             case commands::c2s_msg1: {
-                ASSERT(received == "request_1");
+                EXPECT_TRUE(received == "request_1");
 
                 response.head.command = commands::s2c_msg1;
                 response << "response_1";
@@ -37,7 +37,7 @@ public:
                 break;
             }
             case commands::c2s_msg2: {
-                ASSERT(received == "request_2");
+                EXPECT_TRUE(received == "request_2");
 
                 response.head.command = commands::s2c_msg2;
                 response << "response_2";
@@ -45,7 +45,7 @@ public:
                 break;
             }
             case commands::c2s_msg3: {
-                ASSERT(received == "request_3");
+                EXPECT_TRUE(received == "request_3");
 
                 response.head.command = commands::s2c_msg3;
                 response << "response_3";
@@ -53,7 +53,7 @@ public:
                 break;
             }
             case commands::c2s_msg4: {
-                ASSERT(received == "request_4");
+                EXPECT_TRUE(received == "request_4");
 
                 response.head.command = commands::s2c_msg4;
                 response << "response_4";
@@ -82,7 +82,7 @@ public:
 
         switch (msg.msg.head.command) {
             case commands::s2c_msg1: {
-                ASSERT(received == "response_1");
+                EXPECT_TRUE(received == "response_1");
 
                 response.head.command = commands::c2s_msg2;
                 response << "request_2";
@@ -90,7 +90,7 @@ public:
                 break;
             }
             case commands::s2c_msg2: {
-                ASSERT(received == "response_2");
+                EXPECT_TRUE(received == "response_2");
 
                 response.head.command = commands::c2s_msg3;
                 response << "request_3";
@@ -98,7 +98,7 @@ public:
                 break;
             }
             case commands::s2c_msg3: {
-                ASSERT(received == "response_3");
+                EXPECT_TRUE(received == "response_3");
 
                 response.head.command = commands::c2s_msg4;
                 response << "request_4";
@@ -106,7 +106,7 @@ public:
                 break;
             }
             case commands::s2c_msg4: {
-                ASSERT(received == "response_4");
+                EXPECT_TRUE(received == "response_4");
 
                 disconnect();
                 break;
@@ -116,7 +116,7 @@ public:
     }
 };
 
-static void tcp_talk() {
+TEST(tcp_talk, talking) {
     test_service server;
     server.start("127.0.0.1", 21205);
 
@@ -131,18 +131,4 @@ static void tcp_talk() {
         server.process_message();
         client.process_message();
     }
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        tcp_talk();
-    }
-    else {
-        switch (std::stoi(argv[1])) {
-            case 0: tcp_talk(); break;
-            default:            break;
-        }
-    }
-
-    return 0;
 }

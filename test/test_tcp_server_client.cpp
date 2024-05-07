@@ -1,6 +1,6 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
-#include "libnetwrk.hpp"
-#include "utilities_assert.hpp"
+#include <libnetwrk.hpp>
+#include <gtest/gtest.h>
 
 #include <thread>
 #include <chrono>
@@ -124,17 +124,17 @@ class test_client : public tcp_client<commands> {
         }
 };
 
-void service_connect() {
+TEST(tcp_server_client, connect) {
     test_service server;
     server.start("127.0.0.1", 21205);
 
     test_client client;
     bool connected = client.connect("127.0.0.1", 21205);
 
-    ASSERT(connected == true);
+    EXPECT_TRUE(connected == true);
 }
 
-void service_client_hello() {
+TEST(tcp_server_client, hello) {
     test_service server;
     server.start("127.0.0.1", 21205);
 
@@ -145,10 +145,10 @@ void service_client_hello() {
     client.send(msg);
 
     server.wait_for_msg();
-    ASSERT(server.client_said_hello == true);
+    EXPECT_TRUE(server.client_said_hello == true);
 }
 
-void service_echo() {
+TEST(tcp_server_client, echo) {
     test_service server;
     server.start("127.0.0.1", 21205);
 
@@ -159,13 +159,13 @@ void service_echo() {
     client.send(msg);
 
     server.wait_for_msg();
-    ASSERT(server.client_said_echo == true);
+    EXPECT_TRUE(server.client_said_echo == true);
 
     client.wait_for_msg();
-    ASSERT(client.server_said_echo == true);
+    EXPECT_TRUE(client.server_said_echo == true);
 }
 
-void service_ping_pong() {
+TEST(tcp_server_client, ping_pong) {
     test_service server;
     server.start("127.0.0.1", 21205);
 
@@ -177,56 +177,34 @@ void service_ping_pong() {
     client.send(msg);
 
     server.wait_for_msg();
-    ASSERT(server.ping == "PiNg");
+    EXPECT_TRUE(server.ping == "PiNg");
 
     client.wait_for_msg();
-    ASSERT(client.pong == "pOnG");
+    EXPECT_TRUE(client.pong == "pOnG");
 }
 
-void service_broadcast() {
+TEST(tcp_server_client, broadcast) {
     test_service server;
     server.start("127.0.0.1", 21205);
 
     test_client client1;
-    ASSERT(client1.connect("127.0.0.1", 21205) == true);
+    EXPECT_TRUE(client1.connect("127.0.0.1", 21205) == true);
 
     test_client client2;
-    ASSERT(client2.connect("127.0.0.1", 21205) == true);
+    EXPECT_TRUE(client2.connect("127.0.0.1", 21205) == true);
 
-    ASSERT(server.is_correct_id(0, 1));
-    ASSERT(server.is_correct_id(1, 2));
+    EXPECT_TRUE(server.is_correct_id(0, 1));
+    EXPECT_TRUE(server.is_correct_id(1, 2));
 
     test_client::message_t msg(commands::c2s_broadcast);
     client1.send(msg);
 
     server.wait_for_msg();
-    ASSERT(server.client_said_broadcast == true);
+    EXPECT_TRUE(server.client_said_broadcast == true);
 
     client1.wait_for_msg();
-    ASSERT(client1.server_said_broadcast == true);
+    EXPECT_TRUE(client1.server_said_broadcast == true);
 
     client2.wait_for_msg();
-    ASSERT(client2.server_said_broadcast == true);
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        service_connect();
-        service_client_hello();
-        service_echo();
-        service_ping_pong();
-        service_broadcast();
-    }
-    else {
-        switch (std::stoi(argv[1])) {
-            case 0: service_connect();      break;
-            case 1: service_client_hello(); break;
-            case 2: service_echo();         break;
-            case 3: service_ping_pong();    break;
-            case 4: service_broadcast();    break;
-            default: break;
-        }
-    }
-
-    return 0;
+    EXPECT_TRUE(client2.server_said_broadcast == true);
 }

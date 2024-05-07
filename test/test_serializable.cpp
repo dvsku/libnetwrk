@@ -1,17 +1,17 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
-#include "libnetwrk.hpp"
-#include "utilities_assert.hpp"
+#include <libnetwrk.hpp>
+#include <gtest/gtest.h>
 
 using namespace libnetwrk;
 
 struct simple_struct {
-    uint8_t a        = 1;
-    uint16_t b        = 1337;
-    uint32_t c        = 420;
-    uint64_t d        = 69;
-    float e            = 15.34f;
-    double f        = 8342.2;
-    bool g            = false;
+    uint8_t  a = 1;
+    uint16_t b = 1337;
+    uint32_t c = 420;
+    uint64_t d = 69;
+    float    e = 15.34f;
+    double   f = 8342.2;
+    bool     g = false;
 
     template<typename Tserialize>
     void serialize(buffer<Tserialize>& buffer) const {
@@ -50,43 +50,27 @@ struct derived_struct : simple_struct {
     }
 };
 
-static void serialize_deserialize_simple_struct() {
+TEST(serializable, serialize_deserialize_simple_struct) {
     buffer<bin_serialize> buff;
     simple_struct ss1{}, ss2{};
 
     ss1.serialize(buff);
     ss2.deserialize(buff);
-    
-    ASSERT(ss1.equals(ss2));
+
+    EXPECT_TRUE(ss1.equals(ss2));
 }
 
-static void serialize_deserialize_derived_struct() {
+TEST(serializable, serialize_deserialize_derived_struct) {
     buffer<bin_serialize> buff;
 
     derived_struct ss1{}, ss2{};
     ss2.a = 5;
     ss2.h = 777;
 
-    ASSERT(!ss1.equals(ss2));
+    EXPECT_TRUE(!ss1.equals(ss2));
 
     ss1.serialize(buff);
     ss2.deserialize(buff);
 
-    ASSERT(ss1.equals(ss2));
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        serialize_deserialize_simple_struct();
-        serialize_deserialize_derived_struct();
-    }
-    else {
-        switch (std::stoi(argv[1])) {
-            case 0: serialize_deserialize_simple_struct();  break;
-            case 1: serialize_deserialize_derived_struct(); break;
-            default: break;
-        }
-    }
-
-    return 0;
+    EXPECT_TRUE(ss1.equals(ss2));
 }

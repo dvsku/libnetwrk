@@ -1,6 +1,6 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
-#include "libnetwrk.hpp"
-#include "utilities_assert.hpp"
+#include <libnetwrk.hpp>
+#include <gtest/gtest.h>
 
 #include <thread>
 #include <chrono>
@@ -73,22 +73,25 @@ public:
     }
 };
 
-void t_commands_uint8() {
-    ASSERT_NOT_THROWS_CTOR(uint8_server server);
+TEST(commands, uint8) {
+    ASSERT_NO_THROW(uint8_server server);
+    uint8_server server;
     server.start("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint8_client client);
+    ASSERT_NO_THROW(uint8_client client);
+    uint8_client client;
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint8_client::message_t message(uint8_client::command_t::c2s_ping));
+    ASSERT_NO_THROW(uint8_client::message_t message(uint8_client::command_t::c2s_ping));
+    uint8_client::message_t message(uint8_client::command_t::c2s_ping);
     message << std::string("PiNg");
     client.send(message);
 
     server.wait_for_message();
-    ASSERT(server.ping == "PiNg");
+    EXPECT_TRUE(server.ping == "PiNg");
 
     client.wait_for_message();
-    ASSERT(client.pong == "pOnG");
+    EXPECT_TRUE(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -156,22 +159,25 @@ class uint16_client : public tcp_client<commands_uint16> {
         }
 };
 
-void t_commands_uint16() {
-    ASSERT_NOT_THROWS_CTOR(uint16_server server);
+TEST(commands, uint16) {
+    ASSERT_NO_THROW(uint16_server server);
+    uint16_server server;
     server.start("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint16_client client);
+    ASSERT_NO_THROW(uint16_client client);
+    uint16_client client;
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint16_client::message_t message(uint16_client::command_t::c2s_ping));
+    ASSERT_NO_THROW(uint16_client::message_t message(uint16_client::command_t::c2s_ping));
+    uint16_client::message_t message(uint16_client::command_t::c2s_ping);
     message << std::string("PiNg");
     client.send(message);
 
     server.wait_for_message();
-    ASSERT(server.ping == "PiNg");
+    EXPECT_TRUE(server.ping == "PiNg");
 
     client.wait_for_message();
-    ASSERT(client.pong == "pOnG");
+    EXPECT_TRUE(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -239,22 +245,25 @@ class uint32_client : public tcp_client<commands_uint32> {
         }
 };
 
-void t_commands_uint32() {
-    ASSERT_NOT_THROWS_CTOR(uint32_server server);
+TEST(commands, uint32) {
+    ASSERT_NO_THROW(uint32_server server);
+    uint32_server server;
     server.start("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint32_client client);
+    ASSERT_NO_THROW(uint32_client client);
+    uint32_client client;
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint32_client::message_t message(uint32_client::command_t::c2s_ping));
+    ASSERT_NO_THROW(uint32_client::message_t message(uint32_client::command_t::c2s_ping));
+    uint32_client::message_t message(uint32_client::command_t::c2s_ping);
     message << std::string("PiNg");
     client.send(message);
 
     server.wait_for_message();
-    ASSERT(server.ping == "PiNg");
+    EXPECT_TRUE(server.ping == "PiNg");
 
     client.wait_for_message();
-    ASSERT(client.pong == "pOnG");
+    EXPECT_TRUE(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -322,22 +331,25 @@ class uint64_client : public tcp_client<commands_uint64> {
         }
 };
 
-void t_commands_uint64() {
-    ASSERT_NOT_THROWS_CTOR(uint64_server server);
+TEST(commands, uint64) {
+    ASSERT_NO_THROW(uint64_server server);
+    uint64_server server;
     server.start("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint64_client client);
+    ASSERT_NO_THROW(uint64_client client);
+    uint64_client client;
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(uint64_client::message_t message(uint64_client::command_t::c2s_ping));
+    ASSERT_NO_THROW(uint64_client::message_t message(uint64_client::command_t::c2s_ping));
+    uint64_client::message_t message(uint64_client::command_t::c2s_ping);
     message << std::string("PiNg");
     client.send(message);
 
     server.wait_for_message();
-    ASSERT(server.ping == "PiNg");
+    EXPECT_TRUE(server.ping == "PiNg");
 
     client.wait_for_message();
-    ASSERT(client.pong == "pOnG");
+    EXPECT_TRUE(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -405,26 +417,29 @@ class int8_client : public tcp_client<commands_int8> {
         }
 };
 
-void t_commands_int8() {
-    ASSERT_NOT_THROWS_CTOR(int8_server server);
+TEST(commands, int8) {
+    ASSERT_NO_THROW(int8_server server);
+    int8_server server;
     server.start("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int8_client client);
+    ASSERT_NO_THROW(int8_client client);
+    int8_client client;
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int8_client::message_t message(int8_client::command_t::c2s_ping));
+    ASSERT_NO_THROW(int8_client::message_t message(int8_client::command_t::c2s_ping));
+    int8_client::message_t message(int8_client::command_t::c2s_ping);
     message << std::string("PiNg");
     client.send(message);
 
     server.wait_for_message();
-    ASSERT(server.ping == "PiNg");
+    EXPECT_TRUE(server.ping == "PiNg");
 
     client.wait_for_message();
-    ASSERT(client.pong == "pOnG");
+    EXPECT_TRUE(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// unsigned short
+// short
 ///////////////////////////////////////////////////////////////////////////////
 
 enum class commands_int16 : short {
@@ -488,26 +503,29 @@ class int16_client : public tcp_client<commands_int16> {
         }
 };
 
-void t_commands_int16() {
-    ASSERT_NOT_THROWS_CTOR(int16_server server);
+TEST(commands, int16) {
+    ASSERT_NO_THROW(int16_server server);
+    int16_server server;
     server.start("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int16_client client);
+    ASSERT_NO_THROW(int16_client client);
+    int16_client client;
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int16_client::message_t message(int16_client::command_t::c2s_ping));
+    ASSERT_NO_THROW(int16_client::message_t message(int16_client::command_t::c2s_ping));
+    int16_client::message_t message(int16_client::command_t::c2s_ping);
     message << std::string("PiNg");
     client.send(message);
 
     server.wait_for_message();
-    ASSERT(server.ping == "PiNg");
+    EXPECT_TRUE(server.ping == "PiNg");
 
     client.wait_for_message();
-    ASSERT(client.pong == "pOnG");
+    EXPECT_TRUE(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// unsigned int
+// int
 ///////////////////////////////////////////////////////////////////////////////
 
 enum class commands_int32 : int {
@@ -571,26 +589,29 @@ class int32_client : public tcp_client<commands_int32> {
         }
 };
 
-void t_commands_int32() {
-    ASSERT_NOT_THROWS_CTOR(int32_server server);
+TEST(commands, int32) {
+    ASSERT_NO_THROW(int32_server server);
+    int32_server server;
     server.start("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int32_client client);
+    ASSERT_NO_THROW(int32_client client);
+    int32_client client;
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int32_client::message_t message(int32_client::command_t::c2s_ping));
+    ASSERT_NO_THROW(int32_client::message_t message(int32_client::command_t::c2s_ping));
+    int32_client::message_t message(int32_client::command_t::c2s_ping);
     message << std::string("PiNg");
     client.send(message);
 
     server.wait_for_message();
-    ASSERT(server.ping == "PiNg");
+    EXPECT_TRUE(server.ping == "PiNg");
 
     client.wait_for_message();
-    ASSERT(client.pong == "pOnG");
+    EXPECT_TRUE(client.pong == "pOnG");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// unsigned long long
+// long long
 ///////////////////////////////////////////////////////////////////////////////
 
 enum class commands_int64 : long long {
@@ -654,48 +675,23 @@ class int64_client : public tcp_client<commands_int64> {
         }
 };
 
-void t_commands_int64() {
-    ASSERT_NOT_THROWS_CTOR(int64_server server);
+TEST(commands, int64) {
+    ASSERT_NO_THROW(int64_server server);
+    int64_server server;
     server.start("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int64_client client);
+    ASSERT_NO_THROW(int64_client client);
+    int64_client client;
     client.connect("127.0.0.1", 21205);
 
-    ASSERT_NOT_THROWS_CTOR(int64_client::message_t message(int64_client::command_t::c2s_ping));
+    ASSERT_NO_THROW(int64_client::message_t message(int64_client::command_t::c2s_ping));
+    int64_client::message_t message(int64_client::command_t::c2s_ping);
     message << std::string("PiNg");
     client.send(message);
 
     server.wait_for_message();
-    ASSERT(server.ping == "PiNg");
+    EXPECT_TRUE(server.ping == "PiNg");
 
     client.wait_for_message();
-    ASSERT(client.pong == "pOnG");
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        t_commands_uint8();
-        t_commands_uint16();
-        t_commands_uint32();
-        t_commands_uint64();
-        t_commands_int8();
-        t_commands_int16();
-        t_commands_int32();
-        t_commands_int64();
-    }
-    else {
-        switch (std::stoi(argv[1])) {
-            case 0: t_commands_uint8();  break;
-            case 1: t_commands_uint16(); break;
-            case 2: t_commands_uint32(); break;
-            case 3: t_commands_uint64(); break;
-            case 4: t_commands_int8();   break;
-            case 5: t_commands_int16();  break;
-            case 6: t_commands_int32();  break;
-            case 7: t_commands_int64();  break;    
-            default: break;
-        }
-    }
-
-    return 0;
+    EXPECT_TRUE(client.pong == "pOnG");
 }

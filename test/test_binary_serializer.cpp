@@ -1,6 +1,6 @@
 #define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
-#include "libnetwrk.hpp"
-#include "utilities_assert.hpp"
+#include <libnetwrk.hpp>
+#include <gtest/gtest.h>
 
 using namespace libnetwrk;
 
@@ -70,43 +70,43 @@ struct string_struct {
     }
 };
 
-static void serialize_deserialize_standard_layout() {
+TEST(bin_serializer, serialize_deserialize_standard_layout) {
     buffer<bin_serialize> buffer;
 
     int i1 = 156, i2 = 0;
     buffer << i1 >> i2;
-    ASSERT(i1 == i2);
+    EXPECT_TRUE(i1 == i2);
 
     bool b1 = true, b2 = false;
     buffer << b1;
     buffer >> b2;
-    ASSERT(b1 == b2);
+    EXPECT_TRUE(b1 == b2);
 
     char c1 = 69, c2 = 0;
     buffer << c1 >> c2;
-    ASSERT(c1 == c2);
+    EXPECT_TRUE(c1 == c2);
 
     float f1 = 69.420f, f2 = 0.0f;
     buffer << f1 >> f2;
-    ASSERT(f1 == f2);
+    EXPECT_TRUE(f1 == f2);
 
     double d1 = 420.69, d2 = 0;
     buffer << d1 >> d2;
-    ASSERT(d1 == d2);
+    EXPECT_TRUE(d1 == d2);
 
     wchar_t w1 = 256, w2 = 0;
     buffer << w1 >> w2;
-    ASSERT(w1 == w2);
+    EXPECT_TRUE(w1 == w2);
 }
 
-static void serialize_deserialize_standard_layout_containers() {
+TEST(bin_serializer, serialize_deserialize_standard_layout_containers) {
     buffer<bin_serialize> buffer;
     std::vector<int> v1({ 123, 534, 346, 5432, 242, 735 });
     std::vector<int> v2;
 
     buffer << v1 >> v2;
-    ASSERT(v1.size() == v2.size());
-    ASSERT(v1 == v2);
+    EXPECT_TRUE(v1.size() == v2.size());
+    EXPECT_TRUE(v1 == v2);
 
     buffer.clear();
 
@@ -114,8 +114,8 @@ static void serialize_deserialize_standard_layout_containers() {
     std::deque<int> dq2;
 
     buffer << dq1 >> dq2;
-    ASSERT(dq1.size() == dq2.size());
-    ASSERT(dq1 == dq2);
+    EXPECT_TRUE(dq1.size() == dq2.size());
+    EXPECT_TRUE(dq1 == dq2);
 
     buffer.clear();
 
@@ -123,7 +123,7 @@ static void serialize_deserialize_standard_layout_containers() {
     std::forward_list<int> fl2;
 
     buffer << fl1 >> fl2;
-    ASSERT(fl1 == fl2);
+    EXPECT_TRUE(fl1 == fl2);
 
     buffer.clear();
 
@@ -131,87 +131,87 @@ static void serialize_deserialize_standard_layout_containers() {
     std::list<int> l2;
 
     buffer << l1 >> l2;
-    ASSERT(l1.size() == l2.size());
-    ASSERT(l1 == l2);
+    EXPECT_TRUE(l1.size() == l2.size());
+    EXPECT_TRUE(l1 == l2);
 
     std::array<int, 6> ar1({ 123, 534, 346, 5432, 242, 735 });
     std::array<int, 6> ar2{};
 
     buffer << ar1 >> ar2;
-    ASSERT(ar1 == ar2);
+    EXPECT_TRUE(ar1 == ar2);
 }
 
-static void serialize_deserialize_serializable() {
+TEST(bin_serializer, serialize_deserialize_serializable) {
     simple_struct ss1(16, "test_1");
     simple_struct ss2(524, "test_2");
     simple_struct ss3, ss4, ss5;
 
     buffer<bin_serialize> buffer;
     buffer << ss1 >> ss3;
-    ASSERT(ss1.equals(ss3));
+    EXPECT_TRUE(ss1.equals(ss3));
 
     buffer.clear();
 
     buffer << ss1 << ss2 >> ss4 >> ss5;
-    ASSERT(ss1.equals(ss4));
-    ASSERT(ss2.equals(ss5));
+    EXPECT_TRUE(ss1.equals(ss4));
+    EXPECT_TRUE(ss2.equals(ss5));
 }
 
-static void serialize_deserialize_strings() {
+TEST(bin_serializer, serialize_deserialize_strings) {
     buffer<bin_serialize> buffer;
 
     std::string s1("SeRiaLiZE mE");
     std::string s2;
 
     buffer << s1 >> s2;
-    ASSERT(s1 == s2);
+    EXPECT_TRUE(s1 == s2);
 
     std::vector<std::string> vs1({ "nxnuNoeuLN", "XjTfSs5loB", "UWp8hsoW5s", "O0c7byqKfj", "CzAXjEObB0" });
     std::vector<std::string> vs2;
 
     buffer << vs1 >> vs2;
     for (size_t i = 0; i < vs1.size(); i++)
-        ASSERT(vs1[i] == vs2[i]);
+        EXPECT_TRUE(vs1[i] == vs2[i]);
 }
 
-static void serialize_deserialize_unsupported() {
+TEST(bin_serializer, serialize_deserialize_unsupported) {
     buffer<bin_serialize> buffer;
 
     std::stack<int> stack;
-    ASSERT_THROWS(buffer << stack);
+    EXPECT_ANY_THROW(buffer << stack);
 
     std::queue<int> queue;
-    ASSERT_THROWS(buffer << queue);
+    EXPECT_ANY_THROW(buffer << queue);
 
     std::priority_queue<int> pqueue;
-    ASSERT_THROWS(buffer << pqueue);
+    EXPECT_ANY_THROW(buffer << pqueue);
 
     std::set<int> set;
-    ASSERT_THROWS(buffer << set);
+    EXPECT_ANY_THROW(buffer << set);
 
     std::multiset<int> mset;
-    ASSERT_THROWS(buffer << mset);
+    EXPECT_ANY_THROW(buffer << mset);
 
     std::unordered_set<int> uset;
-    ASSERT_THROWS(buffer << uset);
+    EXPECT_ANY_THROW(buffer << uset);
 
     std::unordered_multiset<int> umset;
-    ASSERT_THROWS(buffer << umset);
+    EXPECT_ANY_THROW(buffer << umset);
 
     std::map<int, int> map;
-    ASSERT_THROWS(buffer << map);
+    EXPECT_ANY_THROW(buffer << map);
 
     std::multimap<int, int> mmap;
-    ASSERT_THROWS(buffer << mmap);
+    EXPECT_ANY_THROW(buffer << mmap);
 
     std::unordered_map<int, int> umap;
-    ASSERT_THROWS(buffer << umap);
+    EXPECT_ANY_THROW(buffer << umap);
 
     std::unordered_multimap<int, int> ummap;
-    ASSERT_THROWS(buffer << ummap);
+    EXPECT_ANY_THROW(buffer << ummap);
 }
 
-static void serialize_deserialize_multiple_containers() {
+TEST(bin_serializer, serialize_deserialize_multiple_containers) {
     buffer<bin_serialize> buffer;
     container_struct cs1, cs2;
 
@@ -231,37 +231,13 @@ static void serialize_deserialize_multiple_containers() {
     buffer << cs1;
     buffer >> cs2;
 
-    ASSERT(cs1.a.size() == cs2.a.size());
-    ASSERT(cs1.b.size() == cs2.b.size());
-    ASSERT(cs1.c.size() == cs2.c.size());
-    ASSERT(std::distance(cs1.d.begin(), cs1.d.end()) == std::distance(cs2.d.begin(), cs2.d.end()));
+    EXPECT_TRUE(cs1.a.size() == cs2.a.size());
+    EXPECT_TRUE(cs1.b.size() == cs2.b.size());
+    EXPECT_TRUE(cs1.c.size() == cs2.c.size());
+    EXPECT_TRUE(std::distance(cs1.d.begin(), cs1.d.end()) == std::distance(cs2.d.begin(), cs2.d.end()));
 
-    ASSERT(std::equal(cs1.a.begin(), cs1.a.end(), cs2.a.begin()));
-    ASSERT(std::equal(cs1.b.begin(), cs1.b.end(), cs2.b.begin()));
-    ASSERT(std::equal(cs1.c.begin(), cs1.c.end(), cs2.c.begin()));
-    ASSERT(std::equal(cs1.d.begin(), cs1.d.end(), cs2.d.begin()));
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        serialize_deserialize_standard_layout();
-        serialize_deserialize_standard_layout_containers();
-        serialize_deserialize_strings();
-        serialize_deserialize_serializable();
-        serialize_deserialize_unsupported();
-        serialize_deserialize_multiple_containers();
-    }
-    else {
-        switch (std::stoi(argv[1])) {
-            case 0: serialize_deserialize_standard_layout();            break;
-            case 1: serialize_deserialize_standard_layout_containers(); break;
-            case 2: serialize_deserialize_strings();                    break;
-            case 3: serialize_deserialize_serializable();               break;
-            case 4: serialize_deserialize_unsupported();                break;
-            case 5: serialize_deserialize_multiple_containers();        break;
-            default: break;
-        }
-    }
-
-    return 0;
+    EXPECT_TRUE(std::equal(cs1.a.begin(), cs1.a.end(), cs2.a.begin()));
+    EXPECT_TRUE(std::equal(cs1.b.begin(), cs1.b.end(), cs2.b.begin()));
+    EXPECT_TRUE(std::equal(cs1.c.begin(), cs1.c.end(), cs2.c.begin()));
+    EXPECT_TRUE(std::equal(cs1.d.begin(), cs1.d.end(), cs2.d.begin()));
 }
