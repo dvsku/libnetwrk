@@ -12,7 +12,7 @@
     </a>
   </p>
   <p>
-    Cross-platform header only networking library.
+    Cross-platform networking library.
   </p>
 </div></br>
 
