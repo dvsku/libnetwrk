@@ -172,7 +172,10 @@ namespace libnetwrk {
             if (m_context_thread.joinable())
                 m_context_thread.join();
 
-            this->incoming_messages.cancel_wait();
+            {
+                std::lock_guard<std::mutex> guard(this->incoming_mutex);
+                this->incoming_messages = {};
+            }
 
             if (this->m_process_messages_thread.joinable())
                 this->m_process_messages_thread.join();

@@ -1,9 +1,10 @@
 #pragma once
 
 #include "libnetwrk/net/core/messages/owned_message.hpp"
-#include "libnetwrk/net/core/containers/tsdeque.hpp"
 
 #include <string>
+#include <queue>
+#include <mutex>
 
 namespace libnetwrk {
     enum class context_owner : uint8_t {
@@ -30,7 +31,9 @@ namespace libnetwrk {
         const context_owner owner;
 
         std::unique_ptr<context_t> asio_context;
-        tsdeque<owned_message_t>   incoming_messages;
+
+        std::queue<owned_message_t> incoming_messages;
+        std::mutex                  incoming_mutex;
 
     public:
         context(const std::string& name, context_owner owner)
@@ -49,20 +52,28 @@ namespace libnetwrk {
         /// <returns>true if a message has been processed, false if it hasn't</returns>
         bool process_message() {
             try {
-                if (incoming_messages.empty())
-                    return false;
+                owned_message_t message;
 
-                owned_message_t msg = incoming_messages.pop_front();
-                ev_message(msg);
+                {
+                    std::lock_guard<std::mutex> guard(incoming_mutex);
+
+                    if (incoming_messages.empty())
+                        return false;
+
+                    message = incoming_messages.front();
+                    incoming_messages.pop();
+                }
+
+                internal_process_message(message);
             }
             catch (const std::exception& e) {
                 (void)e;
 
-                LIBNETWRK_ERROR(name, "process_message() fail | {}", e.what());
+                LIBNETWRK_ERROR(name, "Failed to process message. | {}", e.what());
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(name, "process_message() fail | undefined reason");
+                LIBNETWRK_ERROR(name, "Failed to process message. | Critical fail");
                 return false;
             }
 
@@ -91,12 +102,7 @@ namespace libnetwrk {
     private:
         void impl_process_messages() {
             while (m_status == service_status::started) {
-                incoming_messages.wait();
-
-                while (!incoming_messages.empty()) {
-                    owned_message_t msg = incoming_messages.pop_front();
-                    ev_message(msg);
-                }
+                process_message();
             }
         }
     };

@@ -1,13 +1,12 @@
 #pragma once
 
 #include "libnetwrk/net/core/context.hpp"
-#include "libnetwrk/net/core/containers/tsdeque.hpp"
 #include "libnetwrk/net/core/messages/owned_message.hpp"
 
 #include <chrono>
 #include <map>
 #include <mutex>
-#include <random>
+#include <queue>
 
 namespace libnetwrk {
     template<typename Desc>
@@ -53,14 +52,7 @@ namespace libnetwrk {
         /// Start reading connection messages 
         /// </summary>
         void start() {
-            if (m_context.owner == context_owner::server) {
-                m_verification_code = generate_verification_code();
-                m_verification_ans  = generate_verification_answer(m_verification_code);
-                write_verification_message();
-            }
-            else {
-                read_verification_message();
-            }
+            read_message_head();
         }
 
         virtual const std::string remote_address() = 0;
@@ -77,10 +69,16 @@ namespace libnetwrk {
         /// <param name="message">ptr to message</param>
         void send(const std::shared_ptr<message_t> message) {
             asio::post(*m_context.asio_context, [this, message]() {
-                bool was_empty = m_outgoing_messages.empty();
-                m_outgoing_messages.push_back(message);
+                bool start_writing = false;
 
-                if (was_empty)
+                {
+                    std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
+
+                    start_writing = m_outgoing_messages.empty();
+                    m_outgoing_messages.push(message);
+                }
+
+                if (start_writing)
                     write_message_head();
             });
         }
@@ -96,51 +94,27 @@ namespace libnetwrk {
         }
 
     protected:
-        base_context_t&                     m_context;
-        tsdeque<std::shared_ptr<message_t>> m_outgoing_messages;
-        storage_t                           m_storage;
+        base_context_t& m_context;
+        storage_t       m_storage;
+
+        std::queue<std::shared_ptr<message_t>> m_outgoing_messages;
+        std::mutex                             m_outgoing_mutex;
 
         uint64_t m_id                = 0U;
         uint32_t m_verification_ans  = 0;        // Correct verification answer, server only
         uint32_t m_verification_code = 0;
 
-        message_t m_recv_message;
+        message_t                  m_recv_message;
+        std::shared_ptr<message_t> m_send_message;
 
     protected:
-        virtual void read_verification_message() = 0;
-
         virtual void read_message_head() = 0;
 
         virtual void read_message_body() = 0;
 
-        virtual void write_verification_message() = 0;
-
         virtual void write_message_head() = 0;
 
         virtual void write_message_body() = 0;
-
-        void read_verification_message_callback(std::error_code ec, std::size_t len) {
-            if (!ec) {
-                if (m_context.owner == context_owner::server) {
-                    if (m_verification_code == m_verification_ans) {
-                        read_message_head();
-                    }
-                    else {
-                        LIBNETWRK_WARNING(this->m_context.name,
-                            "client verification failed; disconnecting client");
-                        stop();
-                    }
-                }
-                else {
-                    m_verification_code = generate_verification_answer(m_verification_code);
-                    write_verification_message();
-                }
-            }
-            else if (ec == asio::error::eof || ec == asio::error::connection_reset)
-                on_disconnect();
-            else
-                on_error(ec);
-        }
 
         void read_message_head_callback(std::error_code ec, std::size_t len) {
             if (!ec) {
@@ -175,28 +149,20 @@ namespace libnetwrk {
                 on_error(ec);
         }
 
-        void write_verification_message_callback(std::error_code ec, std::size_t len) {
-            if (!ec) {
-                if (this->m_context.owner == context_owner::server)
-                    read_verification_message();
-                else
-                    read_message_head();
-            }
-            else if (ec == asio::error::eof || ec == asio::error::connection_reset)
-                on_disconnect();
-            else
-                on_error(ec);
-        }
-
         void write_message_head_callback(std::error_code ec, std::size_t len) {
             if (!ec) {
-                if (m_outgoing_messages.front()->data.size() > 0) {
+                if (m_send_message->data.size() > 0) {
                     write_message_body();
                 }
                 else {
-                    m_outgoing_messages.pop_front();
+                    bool start_writing = false;
 
-                    if (!m_outgoing_messages.empty())
+                    {
+                        std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
+                        start_writing = !m_outgoing_messages.empty();
+                    }
+
+                    if (start_writing)
                         write_message_head();
                 }
             }
@@ -208,9 +174,14 @@ namespace libnetwrk {
 
         void write_message_body_callback(std::error_code ec, std::size_t len) {
             if (!ec) {
-                m_outgoing_messages.pop_front();
+                bool start_writing = false;
 
-                if (!m_outgoing_messages.empty())
+                {
+                    std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
+                    start_writing = !m_outgoing_messages.empty();
+                }
+
+                if (start_writing)
                     write_message_head();
             }
             else if (ec == asio::error::eof || ec == asio::error::connection_reset)
@@ -223,9 +194,12 @@ namespace libnetwrk {
             owned_message_t owned_message;
             owned_message.msg.head = std::move(m_recv_message.head);
             owned_message.msg.data = std::move(m_recv_message.data);
+            owned_message.sender   = this->shared_from_this();
 
-            owned_message.sender = this->shared_from_this();
-            m_context.incoming_messages.emplace_back(std::move(owned_message));
+            {
+                std::lock_guard<std::mutex> guard(m_context.incoming_mutex);
+                m_context.incoming_messages.push(std::move(owned_message));
+            }
 
             read_message_head();
         }

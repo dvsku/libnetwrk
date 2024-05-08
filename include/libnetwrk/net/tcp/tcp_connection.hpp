@@ -8,6 +8,7 @@ namespace libnetwrk::tcp {
     public:
         using base_t          = libnetwrk::base_connection<Desc>;
         using base_context_t  = base_t::base_context_t;
+        using message_t       = base_t::message_t;
         using owned_message_t = base_t::owned_message_t;
         using socket_t        = asio::ip::tcp::socket;
 
@@ -48,20 +49,6 @@ namespace libnetwrk::tcp {
         socket_t m_socket;
 
     protected:
-        void read_verification_message() override {
-            if (this->m_context.owner == context_owner::server) {
-                asio::async_read(m_socket, asio::buffer(&this->m_verification_code, sizeof(uint32_t)),
-                    std::bind(&tcp_connection::read_verification_message_callback,
-                        this, std::placeholders::_1, std::placeholders::_2));
-            }
-            else {
-                std::error_code ec;
-                size_t written = asio::read(m_socket,
-                    asio::buffer(&this->m_verification_code, sizeof(uint32_t)), ec);
-                this->read_verification_message_callback(ec, written);
-            }
-        }
-
         void read_message_head() override {
             asio::async_read(m_socket,
                 asio::buffer(this->m_recv_message.data_head.data(),
@@ -77,39 +64,32 @@ namespace libnetwrk::tcp {
                     this, std::placeholders::_1, std::placeholders::_2));
         }
 
-        void write_verification_message() override {
-            if (this->m_context.owner == context_owner::server) {
-                asio::async_write(m_socket, asio::buffer(&this->m_verification_code, sizeof(uint32_t)),
-                    std::bind(&tcp_connection::write_verification_message_callback,
-                        this, std::placeholders::_1, std::placeholders::_2));
-            }
-            else {
-                std::error_code ec;
-                size_t written = asio::write(m_socket,
-                    asio::buffer(&this->m_verification_code, sizeof(uint32_t)), ec);
-                this->write_verification_message_callback(ec, written);
-            }
-        }
-
         void write_message_head() override {
-            if (this->m_outgoing_messages.front()->data_head.empty()) {
-                this->m_outgoing_messages.front()->head.send_timestamp =
+            {
+                std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
+
+                this->m_send_message = this->m_outgoing_messages.front();
+                this->m_outgoing_messages.pop();
+            }
+
+            if (this->m_send_message->data_head.empty()) {
+                this->m_send_message->head.send_timestamp =
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-                this->m_outgoing_messages.front()->head.serialize(this->m_outgoing_messages.front()->data_head);
+                this->m_send_message->head.serialize(this->m_outgoing_messages.front()->data_head);
             }
 
             asio::async_write(m_socket,
-                asio::buffer(this->m_outgoing_messages.front()->data_head.data(),
-                    this->m_outgoing_messages.front()->data_head.size()),
+                asio::buffer(this->m_send_message->data_head.data(),
+                    this->m_send_message->data_head.size()),
                 std::bind(&tcp_connection::write_message_head_callback,
                     this, std::placeholders::_1, std::placeholders::_2));
         }
 
         void write_message_body() override {
             asio::async_write(m_socket,
-                asio::buffer(this->m_outgoing_messages.front()->data.data(),
-                    this->m_outgoing_messages.front()->data.size()),
+                asio::buffer(this->m_send_message->data.data(),
+                    this->m_send_message->data.size()),
                 std::bind(&tcp_connection::write_message_body_callback,
                     this, std::placeholders::_1, std::placeholders::_2));
         }
