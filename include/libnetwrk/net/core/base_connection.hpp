@@ -216,16 +216,5 @@ namespace libnetwrk {
             LIBNETWRK_ERROR(this->m_context.name,
                 "failed during read/write | {}", ec.message());
         }
-
-        uint32_t generate_verification_code() {
-            std::random_device seed;
-            std::default_random_engine generator(seed());
-            std::uniform_int_distribution<uint32_t> distribution(0x0000, 0xFFFF);
-            return distribution(generator);
-        }
-
-        uint32_t generate_verification_answer(uint32_t request) {
-            return request ^ 21205;
-        }
     };
 }
