@@ -144,6 +144,9 @@ namespace libnetwrk {
         // Called when service stopped
         virtual void ev_service_stopped() {};
 
+        // Called when processing messages
+        virtual void ev_message(owned_message_t& msg) override {};
+
         // Called before client is fully accepted
         // Allows performing checks on client before accepting (blacklist, whitelist)
         virtual bool ev_before_client_connected(std::shared_ptr<base_connection_t> client) { return true; };
@@ -195,9 +198,22 @@ namespace libnetwrk {
         std::unique_ptr<timer_t> m_gc_timer;
 
     private:
+        void internal_process_message(owned_message_t& msg) override final {
+            if (msg.msg.head.type == message_type::system) {
+                ev_system_message(msg);
+            }
+            else {
+                ev_message(msg);
+            }
+        }
+
         void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) override final {
             LIBNETWRK_INFO(this->name, "client disconnected");
             ev_client_disconnected(client);
+        }
+
+        void ev_system_message(owned_message_t& msg) override final {
+            system_command command = static_cast<system_command>(msg.msg.command());
         }
 
     private:

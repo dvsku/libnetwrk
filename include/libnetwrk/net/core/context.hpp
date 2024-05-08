@@ -40,9 +40,6 @@ namespace libnetwrk {
             : name(name), owner(owner) {}
 
     public:
-        // Called when processing messages
-        virtual void ev_message(owned_message_t& msg) {};
-
         virtual void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) = 0;
 
     public:
@@ -98,6 +95,22 @@ namespace libnetwrk {
     protected:
         service_status m_status = service_status::stopped;
         std::thread    m_process_messages_thread;
+
+    protected:
+        /*
+            Initial message processing
+        */
+        virtual void internal_process_message(owned_message_t& msg) {}
+  
+        /*
+            User message processing
+        */
+        virtual void ev_message(owned_message_t& msg) {};
+
+        /*
+            System message processing
+        */
+        virtual void ev_system_message(owned_message_t& msg) {}
 
     private:
         void impl_process_messages() {

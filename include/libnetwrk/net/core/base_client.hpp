@@ -108,6 +108,9 @@ namespace libnetwrk {
         // Called when disconnected
         virtual void ev_disconnected() {};
 
+        // Called when processing messages
+        virtual void ev_message(owned_message_t& msg) override {};
+
     protected:
         // Connect implementation
         virtual bool impl_connect(const char* host, const unsigned short port) = 0;
@@ -144,11 +147,24 @@ namespace libnetwrk {
         std::thread m_context_thread;
 
     private:
+        void internal_process_message(owned_message_t& msg) override final {
+            if (msg.msg.head.type == message_type::system) {
+                ev_system_message(msg);
+            }
+            else {
+                ev_message(msg);
+            }
+        }
+
         void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) override final {
             std::thread thread = std::thread([this] {
                 this->disconnect();
             });
             thread.detach();
+        }
+
+        void ev_system_message(owned_message_t& msg) override final {
+            system_command command = static_cast<system_command>(msg.msg.command());
         }
     };
 }
