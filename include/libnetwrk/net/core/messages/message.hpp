@@ -28,13 +28,21 @@ namespace libnetwrk {
         message(message_t&&)      = default;
 
         message(command_t command) {
-            head.command = command;
+            set_command(command);
         }
 
         message_t& operator=(const message_t&) = default;
         message_t& operator=(message_t&&)      = default;
 
     public:
+        command_t command() {
+            return static_cast<command_t>(head.command);
+        }
+
+        void set_command(command_t command) {
+            head.command = static_cast<uint64_t>(command);
+        }
+
         /// <summary>
         /// Get milliseconds it took from sending the message to receiving the message.
         /// </summary>

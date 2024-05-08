@@ -19,10 +19,10 @@ namespace libnetwrk {
 
     public:
         message_type_t type{};
-        command_t      command{};
+        uint64_t       command        = 0U;
         uint64_t       send_timestamp = 0U;
         uint64_t       recv_timestamp = 0U;
-        size_t         data_size = 0U;
+        size_t         data_size      = 0U;
 
     public:
         message_head()                    = default;
@@ -36,7 +36,7 @@ namespace libnetwrk {
             this->data_size      = head.data_size;
 
             head.type           = message_type_t{};
-            head.command        = command_t{};
+            head.command        = 0U;
             head.send_timestamp = 0U;
             head.recv_timestamp = 0U;
             head.data_size      = 0U;
@@ -53,7 +53,7 @@ namespace libnetwrk {
                 this->data_size      = head.data_size;
 
                 head.type           = message_type_t{};
-                head.command        = command_t{};
+                head.command        = 0U;
                 head.send_timestamp = 0U;
                 head.recv_timestamp = 0U;
                 head.data_size      = 0U;
