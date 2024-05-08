@@ -18,7 +18,7 @@ namespace libnetwrk {
         using command_t      = typename Desc::command_t;
 
     public:
-        message_type_t type{};
+        message_type_t type           = message_type_t::user;
         uint64_t       command        = 0U;
         uint64_t       send_timestamp = 0U;
         uint64_t       recv_timestamp = 0U;
