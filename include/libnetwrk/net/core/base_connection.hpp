@@ -98,6 +98,7 @@ namespace libnetwrk {
         storage_t       m_storage;
 
         std::queue<std::shared_ptr<message_t>> m_outgoing_messages;
+        std::queue<std::shared_ptr<message_t>> m_outgoing_system_messages;
         std::mutex                             m_outgoing_mutex;
 
         uint64_t m_id                = 0U;

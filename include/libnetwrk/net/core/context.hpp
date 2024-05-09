@@ -33,6 +33,7 @@ namespace libnetwrk {
         std::unique_ptr<context_t> asio_context;
 
         std::queue<owned_message_t> incoming_messages;
+        std::queue<owned_message_t> incoming_system_messages;
         std::mutex                  incoming_mutex;
 
     public:
