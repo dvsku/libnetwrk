@@ -13,12 +13,13 @@ namespace libnetwrk::tcp {
     requires is_libnetwrk_service_desc<Desc>
     class tcp_client : public libnetwrk::base_client<Desc, libnetwrk::tcp::socket> {
     public:
-        using base_t          = libnetwrk::base_client<Desc, libnetwrk::tcp::socket>;
-        using message_t       = base_t::message_t;
-        using owned_message_t = base_t::owned_message_t;
-        using connection_t    = base_t::base_connection_t;
-        using native_socket_t = libnetwrk::tcp::socket::native_socket_t;
-        using command_t       = typename Desc::command_t;
+        using base_t            = libnetwrk::base_client<Desc, libnetwrk::tcp::socket>;
+        using message_t         = base_t::message_t;
+        using owned_message_t   = base_t::owned_message_t;
+        using connection_t      = base_t::connection_t;
+        using base_connection_t = connection_t::base_connection_t;
+        using native_socket_t   = libnetwrk::tcp::socket::native_socket_t;
+        using command_t         = typename Desc::command_t;
 
 
     public:

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "libnetwrk/net/core/context.hpp"
-#include "libnetwrk/net/core/base_connection.hpp"
+#include "libnetwrk/net/core/base_service_connection.hpp"
 
 namespace libnetwrk {
     template<typename Desc, typename Socket>
@@ -11,7 +11,8 @@ namespace libnetwrk {
         using base_context_t    = context<Desc, Socket>;
         using message_t         = message<Desc>;
         using owned_message_t   = base_context_t::owned_message_t;
-        using base_connection_t = base_context_t::base_connection_t;
+        using connection_t      = base_service_connection<Desc, Socket>;
+        using base_connection_t = connection_t::base_connection_t;
 
     public:
         base_client()                   = delete;
@@ -98,7 +99,7 @@ namespace libnetwrk {
         }
 
     protected:
-        std::shared_ptr<base_connection_t> m_connection;
+        std::shared_ptr<connection_t> m_connection;
     
     protected:
         // Called when successfully connected

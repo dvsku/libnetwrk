@@ -1,7 +1,7 @@
 #pragma once
 
 #include "libnetwrk/net/core/context.hpp"
-#include "libnetwrk/net/core/base_connection.hpp"
+#include "libnetwrk/net/core/base_client_connection.hpp"
 
 #include <chrono>
 #include <list>
@@ -14,7 +14,8 @@ namespace libnetwrk {
         using base_context_t    = context<Desc, Socket>;
         using message_t         = message<Desc>;
         using owned_message_t   = base_context_t::owned_message_t;
-        using base_connection_t = base_context_t::base_connection_t;
+        using connection_t      = base_client_connection<Desc, Socket>;
+        using base_connection_t = connection_t::base_connection_t;
         
         using guard_t = std::lock_guard<std::mutex>;
         using timer_t = asio::steady_timer;
@@ -133,8 +134,8 @@ namespace libnetwrk {
     protected:
         uint64_t m_ids     = 0U;
 
-        std::list<std::shared_ptr<base_connection_t>> m_connections;
-        std::mutex                                    m_connections_mutex;
+        std::list<std::shared_ptr<connection_t>> m_connections;
+        std::mutex                               m_connections_mutex;
 
     protected:
         // Called when the service was successfuly started
@@ -218,7 +219,7 @@ namespace libnetwrk {
         }
 
     private:
-        void impl_send(std::shared_ptr<base_connection_t>& client, std::shared_ptr<message_t> message) {
+        void impl_send(std::shared_ptr<connection_t>& client, std::shared_ptr<message_t> message) {
             if (client && client->is_connected())
                 client->send(message);
         }

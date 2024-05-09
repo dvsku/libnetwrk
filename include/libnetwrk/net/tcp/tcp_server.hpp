@@ -13,12 +13,13 @@ namespace libnetwrk::tcp {
     requires is_libnetwrk_service_desc<Desc>
     class tcp_server : public libnetwrk::base_server<Desc, libnetwrk::tcp::socket> {
     public:
-        using base_t          = libnetwrk::base_server<Desc, libnetwrk::tcp::socket>;
-        using message_t       = base_t::message_t;
-        using owned_message_t = base_t::owned_message_t;
-        using connection_t    = base_t::base_connection_t;
-        using native_socket_t = libnetwrk::tcp::socket::native_socket_t;
-        using command_t       = typename Desc::command_t;
+        using base_t            = libnetwrk::base_server<Desc, libnetwrk::tcp::socket>;
+        using message_t         = base_t::message_t;
+        using owned_message_t   = base_t::owned_message_t;
+        using connection_t      = base_t::connection_t;
+        using base_connection_t = connection_t::base_connection_t;
+        using native_socket_t   = libnetwrk::tcp::socket::native_socket_t;
+        using command_t         = typename Desc::command_t;
 
         using guard_t    = std::lock_guard<std::mutex>;
         using acceptor_t = asio::ip::tcp::acceptor;
@@ -67,13 +68,13 @@ namespace libnetwrk::tcp {
 
         // Called before client is fully accepted
         // Allows performing checks on client before accepting (blacklist, whitelist)
-        virtual bool ev_before_client_connected(std::shared_ptr<connection_t> client) override { return true; };
+        virtual bool ev_before_client_connected(std::shared_ptr<base_connection_t> client) override { return true; };
 
         // Called when a client has connected
-        virtual void ev_client_connected(std::shared_ptr<connection_t> client) override {};
+        virtual void ev_client_connected(std::shared_ptr<base_connection_t> client) override {};
 
         // Called when a client has disconnected
-        virtual void ev_client_disconnected(std::shared_ptr<connection_t> client) override {};
+        virtual void ev_client_disconnected(std::shared_ptr<base_connection_t> client) override {};
 
     protected:
         void teardown() {

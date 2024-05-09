@@ -12,10 +12,9 @@ namespace libnetwrk {
     template<typename Desc, typename Socket>
     class base_connection : public std::enable_shared_from_this<base_connection<Desc, Socket>> {
     public:
-        using base_connection_t = base_connection<Desc>;
         using base_connection_t = base_connection<Desc, Socket>;
         using socket_t          = Socket;
-        using base_context_t    = context<Desc, Socket>;
+        using context_t         = context<Desc, Socket>;
         using message_t         = message<Desc>;
         using owned_message_t   = owned_message<Desc, Socket>;
         using storage_t         = typename Desc::storage_t;
@@ -26,7 +25,7 @@ namespace libnetwrk {
         base_connection(const base_connection&) = delete;
         base_connection(base_connection&&)      = default;
 
-        base_connection(base_context_t& context, socket_t socket)
+        base_connection(context_t& context, socket_t socket)
             : m_context(context), m_socket(std::move(socket))
         {
             m_recv_message.data_head.resize(m_recv_message.head.size());
@@ -39,9 +38,7 @@ namespace libnetwrk {
         /*
             Get connection storage
         */
-        virtual storage_t& get_storage() {
-            return m_storage;
-        };
+        virtual storage_t& get_storage() = 0;
 
     public:
         /*
@@ -117,9 +114,9 @@ namespace libnetwrk {
         }
 
     protected:
-        base_context_t& m_context;
-        storage_t       m_storage;
-        socket_t        m_socket;
+        context_t& m_context;
+        storage_t  m_storage;
+        socket_t   m_socket;
 
         std::queue<std::shared_ptr<message_t>> m_outgoing_messages;
         std::queue<std::shared_ptr<message_t>> m_outgoing_system_messages;
