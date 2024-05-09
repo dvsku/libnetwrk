@@ -1,21 +1,20 @@
 #pragma once
 
-#include "libnetwrk/net/core/base_connection.hpp"
 #include "libnetwrk/net/core/context.hpp"
-#include "libnetwrk/net/core/messages/owned_message.hpp"
+#include "libnetwrk/net/core/base_connection.hpp"
 
 #include <chrono>
 #include <list>
 
 namespace libnetwrk {
-    template<typename Desc>
-    class base_server : public context<Desc> {
+    template<typename Desc, typename Socket>
+    class base_server : public context<Desc, Socket> {
     public:
-        using base_server_t     = base_server<Desc>;
-        using base_context_t    = context<Desc>;
+        using base_server_t     = base_server<Desc, Socket>;
+        using base_context_t    = context<Desc, Socket>;
         using message_t         = message<Desc>;
-        using owned_message_t   = owned_message<Desc>;
-        using base_connection_t = base_connection<Desc>;
+        using owned_message_t   = base_context_t::owned_message_t;
+        using base_connection_t = base_context_t::base_connection_t;
         
         using guard_t = std::lock_guard<std::mutex>;
         using timer_t = asio::steady_timer;
@@ -177,7 +176,9 @@ namespace libnetwrk {
 
             {
                 std::lock_guard<std::mutex> guard(this->incoming_mutex);
-                this->incoming_messages = {};
+
+                this->incoming_messages        = {};
+                this->incoming_system_messages = {};
             }
 
             if (this->m_process_messages_thread.joinable())
@@ -218,7 +219,7 @@ namespace libnetwrk {
 
     private:
         void impl_send(std::shared_ptr<base_connection_t>& client, std::shared_ptr<message_t> message) {
-            if (client && client->is_alive())
+            if (client && client->is_connected())
                 client->send(message);
         }
 
@@ -238,7 +239,7 @@ namespace libnetwrk {
                 if (!client)
                     return true;
 
-                if (!client->is_alive()) {
+                if (!client->is_connected()) {
                     internal_ev_client_disconnected(client);
                     return true;
                 }

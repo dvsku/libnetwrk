@@ -1,9 +1,9 @@
 #pragma once
 
 #include "libnetwrk/net/default_service_desc.hpp"
+#include "libnetwrk/net/tcp/socket.hpp"
 #include "libnetwrk/net/core/base_server.hpp"
 #include "libnetwrk/net/core/serialization/bin_serialize.hpp"
-#include "libnetwrk/net/tcp/tcp_connection.hpp"
 
 #include <exception>
 #include <thread>
@@ -11,18 +11,17 @@
 namespace libnetwrk::tcp {
     template<typename Desc = libnetwrk::default_service_desc>
     requires is_libnetwrk_service_desc<Desc>
-    class tcp_server : public libnetwrk::base_server<Desc> {
+    class tcp_server : public libnetwrk::base_server<Desc, libnetwrk::tcp::socket> {
     public:
-        using base_t            = libnetwrk::base_server<Desc>;
-        using message_t         = base_t::message_t;
-        using owned_message_t   = base_t::owned_message_t;
-        using connection_t      = tcp_connection<Desc>;
-        using base_connection_t = base_t::base_connection_t;
-        using command_t         = typename Desc::command_t;
+        using base_t          = libnetwrk::base_server<Desc, libnetwrk::tcp::socket>;
+        using message_t       = base_t::message_t;
+        using owned_message_t = base_t::owned_message_t;
+        using connection_t    = base_t::base_connection_t;
+        using native_socket_t = libnetwrk::tcp::socket::native_socket_t;
+        using command_t       = typename Desc::command_t;
 
         using guard_t    = std::lock_guard<std::mutex>;
         using acceptor_t = asio::ip::tcp::acceptor;
-        using socket_t   = asio::ip::tcp::socket;
 
     public:
         tcp_server(const std::string& name = "tcp server") 
@@ -68,13 +67,13 @@ namespace libnetwrk::tcp {
 
         // Called before client is fully accepted
         // Allows performing checks on client before accepting (blacklist, whitelist)
-        virtual bool ev_before_client_connected(std::shared_ptr<base_connection_t> client) override { return true; };
+        virtual bool ev_before_client_connected(std::shared_ptr<connection_t> client) override { return true; };
 
         // Called when a client has connected
-        virtual void ev_client_connected(std::shared_ptr<base_connection_t> client) override {};
+        virtual void ev_client_connected(std::shared_ptr<connection_t> client) override {};
 
         // Called when a client has disconnected
-        virtual void ev_client_disconnected(std::shared_ptr<base_connection_t> client) override {};
+        virtual void ev_client_disconnected(std::shared_ptr<connection_t> client) override {};
 
     protected:
         void teardown() {
@@ -118,13 +117,13 @@ namespace libnetwrk::tcp {
 
         void impl_accept() override final {
             m_acceptor->async_accept(
-                [this](std::error_code ec, socket_t socket) {
+                [this](std::error_code ec, native_socket_t socket) {
                     if (!ec) {
                         LIBNETWRK_VERBOSE(this->name, "attempted connection from {}:{}",
                             socket.remote_endpoint().address().to_string(),
                             socket.remote_endpoint().port());
 
-                        auto new_connection =  std::make_shared<connection_t>(*this, std::move(socket));
+                        auto new_connection = std::make_shared<connection_t>(*this, std::move(socket));
 
                         if (ev_before_client_connected(new_connection)) {
                             guard_t guard(this->m_connections_mutex);
@@ -135,8 +134,8 @@ namespace libnetwrk::tcp {
                             ev_client_connected(new_connection);
 
                             LIBNETWRK_INFO(this->name, "connection success from {}:{}",
-                                this->m_connections.back()->remote_address(),
-                                this->m_connections.back()->remote_port());
+                                this->m_connections.back()->get_ip(),
+                                this->m_connections.back()->get_port());
                         }
                         else {
                             LIBNETWRK_WARNING(this->name, "connection denied");

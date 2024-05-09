@@ -19,12 +19,12 @@ namespace libnetwrk {
         stopping = 0x3
     };
 
-    template<typename Desc>
+    template<typename Desc, typename Socket>
     class context {
     public:
         using context_t         = asio::io_context;
-        using owned_message_t   = owned_message<Desc>;
-        using base_connection_t = base_connection<Desc>;
+        using owned_message_t   = owned_message<Desc, Socket>;
+        using base_connection_t = base_connection<Desc, Socket>;
 
     public:
         const std::string   name;

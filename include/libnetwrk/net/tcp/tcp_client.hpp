@@ -1,9 +1,9 @@
 #pragma once
 
 #include "libnetwrk/net/default_service_desc.hpp"
+#include "libnetwrk/net/tcp/socket.hpp"
 #include "libnetwrk/net/core/base_client.hpp"
 #include "libnetwrk/net/core/serialization/bin_serialize.hpp"
-#include "libnetwrk/net/tcp/tcp_connection.hpp"
 
 #include <exception>
 #include <thread>
@@ -11,13 +11,15 @@
 namespace libnetwrk::tcp {
     template<typename Desc = libnetwrk::default_service_desc>
     requires is_libnetwrk_service_desc<Desc>
-    class tcp_client : public libnetwrk::base_client<Desc> {
+    class tcp_client : public libnetwrk::base_client<Desc, libnetwrk::tcp::socket> {
     public:
-        using base_t          = libnetwrk::base_client<Desc>;
+        using base_t          = libnetwrk::base_client<Desc, libnetwrk::tcp::socket>;
         using message_t       = base_t::message_t;
         using owned_message_t = base_t::owned_message_t;
-        using connection_t    = tcp_connection<Desc>;
+        using connection_t    = base_t::base_connection_t;
+        using native_socket_t = libnetwrk::tcp::socket::native_socket_t;
         using command_t       = typename Desc::command_t;
+
 
     public:
         tcp_client(const std::string& name = "tcp client") 
@@ -45,7 +47,7 @@ namespace libnetwrk::tcp {
                 asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
 
                 // Create ASIO socket
-                asio::ip::tcp::socket socket(*(this->asio_context), ep.protocol());
+                native_socket_t socket(*(this->asio_context), ep.protocol());
 
                 // Connect
                 socket.connect(ep);

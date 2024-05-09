@@ -1,18 +1,17 @@
 #pragma once
 
-#include "libnetwrk/net/core/base_connection.hpp"
 #include "libnetwrk/net/core/context.hpp"
-#include "libnetwrk/net/core/messages/owned_message.hpp"
+#include "libnetwrk/net/core/base_connection.hpp"
 
 namespace libnetwrk {
-    template<typename Desc>
-    class base_client : public context<Desc> {
+    template<typename Desc, typename Socket>
+    class base_client : public context<Desc, Socket> {
     public:
-        using base_client_t     = base_client<Desc>;
-        using base_context_t    = context<Desc>;
+        using base_client_t     = base_client<Desc, Socket>;
+        using base_context_t    = context<Desc, Socket>;
         using message_t         = message<Desc>;
-        using owned_message_t   = owned_message<Desc>;
-        using base_connection_t = base_connection<Desc>;
+        using owned_message_t   = base_context_t::owned_message_t;
+        using base_connection_t = base_context_t::base_connection_t;
 
     public:
         base_client()                   = delete;
@@ -89,7 +88,7 @@ namespace libnetwrk {
         /// <param name="message">: message to send</param>
         void send(message_t& message) {
             if (m_connection && connected()) {
-                if (m_connection->is_alive()) {
+                if (m_connection->is_connected()) {
                     m_connection->send(std::make_shared<message_t>(std::move(message)));
                 }
                 else {
@@ -120,17 +119,19 @@ namespace libnetwrk {
             if (this->asio_context && !this->asio_context->stopped())
                 this->asio_context->stop();
     
-            if (m_connection && m_connection->is_alive())
+            if (m_connection && m_connection->is_connected())
                 m_connection->stop();
-    
-            m_connection.reset();
-    
+
             if (m_context_thread.joinable())
                 m_context_thread.join();
 
+            m_connection.reset();
+
             {
                 std::lock_guard<std::mutex> guard(this->incoming_mutex);
-                this->incoming_messages = {};
+
+                this->incoming_messages        = {};
+                this->incoming_system_messages = {};
             }
     
             if (this->m_process_messages_thread.joinable())
