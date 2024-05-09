@@ -7,11 +7,6 @@
 #include <mutex>
 
 namespace libnetwrk {
-    enum class context_owner : uint8_t {
-        server = 0x0,
-        client = 0x1
-    };
-
     enum class service_status : uint8_t {
         stopped  = 0x0,
         starting = 0x1,
@@ -19,26 +14,30 @@ namespace libnetwrk {
         stopping = 0x3
     };
 
-    template<typename Desc, typename Socket>
-    class context {
+    class work_context {
     public:
-        using context_t         = asio::io_context;
-        using owned_message_t   = owned_message<Desc, Socket>;
-        using base_connection_t = base_connection<Desc, Socket>;
+        using io_context_t = asio::io_context;
 
     public:
-        const std::string   name;
-        const context_owner owner;
+        std::unique_ptr<io_context_t> io_context;
+    };
 
-        std::unique_ptr<context_t> asio_context;
+    template<typename Desc, typename Connection>
+    class context : public work_context {
+    public:
+        using owned_message_t   = owned_message<Desc, Connection>;
+        using base_connection_t = Connection;
+
+    public:
+        const std::string name;
 
         std::queue<owned_message_t> incoming_messages;
         std::queue<owned_message_t> incoming_system_messages;
         std::mutex                  incoming_mutex;
 
     public:
-        context(const std::string& name, context_owner owner)
-            : name(name), owner(owner) {}
+        context(const std::string& name)
+            : name(name) {}
 
     public:
         virtual void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) = 0;

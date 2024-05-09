@@ -8,27 +8,40 @@
 
 namespace libnetwrk {
     template<typename Desc, typename Socket>
-    class base_server : public context<Desc, Socket> {
+    class base_server : public context<Desc, base_client_connection<Desc, Socket>> {
     public:
-        using base_server_t     = base_server<Desc, Socket>;
-        using base_context_t    = context<Desc, Socket>;
-        using message_t         = message<Desc>;
-        using owned_message_t   = base_context_t::owned_message_t;
-        using connection_t      = base_client_connection<Desc, Socket>;
-        using base_connection_t = connection_t::base_connection_t;
-        
-        using guard_t = std::lock_guard<std::mutex>;
+        // This service type
+        using service_t = base_server<Desc, Socket>;
+
+        // Connection type for this service
+        using connection_t = base_client_connection<Desc, Socket>;
+
+        // Context type for this service
+        using context_t = context<Desc, connection_t>;
+
+        // Message type
+        using message_t = connection_t::message_t;
+
+        // Owned message type for this service
+        using owned_message_t = connection_t::owned_message_t;
+
+        // Send predicate
+        using send_predicate = std::function<bool(std::shared_ptr<connection_t>)>;
+
+    private:
+        // Timer type
         using timer_t = asio::steady_timer;
 
-        using send_predicate = std::function<bool(std::shared_ptr<base_connection_t>)>;
-
     public:
-        base_server()                     = delete;
-        base_server(const base_server_t&) = delete;
-        base_server(base_server_t&&)      = default;
+        base_server()                 = delete;
+        base_server(const service_t&) = delete;
+        base_server(service_t&&)      = default;
 
-        base_server(const std::string& name = "base server") 
-            : base_context_t(name, context_owner::server) {}
+        service_t& operator=(const service_t&) = delete;
+        service_t& operator=(service_t&&)      = default;
+
+        base_server(const std::string& name)
+            : context_t(name) {}
 
         virtual ~base_server() {
             if (this->m_status == service_status::stopped)
@@ -37,9 +50,6 @@ namespace libnetwrk {
             teardown();
             this->m_status = service_status::stopped;
         };
-
-        base_server_t& operator=(const base_server&) = delete;
-        base_server_t& operator=(base_server&&)      = default;
 
     public:
         /// <summary>
@@ -85,7 +95,7 @@ namespace libnetwrk {
         /// </summary>
         /// <param name="lambda">: function to run</param>
         void queue_async_job(std::function<void()> const& lambda) {
-            asio::post(*(this->asio_context), lambda);
+            asio::post(*(this->io_context), lambda);
         }
 
         /// <summary>
@@ -95,7 +105,7 @@ namespace libnetwrk {
         /// </summary>
         /// <param name="client">: client to send to</param>
         /// <param name="message">: message to send</param>
-        void send(std::shared_ptr<base_connection_t> client, message_t& message) {
+        void send(std::shared_ptr<connection_t> client, message_t& message) {
             impl_send(client, std::make_shared<message_t>(std::move(message)));
         }
 
@@ -108,7 +118,7 @@ namespace libnetwrk {
         void send_all(message_t& message) {
             auto msg = std::make_shared<message_t>(std::move(message));
 
-            guard_t guard(m_connections_mutex);
+            std::lock_guard<std::mutex> guard(m_connections_mutex);
             for (auto& client : m_connections)
                 impl_send(client, msg);
         }
@@ -123,7 +133,7 @@ namespace libnetwrk {
         void send_all(message_t& message, send_predicate predicate) {
             auto msg = std::make_shared<message_t>(std::move(message));
 
-            guard_t guard(m_connections_mutex);
+            std::lock_guard<std::mutex> guard(m_connections_mutex);
             for (auto& client : m_connections) {
                 if (client && predicate(client)) {
                     impl_send(client, msg);
@@ -149,13 +159,13 @@ namespace libnetwrk {
 
         // Called before client is fully accepted
         // Allows performing checks on client before accepting (blacklist, whitelist)
-        virtual bool ev_before_client_connected(std::shared_ptr<base_connection_t> client) { return true; };
+        virtual bool ev_before_client_connected(std::shared_ptr<connection_t> client) { return true; };
 
         // Called when a client has connected
-        virtual void ev_client_connected(std::shared_ptr<base_connection_t> client) {};
+        virtual void ev_client_connected(std::shared_ptr<connection_t> client) {};
         
         // Called when a client has disconnected
-        virtual void ev_client_disconnected(std::shared_ptr<base_connection_t> client) {};
+        virtual void ev_client_disconnected(std::shared_ptr<connection_t> client) {};
 
     protected:
         // Service start implementation
@@ -169,8 +179,8 @@ namespace libnetwrk {
             if (this->m_gc_timer)
                 this->m_gc_timer->cancel();
 
-            if (this->asio_context && !this->asio_context->stopped())
-                this->asio_context->stop();
+            if (this->io_context && !this->io_context->stopped())
+                this->io_context->stop();
 
             if (m_context_thread.joinable())
                 m_context_thread.join();
@@ -189,10 +199,10 @@ namespace libnetwrk {
         };
 
         void start_context() {
-            m_gc_timer = std::make_unique<timer_t>(*this->asio_context, std::chrono::seconds(15));
+            m_gc_timer = std::make_unique<timer_t>(*this->io_context, std::chrono::seconds(15));
             m_gc_timer->async_wait(std::bind(&base_server::impl_gc, this, std::placeholders::_1));
             
-            m_context_thread = std::thread([this] { this->asio_context->run(); });
+            m_context_thread = std::thread([this] { this->io_context->run(); });
         }
 
     private:
@@ -235,7 +245,7 @@ namespace libnetwrk {
             return true;
         }
 
-        void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) override final {
+        void internal_ev_client_disconnected(std::shared_ptr<connection_t> client) override final {
             LIBNETWRK_INFO(this->name, "client disconnected");
             ev_client_disconnected(client);
         }

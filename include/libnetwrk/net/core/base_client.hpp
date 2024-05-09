@@ -5,22 +5,33 @@
 
 namespace libnetwrk {
     template<typename Desc, typename Socket>
-    class base_client : public context<Desc, Socket> {
+    class base_client : public context<Desc, base_service_connection<Desc, Socket>> {
     public:
-        using base_client_t     = base_client<Desc, Socket>;
-        using base_context_t    = context<Desc, Socket>;
-        using message_t         = message<Desc>;
-        using owned_message_t   = base_context_t::owned_message_t;
-        using connection_t      = base_service_connection<Desc, Socket>;
-        using base_connection_t = connection_t::base_connection_t;
+        // This client type
+        using client_t = base_client<Desc, Socket>;
+
+        // Connection type for this client
+        using connection_t = base_service_connection<Desc, Socket>;
+
+        // Context type for this client
+        using context_t = context<Desc, connection_t>;
+
+        // Message type
+        using message_t = connection_t::message_t;
+
+        // Owned message type for this client
+        using owned_message_t = connection_t::owned_message_t;
 
     public:
-        base_client()                   = delete;
-        base_client(const base_client&) = delete;
-        base_client(base_client&&)      = default;
+        base_client()                = delete;
+        base_client(const client_t&) = delete;
+        base_client(client_t&&)      = default;
+
+        client_t& operator=(const client_t&) = delete;
+        client_t& operator=(client_t&&)      = default;
     
-        base_client(const std::string& name = "base client") 
-            : base_context_t(name, context_owner::client) {}
+        base_client(const std::string& name)
+            : context_t(name) {}
     
         virtual ~base_client() {
             if (this->m_status == service_status::stopped || this->m_status == service_status::stopping)
@@ -30,9 +41,6 @@ namespace libnetwrk {
             teardown();
             this->m_status = service_status::stopped;
         };
-
-        base_client_t& operator=(const base_client_t&) = delete;
-        base_client_t& operator=(base_client_t&&)      = default;
 
     public:
         /// <summary>
@@ -117,8 +125,8 @@ namespace libnetwrk {
 
     protected:
         void teardown() {
-            if (this->asio_context && !this->asio_context->stopped())
-                this->asio_context->stop();
+            if (this->io_context && !this->io_context->stopped())
+                this->io_context->stop();
     
             if (m_connection && m_connection->is_connected())
                 m_connection->stop();
@@ -142,7 +150,7 @@ namespace libnetwrk {
         }
     
         void start_context() {
-            m_context_thread = std::thread([this] { this->asio_context->run(); });
+            m_context_thread = std::thread([this] { this->io_context->run(); });
         }
 
     private:
@@ -184,7 +192,7 @@ namespace libnetwrk {
             return true;
         }
 
-        void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) override final {
+        void internal_ev_client_disconnected(std::shared_ptr<connection_t> client) override final {
             std::thread thread = std::thread([this] {
                 this->disconnect();
             });

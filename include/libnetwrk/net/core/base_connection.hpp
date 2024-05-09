@@ -4,41 +4,41 @@
 #include "libnetwrk/net/core/messages/owned_message.hpp"
 
 #include <chrono>
-#include <map>
 #include <mutex>
 #include <queue>
 
 namespace libnetwrk {
     template<typename Desc, typename Socket>
-    class base_connection : public std::enable_shared_from_this<base_connection<Desc, Socket>> {
+    class base_connection  {
     public:
-        using base_connection_t = base_connection<Desc, Socket>;
-        using socket_t          = Socket;
-        using context_t         = context<Desc, Socket>;
-        using message_t         = message<Desc>;
-        using owned_message_t   = owned_message<Desc, Socket>;
-        using storage_t         = typename Desc::storage_t;
-        using serialize_t       = typename Desc::serialize_t;
+        // This connection type
+        using connection_t = base_connection<Desc, Socket>;
+
+        // Socket type
+        using socket_t = Socket;
+
+        // Message type
+        using message_t = message<Desc>;
+
+        // Serializer type
+        using serialize_t = typename Desc::serialize_t;
+
+    public:
+        bool is_authenticated = false;
 
     public:
         base_connection()                       = delete;
         base_connection(const base_connection&) = delete;
         base_connection(base_connection&&)      = default;
 
-        base_connection(context_t& context, socket_t socket)
-            : m_context(context), m_socket(std::move(socket))
+        base_connection(socket_t socket)
+            : m_socket(std::move(socket))
         {
             m_recv_message.data_head.resize(m_recv_message.head.size());
         }
 
-        base_connection_t& operator=(const base_connection_t&) = delete;
-        base_connection_t& operator=(base_connection_t&&)      = default;
-
-    public:
-        /*
-            Get connection storage
-        */
-        virtual storage_t& get_storage() = 0;
+        connection_t& operator=(const connection_t&) = delete;
+        connection_t& operator=(connection_t&&)      = default;
 
     public:
         /*
@@ -73,12 +73,17 @@ namespace libnetwrk {
         /// Start reading connection messages 
         /// </summary>
         void start() {
+            /*if (m_context.owner == context_owner::server) {
+                m_verification_code = auth::generate_auth_question();
 
-        virtual const std::string remote_address() = 0;
+                message_t request;
+                request.head.type    = message_type::system;
+                request.head.command = static_cast<uint64_t>(system_command::s2c_verify);
+                request << m_verification_code;
 
-        virtual const unsigned short remote_port() = 0;
+                send(request);
+            }*/
 
-        virtual void stop() {};
             read_message();
             write_message();
         }
@@ -100,7 +105,6 @@ namespace libnetwrk {
             else {
                 m_outgoing_messages.push(message);
             }
-
         }
 
         /// <summary>
@@ -114,31 +118,46 @@ namespace libnetwrk {
         }
 
     protected:
-        context_t& m_context;
-        storage_t  m_storage;
-        socket_t   m_socket;
+        socket_t m_socket;
+        uint64_t m_id = 0U;
 
         std::queue<std::shared_ptr<message_t>> m_outgoing_messages;
         std::queue<std::shared_ptr<message_t>> m_outgoing_system_messages;
         std::mutex                             m_outgoing_mutex;
 
-        uint64_t m_id                = 0U;
-        uint32_t m_verification_ans  = 0;        // Correct verification answer, server only
-        uint32_t m_verification_code = 0;
-
         message_t                  m_recv_message;
         std::shared_ptr<message_t> m_send_message;
 
     protected:
-        void read_message() {
-            asio::post(*m_context.asio_context, [this] {
-                read_message_head();
-            });
-        }
+        /*
+            Called when there's a disconnect during read/write
+        */
+        virtual void internal_disconnect() {}
 
+        /*
+            Called when there's a failure during read/write
+        */
+        virtual void internal_failure(std::error_code ec) {}
+
+        /*
+            Called when finished reading a message
+        */
+        virtual void internal_read_callback() {}
+
+        /*
+            Queue message reading job
+        */
+        virtual void read_message() {}
+
+        /*
+            Queue message writing job
+        */
+        virtual void write_message() {}
+
+    protected:
         virtual void read_message_head() {
             m_socket.async_read<serialize_t>(m_recv_message.data_head,
-                std::bind(&base_connection_t::read_message_head_callback, this, std::placeholders::_1, std::placeholders::_2));
+                std::bind(&connection_t::read_message_head_callback, this, std::placeholders::_1, std::placeholders::_2));
         };
 
         void read_message_head_callback(std::error_code ec, std::size_t len) {
@@ -156,65 +175,37 @@ namespace libnetwrk {
                 }
                 else {    // MESSAGE HAS NO BODY
                     m_recv_message.data.clear();
-                    add_message_to_queue();
+                    internal_read_callback();
                 }
             }
-            else if (ec == asio::error::eof || ec == asio::error::connection_reset)
-                on_disconnect();
-            else
-                on_error(ec);
+            else if (ec == asio::error::eof || ec == asio::error::connection_reset) {
+                internal_disconnect();
+            }
+            else {
+                internal_failure(ec);
+            }
         }
 
         virtual void read_message_body() {
             m_socket.async_read<serialize_t>(m_recv_message.data,
-                std::bind(&base_connection_t::read_message_body_callback, this, std::placeholders::_1, std::placeholders::_2));
+                std::bind(&connection_t::read_message_body_callback, this, std::placeholders::_1, std::placeholders::_2));
         };
 
         void read_message_body_callback(std::error_code ec, std::size_t len) {
-            if (!ec)
-                add_message_to_queue();
-            else if (ec == asio::error::eof || ec == asio::error::connection_reset)
-                on_disconnect();
-            else
-                on_error(ec);
-        }
-
-        void write_message() {
-            asio::post(*m_context.asio_context, [this] {
-                {
-                    std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
-
-                    if (!m_outgoing_system_messages.empty()) {
-                        this->m_send_message = this->m_outgoing_system_messages.front();
-                        this->m_outgoing_system_messages.pop();
-                    }
-                    else if (!m_outgoing_messages.empty()) {
-                        this->m_send_message = this->m_outgoing_messages.front();
-                        this->m_outgoing_messages.pop();
-                    }
-                    else {
-                        this->m_send_message = nullptr;
-                    }
-                }
-
-                if (this->m_send_message) {
-                    if (this->m_send_message->data_head.empty()) {
-                        this->m_send_message->head.send_timestamp =
-                            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-                        this->m_send_message->head.serialize(this->m_send_message->data_head);
-                    }
-
-                    return write_message_head();
-                }
-
-                write_message();
-            });
+            if (!ec) {
+                internal_read_callback();
+            }
+            else if (ec == asio::error::eof || ec == asio::error::connection_reset) {
+                internal_disconnect();
+            }
+            else {
+                internal_failure(ec);
+            }
         }
 
         virtual void write_message_head() {
             m_socket.async_write<serialize_t>(m_send_message->data_head,
-                std::bind(&base_connection_t::write_message_head_callback, this, std::placeholders::_1, std::placeholders::_2));
+                std::bind(&connection_t::write_message_head_callback, this, std::placeholders::_1, std::placeholders::_2));
         };
 
         void write_message_head_callback(std::error_code ec, std::size_t len) {
@@ -226,58 +217,29 @@ namespace libnetwrk {
                     write_message();
                 }
             }
-            else if (ec == asio::error::eof || ec == asio::error::connection_reset)
-                on_disconnect();
-            else
-                on_error(ec);
+            else if (ec == asio::error::eof || ec == asio::error::connection_reset) {
+                internal_disconnect();
+            }
+            else {
+                internal_failure(ec);
+            }
         }
 
         virtual void write_message_body() {
             m_socket.async_write<serialize_t>(m_send_message->data,
-                std::bind(&base_connection_t::write_message_body_callback, this, std::placeholders::_1, std::placeholders::_2));
+                std::bind(&connection_t::write_message_body_callback, this, std::placeholders::_1, std::placeholders::_2));
         };
 
         void write_message_body_callback(std::error_code ec, std::size_t len) {
             if (!ec) {
                 write_message();
             }
-            else if (ec == asio::error::eof || ec == asio::error::connection_reset)
-                on_disconnect();
-            else
-                on_error(ec);
-        }
-
-        void add_message_to_queue() {
-            owned_message_t owned_message;
-            owned_message.msg.head = std::move(m_recv_message.head);
-            owned_message.msg.data = std::move(m_recv_message.data);
-            owned_message.sender   = this->shared_from_this();
-
-            {
-                std::lock_guard<std::mutex> guard(m_context.incoming_mutex);
-
-                if (owned_message.msg.head.type == message_type::system) {
-                    m_context.incoming_system_messages.push(std::move(owned_message));
-                }
-                else {
-                    m_context.incoming_messages.push(std::move(owned_message));
-                }
+            else if (ec == asio::error::eof || ec == asio::error::connection_reset) {
+                internal_disconnect();
             }
-
-            read_message();
-        }
-
-    private:
-        void on_disconnect() {
-            stop();
-            m_context.internal_ev_client_disconnected(this->shared_from_this());
-        }
-
-        void on_error(std::error_code ec) {
-            stop();
-            m_context.internal_ev_client_disconnected(this->shared_from_this());
-            LIBNETWRK_ERROR(this->m_context.name,
-                "failed during read/write | {}", ec.message());
+            else {
+                internal_failure(ec);
+            }
         }
     };
 }

@@ -13,20 +13,31 @@ namespace libnetwrk::tcp {
     requires is_libnetwrk_service_desc<Desc>
     class tcp_server : public libnetwrk::base_server<Desc, libnetwrk::tcp::socket> {
     public:
-        using base_t            = libnetwrk::base_server<Desc, libnetwrk::tcp::socket>;
-        using message_t         = base_t::message_t;
-        using owned_message_t   = base_t::owned_message_t;
-        using connection_t      = base_t::connection_t;
-        using base_connection_t = connection_t::base_connection_t;
-        using native_socket_t   = libnetwrk::tcp::socket::native_socket_t;
-        using command_t         = typename Desc::command_t;
+        // This service type
+        using service_t = tcp_server<Desc>;
 
-        using guard_t    = std::lock_guard<std::mutex>;
+        // Base service type
+        using base_service_t = libnetwrk::base_server<Desc, libnetwrk::tcp::socket>;
+
+        // Connection type for this service
+        using connection_t = base_service_t::connection_t;
+
+        // Message type
+        using message_t = base_service_t::message_t;
+
+        // Owned message type for this service
+        using owned_message_t = base_service_t::owned_message_t;
+
+        // Command type for this service
+        using command_t = typename Desc::command_t;
+
+    private:
+        // Client acceptor type
         using acceptor_t = asio::ip::tcp::acceptor;
 
     public:
-        tcp_server(const std::string& name = "tcp server") 
-            : base_t(name) {};
+        tcp_server(const std::string& name = "tcp service") 
+            : base_service_t(name) {};
 
         virtual ~tcp_server() {
             if (this->m_status == service_status::stopped || this->m_status == service_status::stopping)
@@ -46,7 +57,7 @@ namespace libnetwrk::tcp {
             this->m_status = service_status::stopping;
 
             teardown();
-            base_t::teardown();
+            base_service_t::teardown();
 
             this->m_status = service_status::stopped;
 
@@ -68,13 +79,13 @@ namespace libnetwrk::tcp {
 
         // Called before client is fully accepted
         // Allows performing checks on client before accepting (blacklist, whitelist)
-        virtual bool ev_before_client_connected(std::shared_ptr<base_connection_t> client) override { return true; };
+        virtual bool ev_before_client_connected(std::shared_ptr<connection_t> client) override { return true; };
 
         // Called when a client has connected
-        virtual void ev_client_connected(std::shared_ptr<base_connection_t> client) override {};
+        virtual void ev_client_connected(std::shared_ptr<connection_t> client) override {};
 
         // Called when a client has disconnected
-        virtual void ev_client_disconnected(std::shared_ptr<base_connection_t> client) override {};
+        virtual void ev_client_disconnected(std::shared_ptr<connection_t> client) override {};
 
     protected:
         void teardown() {
@@ -83,14 +94,18 @@ namespace libnetwrk::tcp {
         };
 
     private:
+        // Native socket type for this service
+        using native_socket_t = libnetwrk::tcp::socket::native_socket_t;
+
+    private:
         bool impl_start(const char* host, const unsigned short port) override final {
             try {
                 // Create ASIO context
-                this->asio_context = std::make_unique<asio::io_context>(1);
+                this->io_context = std::make_unique<asio::io_context>(1);
 
                 // Create ASIO acceptor
                 m_acceptor = std::make_unique<acceptor_t>
-                    (*(this->asio_context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
+                    (*(this->io_context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
 
                 // Start listening for and accepting connections
                 impl_accept();
@@ -127,7 +142,7 @@ namespace libnetwrk::tcp {
                         auto new_connection = std::make_shared<connection_t>(*this, std::move(socket));
 
                         if (ev_before_client_connected(new_connection)) {
-                            guard_t guard(this->m_connections_mutex);
+                            std::lock_guard<std::mutex> guard(this->m_connections_mutex);
 
                             this->m_connections.push_back(new_connection);
                             this->m_connections.back()->id() = ++this->m_ids;

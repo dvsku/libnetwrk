@@ -13,18 +13,27 @@ namespace libnetwrk::tcp {
     requires is_libnetwrk_service_desc<Desc>
     class tcp_client : public libnetwrk::base_client<Desc, libnetwrk::tcp::socket> {
     public:
-        using base_t            = libnetwrk::base_client<Desc, libnetwrk::tcp::socket>;
-        using message_t         = base_t::message_t;
-        using owned_message_t   = base_t::owned_message_t;
-        using connection_t      = base_t::connection_t;
-        using base_connection_t = connection_t::base_connection_t;
-        using native_socket_t   = libnetwrk::tcp::socket::native_socket_t;
-        using command_t         = typename Desc::command_t;
+        // This client type
+        using client_t = tcp_client<Desc>;
 
+        // Base client type
+        using base_client_t = libnetwrk::base_client<Desc, libnetwrk::tcp::socket>;
+
+        // Connection type for this client
+        using connection_t = base_client_t::connection_t;
+
+        // Message type
+        using message_t = base_client_t::message_t;
+
+        // Owned message type for this client
+        using owned_message_t = base_client_t::owned_message_t;
+
+        // Command type for this client
+        using command_t = typename Desc::command_t;
 
     public:
         tcp_client(const std::string& name = "tcp client") 
-            : base_t(name) {}
+            : base_client_t(name) {}
 
         virtual ~tcp_client() = default;
 
@@ -39,16 +48,20 @@ namespace libnetwrk::tcp {
         virtual void ev_message(owned_message_t& msg) override {};
 
     private:
+        // Native socket type for this client
+        using native_socket_t = libnetwrk::tcp::socket::native_socket_t;
+
+    private:
         bool impl_connect(const char* host, const unsigned short port) override final {
             try {
                 // Create ASIO context
-                this->asio_context = std::make_unique<asio::io_context>(1);
+                this->io_context = std::make_unique<asio::io_context>(1);
 
                 // Create ASIO endpoint
                 asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
 
                 // Create ASIO socket
-                native_socket_t socket(*(this->asio_context), ep.protocol());
+                native_socket_t socket(*(this->io_context), ep.protocol());
 
                 // Connect
                 socket.connect(ep);
