@@ -49,33 +49,7 @@ namespace libnetwrk {
         /// </summary>
         /// <returns>true if a message has been processed, false if it hasn't</returns>
         bool process_message() {
-            try {
-                owned_message_t message;
-
-                {
-                    std::lock_guard<std::mutex> guard(incoming_mutex);
-
-                    if (incoming_messages.empty())
-                        return false;
-
-                    message = incoming_messages.front();
-                    incoming_messages.pop();
-                }
-
-                internal_process_message(message);
-            }
-            catch (const std::exception& e) {
-                (void)e;
-
-                LIBNETWRK_ERROR(name, "Failed to process message. | {}", e.what());
-                return false;
-            }
-            catch (...) {
-                LIBNETWRK_ERROR(name, "Failed to process message. | Critical fail");
-                return false;
-            }
-
-            return true;
+            return internal_process_message();
         }
 
         /// <summary>
@@ -101,7 +75,9 @@ namespace libnetwrk {
         /*
             Initial message processing
         */
-        virtual void internal_process_message(owned_message_t& msg) {}
+        virtual bool internal_process_message() {
+            return false;
+        }
   
         /*
             User message processing

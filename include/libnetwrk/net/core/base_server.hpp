@@ -200,13 +200,39 @@ namespace libnetwrk {
         std::unique_ptr<timer_t> m_gc_timer;
 
     private:
-        void internal_process_message(owned_message_t& msg) override final {
-            if (msg.msg.head.type == message_type::system) {
-                ev_system_message(msg);
+        bool internal_process_message() override final {
+            try {
+                owned_message_t message;
+
+                {
+                    std::lock_guard<std::mutex> guard(this->incoming_mutex);
+
+                    if (this->incoming_messages.empty())
+                        return false;
+
+                    message = this->incoming_messages.front();
+                    this->incoming_messages.pop();
+                }
+
+                if (message.msg.head.type == message_type::system) {
+                    ev_system_message(message);
+                }
+                else {
+                    ev_message(message);
+                }
             }
-            else {
-                ev_message(msg);
+            catch (const std::exception& e) {
+                (void)e;
+
+                LIBNETWRK_ERROR(this->name, "Failed to process message. | {}", e.what());
+                return false;
             }
+            catch (...) {
+                LIBNETWRK_ERROR(this->name, "Failed to process message. | Critical fail");
+                return false;
+            }
+
+            return true;
         }
 
         void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) override final {
