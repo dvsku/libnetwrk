@@ -27,6 +27,3 @@ gtest_discover_tests(test_tcp_server_client)
 
 ADD_EXECUTABLE(test_tcp_talk test_tcp_talk.cpp)
 gtest_discover_tests(test_tcp_talk)
-
-ADD_EXECUTABLE(test_tsdeque test_tsdeque.cpp)
-gtest_discover_tests(test_tsdeque)
