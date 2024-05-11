@@ -39,49 +39,39 @@ class test_service : public tcp_server<service_desc> {
         
         void ev_message(owned_message_t& msg) override {
             message_t response;
-            switch (msg.msg.head.command) {
+            switch (msg.msg.command()) {
                 case commands::c2s_hello:
                     client_said_hello = true;
                     break;
                 case commands::c2s_echo:
                     client_said_echo = true;
-                    response.head.command = commands::s2c_echo;
+                    response.set_command(commands::s2c_echo);
                     msg.sender->send(response);
                     break;
                 case commands::c2s_ping:
                     msg.msg >> ping;
-                    response.head.command = commands::s2c_pong;
+                    response.set_command(commands::s2c_pong);
                     response << std::string("pOnG");
                     msg.sender->send(response);
                     break;
                 case commands::c2s_broadcast:
                     client_said_broadcast = true;
-                    response.head.command = commands::s2c_broadcast;
+                    response.set_command(commands::s2c_broadcast);
                     send_all(response);
                     break;
                 case commands::c2s_send_sync_success:
-                    response.head.command = commands::s2c_send_sync_success;
+                    response.set_command(commands::s2c_send_sync_success);
                     response << std::string("success");
                     msg.sender->send(response);
                     break;
                 case commands::c2s_send_sync_fail:
-                    response.head.command = commands::s2c_send_sync_fail;
+                    response.set_command(commands::s2c_send_sync_fail);
                     response << std::string("fail");
                     std::this_thread::sleep_for(std::chrono::milliseconds(5500));
                     msg.sender->send(response);
                     break;
                 default:
                     break;
-            }
-        }
-
-        void wait_for_msg(const int timeout = 30) {
-            int tries = 0;
-            while (tries < timeout) {
-                if (process_message()) break;
-
-                tries++;
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
             }
         }
 
@@ -103,7 +93,7 @@ class test_client : public tcp_client<service_desc> {
         std::string pong = "";
 
         void ev_message(owned_message_t& msg) override {
-            switch (msg.msg.head.command) {
+            switch (msg.msg.command()) {
                 case commands::s2c_echo:
                     server_said_echo = true;
                     break;
@@ -116,16 +106,6 @@ class test_client : public tcp_client<service_desc> {
 
                 default:
                     break;
-            }
-        }
-
-        void wait_for_msg(const int timeout = 30) {
-            int tries = 0;
-            while (tries < timeout) {
-                if (process_message()) break;
-
-                tries++;
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
             }
         }
 };
@@ -150,7 +130,11 @@ TEST(tcp_server_client, hello) {
     test_client::message_t msg(commands::c2s_hello);
     client.send(msg);
 
-    server.wait_for_msg();
+    server.process_messages_async();
+    client.process_messages_async();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
     EXPECT_TRUE(server.client_said_hello == true);
 }
 
@@ -164,10 +148,12 @@ TEST(tcp_server_client, echo) {
     test_client::message_t msg(commands::c2s_echo);
     client.send(msg);
 
-    server.wait_for_msg();
-    EXPECT_TRUE(server.client_said_echo == true);
+    server.process_messages_async();
+    client.process_messages_async();
 
-    client.wait_for_msg();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(server.client_said_echo == true);
     EXPECT_TRUE(client.server_said_echo == true);
 }
 
@@ -182,10 +168,12 @@ TEST(tcp_server_client, ping_pong) {
     msg << std::string("PiNg");
     client.send(msg);
 
-    server.wait_for_msg();
-    EXPECT_TRUE(server.ping == "PiNg");
+    server.process_messages_async();
+    client.process_messages_async();
 
-    client.wait_for_msg();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(server.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -199,18 +187,21 @@ TEST(tcp_server_client, broadcast) {
     test_client client2;
     EXPECT_TRUE(client2.connect("127.0.0.1", 21205) == true);
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
     EXPECT_TRUE(server.is_correct_id(0, 1));
     EXPECT_TRUE(server.is_correct_id(1, 2));
 
     test_client::message_t msg(commands::c2s_broadcast);
     client1.send(msg);
 
-    server.wait_for_msg();
-    EXPECT_TRUE(server.client_said_broadcast == true);
+    server.process_messages_async();
+    client1.process_messages_async();
+    client2.process_messages_async();
 
-    client1.wait_for_msg();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(server.client_said_broadcast  == true);
     EXPECT_TRUE(client1.server_said_broadcast == true);
-
-    client2.wait_for_msg();
     EXPECT_TRUE(client2.server_said_broadcast == true);
 }

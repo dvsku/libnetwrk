@@ -25,7 +25,7 @@ public:
     std::string ping = "";
 
     void ev_message(base_t::owned_message_t& message) override {
-        switch (message.msg.head.command) {
+        switch (message.msg.command()) {
             case base_t::command_t::c2s_ping:
             {
                 message.msg >> ping;
@@ -35,16 +35,6 @@ public:
                 break;
             }
             default: break;
-        }
-    }
-
-    void wait_for_message(const int timeout = 30) {
-        int tries = 0;
-        while (tries < timeout) {
-            if (base_t::process_message()) break;
-
-            tries++;
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
     }
 };
@@ -59,21 +49,11 @@ public:
     std::string pong = "";
 
     void ev_message(base_t::owned_message_t& message) override {
-        switch (message.msg.head.command) {
+        switch (message.msg.command()) {
             case base_t::command_t::s2c_pong:
                 message.msg >> pong;
                 break;
             default: break;
-        }
-    }
-
-    void wait_for_message(const int timeout = 30) {
-        int tries = 0;
-        while (tries < timeout) {
-            if (base_t::process_message()) break;
-
-            tries++;
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
     }
 };
@@ -100,10 +80,12 @@ TEST(commands, uint8) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.wait_for_message();
-    EXPECT_TRUE(server.ping == "PiNg");
+    server.process_messages_async();
+    client.process_messages_async();
 
-    client.wait_for_message();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(server.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -129,10 +111,12 @@ TEST(commands, uint16) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.wait_for_message();
-    EXPECT_TRUE(server.ping == "PiNg");
+    server.process_messages_async();
+    client.process_messages_async();
 
-    client.wait_for_message();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(server.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -158,10 +142,12 @@ TEST(commands, uint32) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.wait_for_message();
-    EXPECT_TRUE(server.ping == "PiNg");
+    server.process_messages_async();
+    client.process_messages_async();
 
-    client.wait_for_message();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(server.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -187,10 +173,12 @@ TEST(commands, uint64) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.wait_for_message();
-    EXPECT_TRUE(server.ping == "PiNg");
+    server.process_messages_async();
+    client.process_messages_async();
 
-    client.wait_for_message();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(server.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -216,10 +204,12 @@ TEST(commands, int8) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.wait_for_message();
-    EXPECT_TRUE(server.ping == "PiNg");
+    server.process_messages_async();
+    client.process_messages_async();
 
-    client.wait_for_message();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(server.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -245,10 +235,12 @@ TEST(commands, int16) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.wait_for_message();
-    EXPECT_TRUE(server.ping == "PiNg");
+    server.process_messages_async();
+    client.process_messages_async();
 
-    client.wait_for_message();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(server.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -274,10 +266,12 @@ TEST(commands, int32) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.wait_for_message();
-    EXPECT_TRUE(server.ping == "PiNg");
+    server.process_messages_async();
+    client.process_messages_async();
 
-    client.wait_for_message();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(server.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -303,9 +297,11 @@ TEST(commands, int64) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.wait_for_message();
-    EXPECT_TRUE(server.ping == "PiNg");
+    server.process_messages_async();
+    client.process_messages_async();
 
-    client.wait_for_message();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(server.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }

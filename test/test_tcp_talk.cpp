@@ -33,11 +33,11 @@ public:
         std::string received;
         msg.msg >> received;
 
-        switch (msg.msg.head.command) {
+        switch (msg.msg.command()) {
             case commands::c2s_msg1: {
                 EXPECT_TRUE(received == "request_1");
 
-                response.head.command = commands::s2c_msg1;
+                response.set_command(commands::s2c_msg1);
                 response << "response_1";
                 msg.sender->send(response);
                 break;
@@ -45,7 +45,7 @@ public:
             case commands::c2s_msg2: {
                 EXPECT_TRUE(received == "request_2");
 
-                response.head.command = commands::s2c_msg2;
+                response.set_command(commands::s2c_msg2);
                 response << "response_2";
                 msg.sender->send(response);
                 break;
@@ -53,7 +53,7 @@ public:
             case commands::c2s_msg3: {
                 EXPECT_TRUE(received == "request_3");
 
-                response.head.command = commands::s2c_msg3;
+                response.set_command(commands::s2c_msg3);
                 response << "response_3";
                 msg.sender->send(response);
                 break;
@@ -61,7 +61,7 @@ public:
             case commands::c2s_msg4: {
                 EXPECT_TRUE(received == "request_4");
 
-                response.head.command = commands::s2c_msg4;
+                response.set_command(commands::s2c_msg4);
                 response << "response_4";
                 msg.sender->send(response);
 
@@ -86,11 +86,11 @@ public:
         std::string received;
         msg.msg >> received;
 
-        switch (msg.msg.head.command) {
+        switch (msg.msg.command()) {
             case commands::s2c_msg1: {
                 EXPECT_TRUE(received == "response_1");
 
-                response.head.command = commands::c2s_msg2;
+                response.set_command(commands::c2s_msg2);
                 response << "request_2";
                 send(response);
                 break;
@@ -98,7 +98,7 @@ public:
             case commands::s2c_msg2: {
                 EXPECT_TRUE(received == "response_2");
 
-                response.head.command = commands::c2s_msg3;
+                response.set_command(commands::c2s_msg3);
                 response << "request_3";
                 send(response);
                 break;
@@ -106,7 +106,7 @@ public:
             case commands::s2c_msg3: {
                 EXPECT_TRUE(received == "response_3");
 
-                response.head.command = commands::c2s_msg4;
+                response.set_command(commands::c2s_msg4);
                 response << "request_4";
                 send(response);
                 break;
