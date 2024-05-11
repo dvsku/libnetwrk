@@ -54,6 +54,24 @@ namespace libnetwrk {
             return m_storage;
         }
 
+    public:
+        /*
+            Start read/write operations
+        */
+        void start() override final {
+            auth_question = auth::generate_auth_question();
+
+            message_t request;
+            request.head.type    = message_type::system;
+            request.head.command = static_cast<uint64_t>(system_command::s2c_verify);
+            request << auth_question;
+
+            this->send(request);
+
+            read_message();
+            write_message();
+        }
+
     protected:
         context_t& m_context;
         storage_t  m_storage;
@@ -83,6 +101,13 @@ namespace libnetwrk {
             owned_message.msg.head = std::move(this->m_recv_message.head);
             owned_message.msg.data = std::move(this->m_recv_message.data);
             owned_message.sender   = this->shared_from_this();
+
+            /*
+                If client is not authenticated, discard user messages
+            */
+
+            if (!this->is_authenticated.test() && owned_message.msg.head.type != message_type::system)
+                this->read_message();
 
             {
                 std::lock_guard<std::mutex> guard(this->m_context.incoming_mutex);

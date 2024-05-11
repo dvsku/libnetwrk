@@ -40,6 +40,15 @@ namespace libnetwrk {
         base_service_connection& operator=(const base_service_connection&) = delete;
         base_service_connection& operator=(base_service_connection&&)      = default;
 
+    public:
+        /*
+            Start read/write operations
+        */
+        void start() override final {
+            read_message();
+            write_message();
+        }
+
     protected:
         context_t& m_context;
 
@@ -100,16 +109,20 @@ namespace libnetwrk {
                 {
                     std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
 
+                    /*
+                        If not authenticated, write only system messages and
+                        keep the user messages in the queue
+                    */
+
                     if (!this->m_outgoing_system_messages.empty()) {
                         this->m_send_message = this->m_outgoing_system_messages.front();
                         this->m_outgoing_system_messages.pop();
                     }
-                    else if (!this->m_outgoing_messages.empty()) {
-                        this->m_send_message = this->m_outgoing_messages.front();
-                        this->m_outgoing_messages.pop();
-                    }
                     else {
-                        this->m_send_message = nullptr;
+                        if (this->is_authenticated.test() && !this->m_outgoing_messages.empty()) {
+                            this->m_send_message = this->m_outgoing_messages.front();
+                            this->m_outgoing_messages.pop();
+                        }
                     }
                 }
 

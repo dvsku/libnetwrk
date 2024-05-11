@@ -69,24 +69,10 @@ namespace libnetwrk {
             return m_id;
         }
 
-        /// <summary>
-        /// Start reading connection messages 
-        /// </summary>
-        void start() {
-            /*if (m_context.owner == context_owner::server) {
-                m_verification_code = auth::generate_auth_question();
-
-                message_t request;
-                request.head.type    = message_type::system;
-                request.head.command = static_cast<uint64_t>(system_command::s2c_verify);
-                request << m_verification_code;
-
-                send(request);
-            }*/
-
-            read_message();
-            write_message();
-        }
+        /*
+            Start read/write operations
+        */
+        virtual void start() = 0;
 
         void stop() {
             m_socket.close();

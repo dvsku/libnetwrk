@@ -217,11 +217,17 @@ namespace libnetwrk {
                 {
                     std::lock_guard<std::mutex> guard(this->incoming_mutex);
 
-                    if (this->incoming_messages.empty())
+                    if (this->incoming_system_messages.empty() && this->incoming_messages.empty())
                         return false;
 
-                    message = this->incoming_messages.front();
-                    this->incoming_messages.pop();
+                    if (!this->incoming_system_messages.empty()) {
+                        message = this->incoming_system_messages.front();
+                        this->incoming_system_messages.pop();
+                    }
+                    else {
+                        message = this->incoming_messages.front();
+                        this->incoming_messages.pop();
+                    }
                 }
 
                 if (message.msg.head.type == message_type::system) {
