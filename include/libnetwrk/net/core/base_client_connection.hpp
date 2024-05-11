@@ -107,7 +107,7 @@ namespace libnetwrk {
                 If client is not authenticated, discard user messages
             */
 
-            if (!this->is_authenticated.test() && owned_message.msg.head.type != message_type::system)
+            if (!this->is_authenticated.load() && owned_message.msg.head.type != message_type::system)
                 this->read_message();
 
             {

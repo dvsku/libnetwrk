@@ -120,7 +120,7 @@ namespace libnetwrk {
                         this->m_outgoing_system_messages.pop();
                     }
                     else {
-                        if (this->is_authenticated.test() && !this->m_outgoing_messages.empty()) {
+                        if (this->is_authenticated.load() && !this->m_outgoing_messages.empty()) {
                             this->m_send_message = this->m_outgoing_messages.front();
                             this->m_outgoing_messages.pop();
                         }

@@ -25,7 +25,7 @@ namespace libnetwrk {
         using serialize_t = typename Desc::serialize_t;
 
     public:
-        std::atomic_flag is_authenticated;
+        std::atomic_bool is_authenticated;
 
     public:
         base_connection()                       = delete;
@@ -35,7 +35,7 @@ namespace libnetwrk {
         base_connection(socket_t socket)
             : m_socket(std::move(socket))
         {
-            is_authenticated.clear();
+            is_authenticated.store(false);
             m_recv_message.data_head.resize(m_recv_message.head.size());
         }
 

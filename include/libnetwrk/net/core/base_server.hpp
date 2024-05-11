@@ -272,7 +272,7 @@ namespace libnetwrk {
             if (!auth::is_correct(msg.sender->auth_question, answer))
                 return msg.sender->stop();
 
-            msg.sender->is_authenticated.test_and_set();
+            msg.sender->is_authenticated.store(true);
 
             message_t response{};
             response.head.type    = message_type::system;
