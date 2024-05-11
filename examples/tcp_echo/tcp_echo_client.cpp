@@ -10,7 +10,7 @@ public:
     tcp_echo_client() : tcp_client() {}
 
     void ev_message(owned_message_t& msg) override {
-        switch (msg.msg.head.command) {
+        switch (msg.msg.command()) {
             case commands::s2c_echo:
             {
                 std::string text;

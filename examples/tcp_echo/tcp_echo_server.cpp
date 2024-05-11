@@ -11,15 +11,15 @@ public:
 
     void ev_message(owned_message_t& msg) override {
         message_t response;
-        switch (msg.msg.head.command) {
+        switch (msg.msg.command()) {
             case commands::c2s_echo: {
                 std::string text;
                 msg.msg >> text;
 
                 LIBNETWRK_INFO(this->name, "{}:{}\t{}",
-                    msg.sender->remote_address().c_str(), msg.sender->remote_port(), text);
+                    msg.sender->get_ip().c_str(), msg.sender->get_port(), text);
 
-                response.head.command = commands::s2c_echo;
+                response.set_command(commands::s2c_echo);
                 response << text;
 
                 msg.sender->send(response);
