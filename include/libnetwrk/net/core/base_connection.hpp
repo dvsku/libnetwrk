@@ -144,7 +144,7 @@ namespace libnetwrk {
 
     protected:
         virtual void read_message_head() {
-            m_socket.async_read<serialize_t>(m_recv_message.data_head,
+            m_socket.async_read(m_recv_message.data_head,
                 std::bind(&connection_t::read_message_head_callback, this, std::placeholders::_1, std::placeholders::_2));
         };
 
@@ -175,7 +175,7 @@ namespace libnetwrk {
         }
 
         virtual void read_message_body() {
-            m_socket.async_read<serialize_t>(m_recv_message.data,
+            m_socket.async_read(m_recv_message.data,
                 std::bind(&connection_t::read_message_body_callback, this, std::placeholders::_1, std::placeholders::_2));
         };
 
@@ -192,7 +192,7 @@ namespace libnetwrk {
         }
 
         virtual void write_message_head() {
-            m_socket.async_write<serialize_t>(m_send_message->data_head,
+            m_socket.async_write(m_send_message->data_head,
                 std::bind(&connection_t::write_message_head_callback, this, std::placeholders::_1, std::placeholders::_2));
         };
 
@@ -214,7 +214,7 @@ namespace libnetwrk {
         }
 
         virtual void write_message_body() {
-            m_socket.async_write<serialize_t>(m_send_message->data,
+            m_socket.async_write(m_send_message->data,
                 std::bind(&connection_t::write_message_body_callback, this, std::placeholders::_1, std::placeholders::_2));
         };
 
