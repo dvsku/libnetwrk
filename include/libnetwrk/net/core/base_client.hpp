@@ -207,6 +207,31 @@ namespace libnetwrk {
 
         void ev_system_message(owned_message_t& msg) override final {
             system_command command = static_cast<system_command>(msg.msg.command());
+
+            switch (command) {
+                case system_command::s2c_verify:    return on_system_verify_message(msg);
+                case system_command::s2c_verify_ok: return on_system_verify_ok_message(msg);
+                default:                            return;
+            }
+        }
+
+        void on_system_verify_message(owned_message_t& msg) {
+            auth::question_t question{};
+            auth::answer_t   answer{};
+
+            msg.msg >> question;
+            answer = auth::generate_auth_answer(question);
+
+            message_t response;
+            response.head.type    = message_type::system;
+            response.head.command = static_cast<uint64_t>(system_command::c2s_verify);
+            response << answer;
+            
+            send(response);
+        }
+
+        void on_system_verify_ok_message(owned_message_t& msg) {
+            m_connection->is_authenticated.test_and_set();
         }
     };
 }

@@ -20,5 +20,10 @@ namespace libnetwrk {
         inline static answer_t generate_auth_answer(question_t question) {
             return question ^ 21205;
         }
+
+        inline static bool is_correct(question_t question, answer_t answer) {
+            answer_t correct_answer = generate_auth_answer(question);
+            return correct_answer == answer;
+        }
     };
 }

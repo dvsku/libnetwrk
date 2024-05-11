@@ -2,6 +2,7 @@
 
 #include "libnetwrk/net/core/base_connection.hpp"
 #include "libnetwrk/net/core/auth.hpp"
+#include "libnetwrk/net/core/system_commands.hpp"
 
 #include <memory>
 
