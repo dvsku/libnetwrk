@@ -2,6 +2,7 @@
 
 #include "libnetwrk/net/default_service_desc.hpp"
 #include "libnetwrk/net/tcp/socket.hpp"
+#include "libnetwrk/net/tcp/tcp_resolver.hpp"
 #include "libnetwrk/net/core/base_server.hpp"
 #include "libnetwrk/net/core/serialization/bin_serialize.hpp"
 
@@ -103,9 +104,16 @@ namespace libnetwrk::tcp {
                 // Create ASIO context
                 this->io_context = std::make_unique<asio::io_context>(1);
 
+                // Create resolver
+                tcp_resolver resolver(*this);
+
+                // Resolve hostname
+                asio::ip::tcp::endpoint ep;
+                if (!resolver.get_endpoint(host, port, ep))
+                    throw libnetwrk_exception("failed to resolve hostname");
+
                 // Create ASIO acceptor
-                m_acceptor = std::make_unique<acceptor_t>
-                    (*(this->io_context), asio::ip::tcp::endpoint(asio::ip::address::from_string(host), port));
+                m_acceptor = std::make_unique<acceptor_t>(*(this->io_context), ep);
 
                 // Start listening for and accepting connections
                 impl_accept();
