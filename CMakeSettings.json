@@ -50,7 +50,7 @@
         },
         {
             "name": "5.  Linux x86 Debug",
-            "generator": "Unix Makefiles",
+            "generator": "Ninja",
             "configurationType": "Debug",
             "cmakeExecutable": "cmake",
             "remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
@@ -70,7 +70,7 @@
         },
         {
             "name": "6.  Linux x86 Release",
-            "generator": "Unix Makefiles",
+            "generator": "Ninja",
             "configurationType": "Release",
             "cmakeExecutable": "cmake",
             "remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
@@ -90,7 +90,7 @@
         },
         {
             "name": "7.  Linux x64 Debug",
-            "generator": "Unix Makefiles",
+            "generator": "Ninja",
             "configurationType": "Debug",
             "cmakeExecutable": "cmake",
             "remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
@@ -110,7 +110,7 @@
         },
         {
             "name": "8.  Linux x64 Release",
-            "generator": "Unix Makefiles",
+            "generator": "Ninja",
             "configurationType": "Release",
             "cmakeExecutable": "cmake",
             "remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
