@@ -60,7 +60,7 @@ namespace libnetwrk {
         template <typename T>
         message_t& operator<<(const T& value) {
             data << value;
-            head.data_size = data.size();
+            head.data_size = (uint32_t)data.size();
             return *this;
         }
 

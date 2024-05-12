@@ -22,7 +22,7 @@ namespace libnetwrk {
         uint64_t       command        = 0U;
         uint64_t       send_timestamp = 0U;
         uint64_t       recv_timestamp = 0U;
-        size_t         data_size      = 0U;
+        uint32_t       data_size      = 0U;
 
     public:
         message_head()                    = default;
