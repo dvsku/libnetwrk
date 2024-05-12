@@ -76,20 +76,10 @@ namespace libnetwrk {
             return connected;
         }
     
-        /// <summary>
-        /// Disconnect the client and clean up
-        /// </summary>
-        void disconnect() {
-            if (this->m_status != service_status::started) 
-                return;
-
-            this->m_status = service_status::stopping;
-
-            teardown();
-            ev_disconnected();
-
-            this->m_status = service_status::stopped;
-        }
+        /*
+            Disconnect the client and clean up
+        */
+        virtual void disconnect() {}
     
         /// <summary>
         /// Send a message

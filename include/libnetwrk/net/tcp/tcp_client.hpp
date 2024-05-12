@@ -38,6 +38,23 @@ namespace libnetwrk::tcp {
 
         virtual ~tcp_client() = default;
 
+    public:
+        /*
+            Disconnect the client and clean up
+        */
+        void disconnect() override final {
+            if (this->m_status != service_status::started)
+                return;
+
+            this->m_status = service_status::stopping;
+
+            teardown();
+            base_client_t::teardown();
+            ev_disconnected();
+
+            this->m_status = service_status::stopped;
+        }
+
     protected:
         // Called when successfully connected
         virtual void ev_connected() override {};
@@ -53,6 +70,8 @@ namespace libnetwrk::tcp {
         using native_socket_t = libnetwrk::tcp::socket::native_socket_t;
 
     private:
+        void teardown() {};
+
         bool impl_connect(const char* host, const unsigned short port) override final {
             try {
                 // Create ASIO context
