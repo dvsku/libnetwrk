@@ -141,6 +141,8 @@ namespace libnetwrk::tcp {
         }
 
         void impl_accept() override final {
+            if (!m_acceptor) return;
+
             m_acceptor->async_accept(
                 [this](std::error_code ec, native_socket_t socket) {
                     if (!ec) {
