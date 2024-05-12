@@ -67,7 +67,7 @@ namespace libnetwrk {
         */
         void internal_failure(std::error_code ec) override {
             internal_disconnect();
-            LIBNETWRK_ERROR(this->m_context.name, "Failed during read/write | {}", ec.message());
+            LIBNETWRK_ERROR(this->m_context.name, "Failed during read/write. | {}", ec.message());
         }
 
         /*

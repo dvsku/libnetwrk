@@ -148,7 +148,7 @@ namespace libnetwrk {
         std::mutex                               m_connections_mutex;
 
     protected:
-        // Called when the service was successfuly started
+        // Called when the service was successfully started
         virtual void ev_service_started() {};
         
         // Called when service stopped
@@ -195,7 +195,7 @@ namespace libnetwrk {
             if (this->m_process_messages_thread.joinable())
                 this->m_process_messages_thread.join();
 
-            LIBNETWRK_INFO(this->name, "stopped");
+            LIBNETWRK_INFO(this->name, "Stopped.");
         };
 
         void start_context() {
@@ -244,7 +244,7 @@ namespace libnetwrk {
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(this->name, "Failed to process message. | Critical fail");
+                LIBNETWRK_ERROR(this->name, "Failed to process message. | Critical fail.");
                 return false;
             }
 
@@ -252,7 +252,7 @@ namespace libnetwrk {
         }
 
         void internal_ev_client_disconnected(std::shared_ptr<connection_t> client) override final {
-            LIBNETWRK_INFO(this->name, "client disconnected");
+            LIBNETWRK_INFO(this->name, "Client disconnected.");
             ev_client_disconnected(client);
         }
 
@@ -290,7 +290,7 @@ namespace libnetwrk {
         void impl_gc(const std::error_code& ec) {
             if (ec) {
                 if (ec != asio::error::operation_aborted)
-                    LIBNETWRK_ERROR(this->name, "failed to run gc | {}", ec.message());
+                    LIBNETWRK_ERROR(this->name, "Failed to run GC. | {}", ec.message());
 
                 return;
             }
@@ -311,7 +311,7 @@ namespace libnetwrk {
                 return false;
             });
 
-            LIBNETWRK_INFO(this->name, "gc tc: {} rc: {}", m_connections.size(), prev_size - m_connections.size());
+            LIBNETWRK_INFO(this->name, "GC tc: {} rc: {}", m_connections.size(), prev_size - m_connections.size());
 
             m_gc_timer->expires_at(m_gc_timer->expiry() + std::chrono::seconds(15));
             m_gc_timer->async_wait(std::bind(&base_server::impl_gc, this, std::placeholders::_1));

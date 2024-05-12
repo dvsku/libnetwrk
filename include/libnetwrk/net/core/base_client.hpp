@@ -136,7 +136,7 @@ namespace libnetwrk {
             if (this->m_process_messages_thread.joinable())
                 this->m_process_messages_thread.join();
 
-            LIBNETWRK_INFO(this->name, "disconnected");
+            LIBNETWRK_INFO(this->name, "Disconnected.");
         }
     
         void start_context() {
@@ -181,7 +181,7 @@ namespace libnetwrk {
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(this->name, "Failed to process message. | Critical fail");
+                LIBNETWRK_ERROR(this->name, "Failed to process message. | Critical fail.");
                 return false;
             }
 

@@ -86,10 +86,10 @@ namespace libnetwrk {
         /// <exception cref="libnetwrk_exception">thrown when accessing data out of bounds</exception>
         void get_range(void* dst, size_t size) {
             if (!dst)
-                throw libnetwrk_exception("dst is null");
+                throw libnetwrk_exception("dst is null.");
 
             if (m_offset + size > m_data.size())
-                throw libnetwrk_exception("out of bounds");
+                throw libnetwrk_exception("Out of bounds.");
 
             std::memcpy(dst, m_data.data() + m_offset, size);
             _advance(size);
@@ -136,10 +136,10 @@ namespace libnetwrk {
 
         void swap_at(const void* src, const size_t size, const size_t offset) {
             if (!src)
-                throw libnetwrk_exception("src is null");
+                throw libnetwrk_exception("src is null.");
 
             if (offset + size > m_data.size())
-                throw libnetwrk_exception("out of bounds");
+                throw libnetwrk_exception("Out of bounds.");
 
             std::memcpy(m_data.data() + offset, src, size);
         }

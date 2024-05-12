@@ -33,7 +33,7 @@ namespace libnetwrk::tcp {
         using command_t = typename Desc::command_t;
 
     public:
-        tcp_client(const std::string& name = "tcp client") 
+        tcp_client(const std::string& name = "TCP client") 
             : base_client_t(name) {}
 
         virtual ~tcp_client() = default;
@@ -83,7 +83,7 @@ namespace libnetwrk::tcp {
                 // Resolve hostname
                 asio::ip::tcp::endpoint ep;
                 if (!resolver.get_endpoint(host, port, ep))
-                    throw libnetwrk_exception("failed to resolve hostname");
+                    throw libnetwrk_exception("Failed to resolve hostname.");
 
                 // Create ASIO socket
                 native_socket_t socket(*(this->io_context), ep.protocol());
@@ -101,17 +101,17 @@ namespace libnetwrk::tcp {
                 // Start ASIO context
                 this->start_context();
 
-                LIBNETWRK_INFO(this->name, "connected to {}:{}", host, port);
+                LIBNETWRK_INFO(this->name, "Connected to {}:{}.", host, port);
             }
             catch (const std::exception& e) {
                 (void)e;
 
-                LIBNETWRK_ERROR(this->name, "failed to connect | {}", e.what());
+                LIBNETWRK_ERROR(this->name, "Failed to connect. | {}", e.what());
                 this->teardown();
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(this->name, "failed to connect | fatal error");
+                LIBNETWRK_ERROR(this->name, "Failed to connect. | Critical fail.");
                 this->teardown();
                 return false;
             }

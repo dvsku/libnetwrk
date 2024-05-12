@@ -112,7 +112,7 @@ namespace libnetwrk {
             deserialize(buffer, size);
 
             if (size > N)
-                throw libnetwrk_exception("out of bounds");
+                throw libnetwrk_exception("Out of bounds.");
 
             buffer.get_range(container.data(), size * sizeof(T));
         }
@@ -123,7 +123,7 @@ namespace libnetwrk {
             deserialize(buffer, size);
 
             if (size > N)
-                throw libnetwrk_exception("out of bounds");
+                throw libnetwrk_exception("Out of bounds.");
 
             for (size_t i = 0U; i < size; i++)
                 deserialize(buffer, container[i]);

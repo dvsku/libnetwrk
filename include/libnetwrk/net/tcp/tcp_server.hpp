@@ -37,7 +37,7 @@ namespace libnetwrk::tcp {
         using acceptor_t = asio::ip::tcp::acceptor;
 
     public:
-        tcp_server(const std::string& name = "tcp service") 
+        tcp_server(const std::string& name = "TCP service") 
             : base_service_t(name) {};
 
         virtual ~tcp_server() {
@@ -69,7 +69,7 @@ namespace libnetwrk::tcp {
         std::unique_ptr<acceptor_t> m_acceptor;
 
     protected:
-        // Called when the service was successfuly started
+        // Called when the service was successfully started
         virtual void ev_service_started() override {};
 
         // Called when service stopped
@@ -111,7 +111,7 @@ namespace libnetwrk::tcp {
                 // Resolve hostname
                 asio::ip::tcp::endpoint ep;
                 if (!resolver.get_endpoint(host, port, ep))
-                    throw libnetwrk_exception("failed to resolve hostname");
+                    throw libnetwrk_exception("Failed to resolve hostname.");
 
                 // Create ASIO acceptor
                 m_acceptor = std::make_unique<acceptor_t>(*(this->io_context), ep);
@@ -122,17 +122,17 @@ namespace libnetwrk::tcp {
                 // Start ASIO context
                 this->start_context();
 
-                LIBNETWRK_INFO(this->name, "listening for connections on {}:{}", host, port);
+                LIBNETWRK_INFO(this->name, "Listening for connections on {}:{}.", host, port);
             }
             catch (const std::exception& e) {
                 (void)e;
 
-                LIBNETWRK_ERROR(this->name, "failed to start listening | {}", e.what());
+                LIBNETWRK_ERROR(this->name, "Failed to start listening. | {}", e.what());
                 stop();
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(this->name, "failed to start listening | fatal error");
+                LIBNETWRK_ERROR(this->name, "Failed to start listening. | Critical fail.");
                 stop();
                 return false;
             }
@@ -146,7 +146,7 @@ namespace libnetwrk::tcp {
             m_acceptor->async_accept(
                 [this](std::error_code ec, native_socket_t socket) {
                     if (!ec) {
-                        LIBNETWRK_VERBOSE(this->name, "attempted connection from {}:{}",
+                        LIBNETWRK_VERBOSE(this->name, "Attempted connection from {}:{}.",
                             socket.remote_endpoint().address().to_string(),
                             socket.remote_endpoint().port());
 
@@ -160,12 +160,12 @@ namespace libnetwrk::tcp {
                             this->m_connections.back()->start();
                             ev_client_connected(new_connection);
 
-                            LIBNETWRK_INFO(this->name, "connection success from {}:{}",
+                            LIBNETWRK_INFO(this->name, "Connection success from {}:{}.",
                                 this->m_connections.back()->get_ip(),
                                 this->m_connections.back()->get_port());
                         }
                         else {
-                            LIBNETWRK_WARNING(this->name, "connection denied");
+                            LIBNETWRK_WARNING(this->name, "Connection denied.");
                         }
                     }
                     else if (ec == asio::error::operation_aborted) {
@@ -174,7 +174,7 @@ namespace libnetwrk::tcp {
                     }
                     else {
                         // Should probably stop the server here
-                        LIBNETWRK_ERROR(this->name, "failed to accept connection | {}", ec.message());
+                        LIBNETWRK_ERROR(this->name, "Failed to accept connection. | {}", ec.message());
                     }
 
                     impl_accept();
