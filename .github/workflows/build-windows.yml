@@ -37,5 +37,5 @@ jobs:
                 build-type: ${{ matrix.build_type }}
       
         - name: Test
-          working-directory: ${{github.workspace}}/build
+          working-directory: ${{ runner.workspace }}/build
           run: ctest -C ${{ matrix.build-type }}
