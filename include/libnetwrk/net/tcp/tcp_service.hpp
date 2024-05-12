@@ -3,7 +3,7 @@
 #include "libnetwrk/net/default_service_desc.hpp"
 #include "libnetwrk/net/tcp/socket.hpp"
 #include "libnetwrk/net/tcp/tcp_resolver.hpp"
-#include "libnetwrk/net/core/base_server.hpp"
+#include "libnetwrk/net/core/base_service.hpp"
 #include "libnetwrk/net/core/serialization/bin_serialize.hpp"
 
 #include <exception>
@@ -12,13 +12,13 @@
 namespace libnetwrk::tcp {
     template<typename Desc = libnetwrk::default_service_desc>
     requires is_libnetwrk_service_desc<Desc>
-    class tcp_server : public libnetwrk::base_server<Desc, libnetwrk::tcp::socket> {
+    class tcp_service : public libnetwrk::base_service<Desc, libnetwrk::tcp::socket> {
     public:
         // This service type
-        using service_t = tcp_server<Desc>;
+        using service_t = tcp_service<Desc>;
 
         // Base service type
-        using base_service_t = libnetwrk::base_server<Desc, libnetwrk::tcp::socket>;
+        using base_service_t = libnetwrk::base_service<Desc, libnetwrk::tcp::socket>;
 
         // Connection type for this service
         using connection_t = base_service_t::connection_t;
@@ -37,10 +37,10 @@ namespace libnetwrk::tcp {
         using acceptor_t = asio::ip::tcp::acceptor;
 
     public:
-        tcp_server(const std::string& name = "TCP service") 
+        tcp_service(const std::string& name = "TCP service")
             : base_service_t(name) {};
 
-        virtual ~tcp_server() {
+        virtual ~tcp_service() {
             if (this->m_status == service_status::stopped || this->m_status == service_status::stopping)
                 return;
 
