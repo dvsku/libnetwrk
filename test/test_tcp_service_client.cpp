@@ -28,9 +28,9 @@ struct service_desc {
     using storage_t   = libnetwrk::nothing;
 };
 
-class test_service : public tcp_server<service_desc> {
+class test_service : public tcp_service<service_desc> {
     public:
-        test_service() : tcp_server() {}
+        test_service() : tcp_service() {}
 
         bool client_said_hello = false;
         bool client_said_echo = false;
@@ -88,20 +88,20 @@ class test_client : public tcp_client<service_desc> {
     public:
         test_client() : tcp_client() {}
 
-        bool server_said_echo = false;
-        bool server_said_broadcast = false;
+        bool service_said_echo = false;
+        bool service_said_broadcast = false;
         std::string pong = "";
 
         void ev_message(owned_message_t& msg) override {
             switch (msg.msg.command()) {
                 case commands::s2c_echo:
-                    server_said_echo = true;
+                    service_said_echo = true;
                     break;
                 case commands::s2c_pong:
                     msg.msg >> pong;
                     break;
                 case commands::s2c_broadcast:
-                    server_said_broadcast = true;
+                    service_said_broadcast = true;
                     break;
 
                 default:
@@ -110,19 +110,27 @@ class test_client : public tcp_client<service_desc> {
         }
 };
 
-TEST(tcp_server_client, connect) {
-    test_service server;
-    server.start("127.0.0.1", 21205);
+TEST(tcp_service_client, connect) {
+    {
+        test_service service;
+        EXPECT_TRUE(service.start("127.0.0.1", 21205));
 
-    test_client client;
-    bool connected = client.connect("127.0.0.1", 21205);
+        test_client client;
+        EXPECT_TRUE(client.connect("127.0.0.1", 21205));
+    }
 
-    EXPECT_TRUE(connected == true);
+    {
+        test_service service;
+        EXPECT_TRUE(service.start("localhost", 21205));
+
+        test_client client;
+        EXPECT_TRUE(client.connect("localhost", 21205));
+    }
 }
 
-TEST(tcp_server_client, hello) {
-    test_service server;
-    server.start("127.0.0.1", 21205);
+TEST(tcp_service_client, hello) {
+    test_service service;
+    service.start("127.0.0.1", 21205);
 
     test_client client;
     client.connect("127.0.0.1", 21205);
@@ -130,17 +138,17 @@ TEST(tcp_server_client, hello) {
     test_client::message_t msg(commands::c2s_hello);
     client.send(msg);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.client_said_hello == true);
+    EXPECT_TRUE(service.client_said_hello == true);
 }
 
-TEST(tcp_server_client, echo) {
-    test_service server;
-    server.start("127.0.0.1", 21205);
+TEST(tcp_service_client, echo) {
+    test_service service;
+    service.start("127.0.0.1", 21205);
 
     test_client client;
     client.connect("127.0.0.1", 21205);
@@ -148,18 +156,18 @@ TEST(tcp_server_client, echo) {
     test_client::message_t msg(commands::c2s_echo);
     client.send(msg);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.client_said_echo == true);
-    EXPECT_TRUE(client.server_said_echo == true);
+    EXPECT_TRUE(service.client_said_echo == true);
+    EXPECT_TRUE(client.service_said_echo == true);
 }
 
-TEST(tcp_server_client, ping_pong) {
-    test_service server;
-    server.start("127.0.0.1", 21205);
+TEST(tcp_service_client, ping_pong) {
+    test_service service;
+    service.start("127.0.0.1", 21205);
 
     test_client client;
     client.connect("127.0.0.1", 21205);
@@ -168,18 +176,18 @@ TEST(tcp_server_client, ping_pong) {
     msg << std::string("PiNg");
     client.send(msg);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.ping == "PiNg");
+    EXPECT_TRUE(service.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
-TEST(tcp_server_client, broadcast) {
-    test_service server;
-    server.start("127.0.0.1", 21205);
+TEST(tcp_service_client, broadcast) {
+    test_service service;
+    service.start("127.0.0.1", 21205);
 
     test_client client1;
     EXPECT_TRUE(client1.connect("127.0.0.1", 21205) == true);
@@ -189,19 +197,19 @@ TEST(tcp_server_client, broadcast) {
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.is_correct_id(0, 1));
-    EXPECT_TRUE(server.is_correct_id(1, 2));
+    EXPECT_TRUE(service.is_correct_id(0, 1));
+    EXPECT_TRUE(service.is_correct_id(1, 2));
 
     test_client::message_t msg(commands::c2s_broadcast);
     client1.send(msg);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client1.process_messages_async();
     client2.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.client_said_broadcast  == true);
-    EXPECT_TRUE(client1.server_said_broadcast == true);
-    EXPECT_TRUE(client2.server_said_broadcast == true);
+    EXPECT_TRUE(service.client_said_broadcast  == true);
+    EXPECT_TRUE(client1.service_said_broadcast == true);
+    EXPECT_TRUE(client2.service_said_broadcast == true);
 }

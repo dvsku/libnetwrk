@@ -19,11 +19,11 @@ gtest_discover_tests(test_tcp_client)
 ADD_EXECUTABLE(test_tcp_command_type test_tcp_command_type.cpp)
 gtest_discover_tests(test_tcp_command_type)
 
-ADD_EXECUTABLE(test_tcp_server test_tcp_server.cpp)
-gtest_discover_tests(test_tcp_server)
+ADD_EXECUTABLE(test_tcp_service test_tcp_service.cpp)
+gtest_discover_tests(test_tcp_service)
 
-ADD_EXECUTABLE(test_tcp_server_client test_tcp_server_client.cpp)
-gtest_discover_tests(test_tcp_server_client)
+ADD_EXECUTABLE(test_tcp_service_client test_tcp_service_client.cpp)
+gtest_discover_tests(test_tcp_service_client)
 
 ADD_EXECUTABLE(test_tcp_talk test_tcp_talk.cpp)
 gtest_discover_tests(test_tcp_talk)

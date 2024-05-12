@@ -23,9 +23,9 @@ struct service_desc {
     using storage_t   = libnetwrk::nothing;
 };
 
-class test_service : public tcp_server<service_desc> {
+class test_service : public tcp_service<service_desc> {
 public:
-    test_service() : tcp_server() {}
+    test_service() : tcp_service() {}
 
     void ev_message(owned_message_t& msg) override {
         message_t response;
@@ -123,8 +123,8 @@ public:
 };
 
 TEST(tcp_talk, talking) {
-    test_service server;
-    server.start("127.0.0.1", 21205);
+    test_service service;
+    service.start("127.0.0.1", 21205);
 
     test_client client;
     client.connect("127.0.0.1", 21205);
@@ -133,8 +133,8 @@ TEST(tcp_talk, talking) {
     msg << "request_1";
     client.send(msg);
 
-    while (server.running() && client.connected()) {
-        server.process_message();
+    while (service.running() && client.connected()) {
+        service.process_message();
         client.process_message();
     }
 }

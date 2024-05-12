@@ -16,11 +16,11 @@ struct service_desc {
 };
 
 template<typename T>
-class basic_server : public tcp_server<service_desc<T>> {
+class basic_service : public tcp_service<service_desc<T>> {
 public:
-    using base_t = tcp_server<service_desc<T>>;
+    using base_t = tcp_service<service_desc<T>>;
 
-    basic_server() : tcp_server<service_desc<T>>() {}
+    basic_service() : tcp_service<service_desc<T>>() {}
 
     std::string ping = "";
 
@@ -68,9 +68,9 @@ enum class commands_uint8 : unsigned char {
 };
 
 TEST(commands, uint8) {
-    ASSERT_NO_THROW(basic_server<commands_uint8> server);
-    basic_server<commands_uint8> server;
-    server.start("127.0.0.1", 21205);
+    ASSERT_NO_THROW(basic_service<commands_uint8> service);
+    basic_service<commands_uint8> service;
+    service.start("127.0.0.1", 21205);
 
     ASSERT_NO_THROW(basic_client<commands_uint8> client);
     basic_client<commands_uint8> client;
@@ -80,12 +80,12 @@ TEST(commands, uint8) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.ping == "PiNg");
+    EXPECT_TRUE(service.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -99,9 +99,9 @@ enum class commands_uint16 : unsigned short {
 };
 
 TEST(commands, uint16) {
-    ASSERT_NO_THROW(basic_server<commands_uint16> server);
-    basic_server<commands_uint16> server;
-    server.start("127.0.0.1", 21205);
+    ASSERT_NO_THROW(basic_service<commands_uint16> service);
+    basic_service<commands_uint16> service;
+    service.start("127.0.0.1", 21205);
 
     ASSERT_NO_THROW(basic_client<commands_uint16> client);
     basic_client<commands_uint16> client;
@@ -111,12 +111,12 @@ TEST(commands, uint16) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.ping == "PiNg");
+    EXPECT_TRUE(service.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -130,9 +130,9 @@ enum class commands_uint32 : unsigned int {
 };
 
 TEST(commands, uint32) {
-    ASSERT_NO_THROW(basic_server<commands_uint32> server);
-    basic_server<commands_uint32> server;
-    server.start("127.0.0.1", 21205);
+    ASSERT_NO_THROW(basic_service<commands_uint32> service);
+    basic_service<commands_uint32> service;
+    service.start("127.0.0.1", 21205);
 
     ASSERT_NO_THROW(basic_client<commands_uint32> client);
     basic_client<commands_uint32> client;
@@ -142,12 +142,12 @@ TEST(commands, uint32) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.ping == "PiNg");
+    EXPECT_TRUE(service.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -161,9 +161,9 @@ enum class commands_uint64 : unsigned long long {
 };
 
 TEST(commands, uint64) {
-    ASSERT_NO_THROW(basic_server<commands_uint64> server);
-    basic_server<commands_uint64> server;
-    server.start("127.0.0.1", 21205);
+    ASSERT_NO_THROW(basic_service<commands_uint64> service);
+    basic_service<commands_uint64> service;
+    service.start("127.0.0.1", 21205);
 
     ASSERT_NO_THROW(basic_client<commands_uint64> client);
     basic_client<commands_uint64> client;
@@ -173,12 +173,12 @@ TEST(commands, uint64) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.ping == "PiNg");
+    EXPECT_TRUE(service.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -192,9 +192,9 @@ enum class commands_int8 : char {
 };
 
 TEST(commands, int8) {
-    ASSERT_NO_THROW(basic_server<commands_int8> server);
-    basic_server<commands_int8> server;
-    server.start("127.0.0.1", 21205);
+    ASSERT_NO_THROW(basic_service<commands_int8> service);
+    basic_service<commands_int8> service;
+    service.start("127.0.0.1", 21205);
 
     ASSERT_NO_THROW(basic_client<commands_int8> client);
     basic_client<commands_int8> client;
@@ -204,12 +204,12 @@ TEST(commands, int8) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.ping == "PiNg");
+    EXPECT_TRUE(service.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -223,9 +223,9 @@ enum class commands_int16 : short {
 };
 
 TEST(commands, int16) {
-    ASSERT_NO_THROW(basic_server<commands_int16> server);
-    basic_server<commands_int16> server;
-    server.start("127.0.0.1", 21205);
+    ASSERT_NO_THROW(basic_service<commands_int16> service);
+    basic_service<commands_int16> service;
+    service.start("127.0.0.1", 21205);
 
     ASSERT_NO_THROW(basic_client<commands_int16> client);
     basic_client<commands_int16> client;
@@ -235,12 +235,12 @@ TEST(commands, int16) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.ping == "PiNg");
+    EXPECT_TRUE(service.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -254,9 +254,9 @@ enum class commands_int32 : int {
 };
 
 TEST(commands, int32) {
-    ASSERT_NO_THROW(basic_server<commands_int32> server);
-    basic_server<commands_int32> server;
-    server.start("127.0.0.1", 21205);
+    ASSERT_NO_THROW(basic_service<commands_int32> service);
+    basic_service<commands_int32> service;
+    service.start("127.0.0.1", 21205);
 
     ASSERT_NO_THROW(basic_client<commands_int32> client);
     basic_client<commands_int32> client;
@@ -266,12 +266,12 @@ TEST(commands, int32) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.ping == "PiNg");
+    EXPECT_TRUE(service.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
 
@@ -285,9 +285,9 @@ enum class commands_int64 : long long {
 };
 
 TEST(commands, int64) {
-    ASSERT_NO_THROW(basic_server<commands_int64> server);
-    basic_server<commands_int64> server;
-    server.start("127.0.0.1", 21205);
+    ASSERT_NO_THROW(basic_service<commands_int64> service);
+    basic_service<commands_int64> service;
+    service.start("127.0.0.1", 21205);
 
     ASSERT_NO_THROW(basic_client<commands_int64> client);
     basic_client<commands_int64> client;
@@ -297,11 +297,11 @@ TEST(commands, int64) {
     message << std::string("PiNg");
     client.send(message);
 
-    server.process_messages_async();
+    service.process_messages_async();
     client.process_messages_async();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-    EXPECT_TRUE(server.ping == "PiNg");
+    EXPECT_TRUE(service.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
