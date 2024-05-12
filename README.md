@@ -1,15 +1,18 @@
 <div align="center">
   <h1>libnetwrk</h1>
     <p>
-    <a href="#">
-      <img src="https://img.shields.io/github/actions/workflow/status/dvsku/libnetwrk/build.yml?branch=main&label=build%20and%20tests"/>
-    </a>
-    <a href="#">
-      <img src="https://img.shields.io/github/downloads/dvsku/libnetwrk/total"/>
-    </a>
-     <a href="#">
-      <img src="https://img.shields.io/github/license/dvsku/libnetwrk"/>
-    </a>
+      <span>
+        <img src="https://img.shields.io/github/actions/workflow/status/dvsku/libnetwrk/build-windows.yml?branch=main&label=windows"/>
+      </span>
+      <span>
+        <img src="https://img.shields.io/github/actions/workflow/status/dvsku/libnetwrk/build-linux.yml?branch=main&label=linux"/>
+      </span>
+      <span>
+        <img src="https://img.shields.io/github/downloads/dvsku/libnetwrk/total"/>
+      </span>
+      <span>
+        <img src="https://img.shields.io/github/license/dvsku/libnetwrk"/>
+      </span>
   </p>
   <p>
     Cross-platform networking library.
