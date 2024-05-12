@@ -88,17 +88,18 @@ namespace libnetwrk::tcp {
         // Called when a client has disconnected
         virtual void ev_client_disconnected(std::shared_ptr<connection_t> client) override {};
 
-    protected:
-        void teardown() {
-            if (m_acceptor && m_acceptor->is_open())
-                m_acceptor->close();
-        };
-
     private:
         // Native socket type for this service
         using native_socket_t = libnetwrk::tcp::socket::native_socket_t;
 
     private:
+        void teardown() {
+            if (m_acceptor && m_acceptor->is_open()) {
+                m_acceptor->close();
+                m_acceptor.reset();
+            }
+        };
+
         bool impl_start(const char* host, const unsigned short port) override final {
             try {
                 // Create ASIO context
