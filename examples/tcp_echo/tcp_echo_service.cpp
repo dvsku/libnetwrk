@@ -5,9 +5,9 @@
 using namespace libnetwrk::tcp;
 using namespace libnetwrk;
 
-class tcp_echo_server : public tcp_server<service_desc> {
+class tcp_echo_service : public tcp_service<service_desc> {
 public:
-    tcp_echo_server() : tcp_server() {}
+    tcp_echo_service() : tcp_service() {}
 
     void ev_message(owned_message_t& msg) override {
         message_t response;
@@ -38,11 +38,11 @@ int main(int argc, char* argv[]) {
     dvsku::dv_util_log::init(log_settings);
     dvsku::dv_util_log::create_source("console", &std::cout);
 
-    tcp_echo_server server;
-    server.start("127.0.0.1", 21205);
-    server.process_messages();
+    tcp_echo_service service;
+    service.start("127.0.0.1", 21205);
+    service.process_messages();
 
-    server.stop();
+    service.stop();
 
     return 0;
 }
