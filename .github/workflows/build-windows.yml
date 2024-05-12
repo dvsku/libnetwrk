@@ -1,0 +1,41 @@
+name: Build libnetwrk for Windows
+
+on:
+    push:
+        branches: [ "main" ]
+    pull_request:
+        branches: [ "main" ]
+
+jobs:
+    build:
+        runs-on: windows-latest
+    
+        strategy:
+            matrix:
+                architecture: [x86, x64]
+                build_type: [Release]
+
+        steps:
+        - name: Checkout repo
+          uses: actions/checkout@v3
+
+        - name: Set up VS toolchain
+          uses: ilammy/msvc-dev-cmd@v1
+          with:
+                arch: ${{ matrix.architecture }}
+
+        - name: Setup Ninja
+          uses: ashutoshvarma/setup-ninja@master
+          with:
+                version: 1.10.0
+
+        - name: Build
+          uses: ashutoshvarma/action-cmake-build@master
+          with:
+                build-dir: ${{ runner.workspace }}/build
+                configure-options: -G Ninja -DCMAKE_CXX_COMPILER=cl -DCMAKE_C_COMPILER=cl
+                build-type: ${{ matrix.build_type }}
+      
+        - name: Test
+          working-directory: ${{github.workspace}}/build
+          run: ctest -C ${{ matrix.build-type }}
