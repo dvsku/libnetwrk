@@ -48,6 +48,7 @@ namespace libnetwrk::tcp {
             teardown();
         }
 
+    public:
         /*
             Stop service.
         */

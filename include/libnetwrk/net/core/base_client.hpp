@@ -32,15 +32,6 @@ namespace libnetwrk {
     
         base_client(const std::string& name)
             : context_t(name) {}
-    
-        virtual ~base_client() {
-            if (this->m_status == service_status::stopped || this->m_status == service_status::stopping)
-                return;
-
-            this->m_status = service_status::stopping;
-            teardown();
-            this->m_status = service_status::stopped;
-        };
 
     public:
         /*
@@ -93,6 +84,15 @@ namespace libnetwrk {
 
     protected:
         std::shared_ptr<connection_t> m_connection;
+
+    protected:
+        virtual ~base_client() {
+            if (this->m_status == service_status::stopped)
+                return;
+
+            teardown();
+            this->m_status = service_status::stopped;
+        };
     
     protected:
         /*
@@ -140,10 +140,10 @@ namespace libnetwrk {
             m_connection.reset();
 
             {
-                std::lock_guard<std::mutex> guard(this->incoming_mutex);
+                std::lock_guard<std::mutex> guard(this->m_incoming_mutex);
 
-                this->incoming_messages        = {};
-                this->incoming_system_messages = {};
+                this->m_incoming_messages        = {};
+                this->m_incoming_system_messages = {};
             }
     
             if (this->m_process_messages_thread.joinable())
@@ -165,18 +165,18 @@ namespace libnetwrk {
                 owned_message_t message;
 
                 {
-                    std::lock_guard<std::mutex> guard(this->incoming_mutex);
+                    std::lock_guard<std::mutex> guard(this->m_incoming_mutex);
 
-                    if (this->incoming_system_messages.empty() && this->incoming_messages.empty())
+                    if (this->m_incoming_system_messages.empty() && this->m_incoming_messages.empty())
                         return false;
 
-                    if (!this->incoming_system_messages.empty()) {
-                        message = this->incoming_system_messages.front();
-                        this->incoming_system_messages.pop();
+                    if (!this->m_incoming_system_messages.empty()) {
+                        message = this->m_incoming_system_messages.front();
+                        this->m_incoming_system_messages.pop();
                     }
                     else {
-                        message = this->incoming_messages.front();
-                        this->incoming_messages.pop();
+                        message = this->m_incoming_messages.front();
+                        this->m_incoming_messages.pop();
                     }
                 }
 
@@ -201,6 +201,9 @@ namespace libnetwrk {
             return true;
         }
 
+        /*
+            Client disconnected callback from connection.
+        */
         void internal_ev_client_disconnected(std::shared_ptr<connection_t> client) override final {
             std::thread thread = std::thread([this] {
                 this->disconnect();

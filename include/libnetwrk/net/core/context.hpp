@@ -23,7 +23,7 @@ namespace libnetwrk {
     };
 
     template<typename Desc, typename Connection>
-    class context : public work_context {
+    class context : protected work_context {
     public:
         // Connection type for this context
         using base_connection_t = Connection;
@@ -37,26 +37,11 @@ namespace libnetwrk {
     public:
         const std::string name;
 
-        std::queue<owned_message_t> incoming_messages;
-        std::queue<owned_message_t> incoming_system_messages;
-        std::mutex                  incoming_mutex;
+        friend base_connection_t;
 
     public:
         context(const std::string& name)
             : name(name) {}
-
-    public:
-        virtual void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) = 0;
-
-        /*
-            Pre process message data before writing.
-        */
-        virtual void pre_process_message(buffer_t& buffer) = 0;
-
-        /*
-            Post process message data after reading.
-        */
-        virtual void post_process_message(buffer_t& buffer) = 0;
 
     public:
         /*
@@ -84,9 +69,19 @@ namespace libnetwrk {
 
     protected:
         service_status m_status = service_status::stopped;
-        std::thread    m_process_messages_thread;
+
+        std::queue<owned_message_t> m_incoming_messages;
+        std::queue<owned_message_t> m_incoming_system_messages;
+        std::mutex                  m_incoming_mutex;
+
+        std::thread m_process_messages_thread;
 
     protected:
+        /*
+            Client disconnected callback from connection.
+        */
+        virtual void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) = 0;
+
         /*
             Initial message processing.
         */
@@ -103,6 +98,16 @@ namespace libnetwrk {
             System message processing.
         */
         virtual void ev_system_message(owned_message_t& msg) {}
+
+        /*
+            Pre process message data before writing.
+        */
+        virtual void pre_process_message(buffer_t& buffer) = 0;
+
+        /*
+            Post process message data after reading.
+        */
+        virtual void post_process_message(buffer_t& buffer) = 0;
 
     private:
         void impl_process_messages() {
