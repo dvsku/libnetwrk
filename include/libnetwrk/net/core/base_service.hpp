@@ -327,7 +327,7 @@ namespace libnetwrk {
                     return true;
                 }
 
-                if (!client->is_authenticated) {
+                if (!client->is_authenticated.load()) {
                     uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::system_clock::now().time_since_epoch()).count();
 
