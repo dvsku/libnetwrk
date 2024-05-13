@@ -84,14 +84,18 @@ namespace libnetwrk {
             Send message.
         */
         void send(const std::shared_ptr<message_t> message) {
-            std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
+            {
+                std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
 
-            if (message->head.type == message_type::system) {
-                m_outgoing_system_messages.push(message);
+                if (message->head.type == message_type::system) {
+                    m_outgoing_system_messages.push(message);
+                }
+                else {
+                    m_outgoing_messages.push(message);
+                }
             }
-            else {
-                m_outgoing_messages.push(message);
-            }
+            
+            write_message();
         }
 
         /*

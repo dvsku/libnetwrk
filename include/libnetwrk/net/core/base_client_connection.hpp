@@ -7,6 +7,9 @@
 #include <memory>
 
 namespace libnetwrk {
+    template<typename Desc, typename Socket>
+    class base_service;
+
     /*
         Base connection that represents a service's client connection
     */
@@ -33,6 +36,8 @@ namespace libnetwrk {
         // Storage type for this connection
         using storage_t = typename Desc::storage_t;
 
+        friend base_service<Desc, Socket>;
+        
     public:
         auth::question_t auth_question{};
         uint64_t         auth_timeout_timestamp = 0U;
@@ -74,7 +79,6 @@ namespace libnetwrk {
             auth_timeout_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(limit.time_since_epoch()).count();
 
             read_message();
-            write_message();
         }
 
     protected:
@@ -160,6 +164,10 @@ namespace libnetwrk {
                 {
                     std::lock_guard<std::mutex> guard(shared->m_outgoing_mutex);
 
+                    if (shared->m_outgoing_system_messages.empty() && shared->m_outgoing_messages.empty()) {
+                        return;
+                    }
+
                     if (!shared->m_outgoing_system_messages.empty()) {
                         shared->m_send_message = shared->m_outgoing_system_messages.front();
                         shared->m_outgoing_system_messages.pop();
@@ -173,25 +181,24 @@ namespace libnetwrk {
                     }
                 }
 
-                if (shared->m_send_message) {
-                    if (shared->m_send_message->data_head.empty()) {
-                        shared->m_send_message->head.send_timestamp =
-                            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                if (!shared->m_send_message)
+                    return;
 
-                        // Pre process message data
-                        shared->m_context.pre_process_message(shared->m_send_message->data);
+                if (shared->m_send_message->data_head.empty()) {
+                    shared->m_send_message->head.send_timestamp =
+                        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-                        // Set new data size
-                        shared->m_send_message->head.data_size = shared->m_send_message->data.size();
+                    // Pre process message data
+                    shared->m_context.pre_process_message(shared->m_send_message->data);
 
-                        // Serialize head
-                        shared->m_send_message->head.serialize(shared->m_send_message->data_head);
-                    }
+                    // Set new data size
+                    shared->m_send_message->head.data_size = shared->m_send_message->data.size();
 
-                    return shared->write_message_head();
+                    // Serialize head
+                    shared->m_send_message->head.serialize(shared->m_send_message->data_head);
                 }
 
-                shared->write_message();
+                return shared->write_message_head();
             });
         }
     };

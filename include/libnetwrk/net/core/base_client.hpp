@@ -237,6 +237,7 @@ namespace libnetwrk {
 
         void on_system_verify_ok_message(owned_message_t& msg) {
             m_connection->is_authenticated.store(true);
+            m_connection->write_message();
         }
     };
 }
