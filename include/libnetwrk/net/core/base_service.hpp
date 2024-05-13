@@ -33,6 +33,9 @@ namespace libnetwrk {
         using timer_t = asio::steady_timer;
 
     public:
+        uint8_t gc_freq_sec = 15U;
+
+    public:
         base_service()                 = delete;
         base_service(const service_t&) = delete;
         base_service(service_t&&)      = default;
@@ -215,7 +218,7 @@ namespace libnetwrk {
         };
 
         void start_context() {
-            m_gc_timer = std::make_unique<timer_t>(*this->io_context, std::chrono::seconds(15));
+            m_gc_timer = std::make_unique<timer_t>(*this->io_context, std::chrono::seconds(gc_freq_sec));
             m_gc_timer->async_wait(std::bind(&base_service::impl_gc, this, std::placeholders::_1));
             
             m_context_thread = std::thread([this] { this->io_context->run(); });
@@ -329,7 +332,7 @@ namespace libnetwrk {
 
             LIBNETWRK_INFO(this->name, "GC tc: {} rc: {}", m_connections.size(), prev_size - m_connections.size());
 
-            m_gc_timer->expires_at(m_gc_timer->expiry() + std::chrono::seconds(15));
+            m_gc_timer->expires_at(m_gc_timer->expiry() + std::chrono::seconds(gc_freq_sec));
             m_gc_timer->async_wait(std::bind(&base_service::impl_gc, this, std::placeholders::_1));
         }
     };
