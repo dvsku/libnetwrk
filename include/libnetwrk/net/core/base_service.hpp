@@ -344,7 +344,7 @@ namespace libnetwrk {
                 return false;
             });
 
-            LIBNETWRK_INFO(this->name, "GC tc: {} rc: {}", m_connections.size(), prev_size - m_connections.size());
+            LIBNETWRK_VERBOSE(this->name, "GC tc: {} rc: {}", m_connections.size(), prev_size - m_connections.size());
 
             m_gc_timer->expires_at(m_gc_timer->expiry() + std::chrono::seconds(gc_freq_sec));
             m_gc_timer->async_wait(std::bind(&base_service::impl_gc, this, std::placeholders::_1));

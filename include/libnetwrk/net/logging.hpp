@@ -16,15 +16,15 @@
     #endif
     #define LIBNETWRK_ERROR(component, frmt, ...)   do {} while(0)
 
-    #ifdef LIBNETWRK_DEBUG
-        #undef LIBNETWRK_DEBUG
-    #endif
-    #define LIBNETWRK_DEBUG(component, frmt, ...)   do {} while(0)
-
     #ifdef LIBNETWRK_VERBOSE
         #undef LIBNETWRK_VERBOSE
     #endif
     #define LIBNETWRK_VERBOSE(component, frmt, ...) do {} while(0)
+
+    #ifdef LIBNETWRK_DEBUG
+        #undef LIBNETWRK_DEBUG
+    #endif
+    #define LIBNETWRK_DEBUG(component, frmt, ...)   do {} while(0)
 #else
     #ifndef LIBNETWRK_INFO
         #define LIBNETWRK_INFO(component, frmt, ...)    do {} while(0)
@@ -38,11 +38,11 @@
         #define LIBNETWRK_ERROR(component, frmt, ...)   do {} while(0)
     #endif
 
-    #ifndef LIBNETWRK_DEBUG
-        #define LIBNETWRK_DEBUG(component, frmt, ...)   do {} while(0)
-    #endif
-
     #ifndef LIBNETWRK_VERBOSE
         #define LIBNETWRK_VERBOSE(component, frmt, ...) do {} while(0)
+    #endif
+
+    #ifndef LIBNETWRK_DEBUG
+        #define LIBNETWRK_DEBUG(component, frmt, ...)   do {} while(0)
     #endif
 #endif
