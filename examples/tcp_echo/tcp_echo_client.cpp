@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
     client.connect("127.0.0.1", 21205);
     client.process_messages_async();
 
-    while (true) {
+    while (client.connected()) {
         std::string input;
         std::getline(std::cin, input);
 
