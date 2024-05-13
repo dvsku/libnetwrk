@@ -212,6 +212,8 @@ namespace libnetwrk {
                 this->m_incoming_system_messages = {};
             }
 
+            this->m_cv.notify_all();
+
             if (this->m_process_messages_thread.joinable())
                 this->m_process_messages_thread.join();
 
@@ -236,9 +238,6 @@ namespace libnetwrk {
 
                 {
                     std::lock_guard<std::mutex> guard(this->m_incoming_mutex);
-
-                    if (this->m_incoming_system_messages.empty() && this->m_incoming_messages.empty())
-                        return false;
 
                     if (!this->m_incoming_system_messages.empty()) {
                         message = this->m_incoming_system_messages.front();

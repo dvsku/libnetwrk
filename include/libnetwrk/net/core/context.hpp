@@ -5,6 +5,7 @@
 #include <string>
 #include <queue>
 #include <mutex>
+#include <condition_variable>
 
 namespace libnetwrk {
     enum class service_status : uint8_t {
@@ -48,6 +49,13 @@ namespace libnetwrk {
             Processes a single message if the queue is not empty.
         */
         bool process_message() {
+            {
+                std::lock_guard<std::mutex> guard(this->m_incoming_mutex);
+
+                if (this->m_incoming_system_messages.empty() && this->m_incoming_messages.empty())
+                    return false;
+            }
+
             return internal_process_message();
         }
 
@@ -73,6 +81,8 @@ namespace libnetwrk {
         std::queue<owned_message_t> m_incoming_messages;
         std::queue<owned_message_t> m_incoming_system_messages;
         std::mutex                  m_incoming_mutex;
+        std::condition_variable     m_cv;
+        std::mutex                  m_cv_mutex;
 
         std::thread m_process_messages_thread;
 
@@ -112,7 +122,22 @@ namespace libnetwrk {
     private:
         void impl_process_messages() {
             while (m_status == service_status::started) {
-                process_message();
+                bool wait = false;
+                
+                {
+                    std::lock_guard<std::mutex> guard(this->m_incoming_mutex);
+                    wait = this->m_incoming_system_messages.empty() && this->m_incoming_messages.empty();
+                }
+
+                if (wait) {
+                    std::unique_lock lock(m_cv_mutex);
+                    m_cv.wait(lock);
+                }
+
+                if (m_status != service_status::started)
+                    break;
+
+                internal_process_message();
             }
         }
     };

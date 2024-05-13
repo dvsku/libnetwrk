@@ -123,12 +123,17 @@ namespace libnetwrk {
             {
                 std::lock_guard<std::mutex> guard(this->m_context.m_incoming_mutex);
 
-                if (owned_message.msg.head.type == message_type::system) {
-                    this->m_context.m_incoming_system_messages.push(std::move(owned_message));
+                {
+                    std::lock_guard<std::mutex> cv_lock(this->m_context.m_cv_mutex);
+
+                    if (owned_message.msg.head.type == message_type::system) {
+                        this->m_context.m_incoming_system_messages.push(std::move(owned_message));
+                    }
+                    else {
+                        this->m_context.m_incoming_messages.push(std::move(owned_message));
+                    }
                 }
-                else {
-                    this->m_context.m_incoming_messages.push(std::move(owned_message));
-                }
+                this->m_context.m_cv.notify_one();
             }
 
             this->read_message();
