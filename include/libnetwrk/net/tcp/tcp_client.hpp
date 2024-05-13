@@ -40,7 +40,7 @@ namespace libnetwrk::tcp {
 
     public:
         /*
-            Disconnect the client and clean up
+            Disconnect the client and clean up.
         */
         void disconnect() override final {
             if (this->m_status != service_status::started)
@@ -56,23 +56,29 @@ namespace libnetwrk::tcp {
         }
 
     protected:
-        // Called when successfully connected
+        /*
+            Called when successfully connected.
+        */
         virtual void ev_connected() override {};
 
-        // Called when disconnected
+        /*
+            Called when disconnected.
+        */
         virtual void ev_disconnected() override {};
 
-        // Called when processing messages
+        /*
+            Called when processing messages.
+        */
         virtual void ev_message(owned_message_t& msg) override {};
 
     protected:
         /*
-            Pre process message data before writing
+            Pre process message data before writing.
         */
         virtual void pre_process_message(message_t::buffer_t& buffer) override {}
 
         /*
-            Post process message data after reading
+            Post process message data after reading.
         */
         virtual void post_process_message(message_t::buffer_t& buffer) override {}
 

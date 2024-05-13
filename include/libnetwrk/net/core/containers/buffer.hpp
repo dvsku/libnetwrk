@@ -63,12 +63,9 @@ namespace libnetwrk {
             return m_data.data();
         }
 
-        /// <summary>
-        /// Get range from current read offset
-        /// </summary>
-        /// <param name="size"></param>
-        /// <exception cref="libnetwrk_exception">thrown when accessing data out of bounds</exception>
-        /// <returns>buffer with requested data</returns>
+        /*
+            Get range from current read offset.
+        */
         buffer_t get_range(size_t size) {
             buffer_t buffer;
             buffer.resize(size);
@@ -77,13 +74,10 @@ namespace libnetwrk {
             return buffer;
         }
 
-        /// <summary>
-        /// Get range from current read offset into dst. dst must be large enough to accept the range or
-        /// the behaviour is undefined. 
-        /// </summary>
-        /// <param name="dst">destination addr</param>
-        /// <param name="size">size of range</param>
-        /// <exception cref="libnetwrk_exception">thrown when accessing data out of bounds</exception>
+        /*
+            Get range from current read offset into dst.
+            dst must be large enough to accept the range or the behaviour is undefined.
+        */
         void get_range(void* dst, size_t size) {
             if (!dst)
                 throw libnetwrk_exception("dst is null.");

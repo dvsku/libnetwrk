@@ -7,7 +7,7 @@ namespace libnetwrk {
     class buffer;
 
     /*
-        Custom impl of std::convertible_to concept since not all compilers support it yet
+        Custom impl of std::convertible_to concept since not all compilers support it yet.
     */
     template<typename From, typename To>
     concept is_convertible_to = std::is_convertible_v<From, To>
@@ -35,7 +35,7 @@ namespace libnetwrk {
     };
 
     /*
-        Check if both serialize and deserialize exist
+        Check if both serialize and deserialize exist.
     */
     template<typename T, typename Serialize>
     concept is_serializable = has_serialize_func<T, Serialize> && has_deserialize_func<T, Serialize>;
@@ -47,7 +47,7 @@ namespace libnetwrk {
     concept is_arithmentic_or_enum = std::is_arithmetic<T>::value || std::is_enum<T>::value;
 
     /*
-        libnetwrk service descriptor
+        libnetwrk service descriptor.
     */
     template<typename T>
     concept is_libnetwrk_service_desc = requires {

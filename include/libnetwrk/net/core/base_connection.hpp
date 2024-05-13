@@ -44,35 +44,35 @@ namespace libnetwrk {
 
     public:
         /*
-            Get ip address
+            Get ip address.
         */
         std::string get_ip() {
             return m_socket.get_ip();
         }
 
         /*
-            Get port
+            Get port.
         */
         uint16_t get_port() {
             return m_socket.get_port();
         }
 
         /*
-            Check if connected
+            Check if connected.
         */
         bool is_connected() {
             return m_socket.is_connected();
         }
 
         /*
-            Get connection id
+            Get connection id.
         */
         uint64_t& id() {
             return m_id;
         }
 
         /*
-            Start read/write operations
+            Start read/write operations.
         */
         virtual void start() = 0;
 
@@ -80,10 +80,9 @@ namespace libnetwrk {
             m_socket.close();
         };
 
-        /// <summary>
-        /// Send message
-        /// </summary>
-        /// <param name="message">ptr to message</param>
+        /*
+            Send message.
+        */
         void send(const std::shared_ptr<message_t> message) {
             std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
 
@@ -95,12 +94,9 @@ namespace libnetwrk {
             }
         }
 
-        /// <summary>
-        /// Send message. 
-        /// Message object after sending should be considered in an undefined state and
-        /// shouldn't be used further without reassigning.
-        /// </summary>
-        /// <param name="message">: message to send</param>
+        /*
+            Send message.
+        */
         void send(message_t& message) {
             send(std::make_shared<message_t>(std::move(message)));
         }
@@ -118,27 +114,27 @@ namespace libnetwrk {
 
     protected:
         /*
-            Called when there's a disconnect during read/write
+            Called when there's a disconnect during read/write.
         */
         virtual void internal_disconnect() {}
 
         /*
-            Called when there's a failure during read/write
+            Called when there's a failure during read/write.
         */
         virtual void internal_failure(std::error_code ec) {}
 
         /*
-            Called when finished reading a message
+            Called when finished reading a message.
         */
         virtual void internal_read_callback() {}
 
         /*
-            Queue message reading job
+            Queue message reading job.
         */
         virtual void read_message() {}
 
         /*
-            Queue message writing job
+            Queue message writing job.
         */
         virtual void write_message() {}
 

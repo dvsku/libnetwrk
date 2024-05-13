@@ -49,35 +49,35 @@ namespace libnetwrk {
         virtual void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) = 0;
 
         /*
-            Pre process message data before writing
+            Pre process message data before writing.
         */
         virtual void pre_process_message(buffer_t& buffer) = 0;
 
         /*
-            Post process message data after reading
+            Post process message data after reading.
         */
         virtual void post_process_message(buffer_t& buffer) = 0;
 
     public:
-        /// <summary>
-        /// Processes a single message if the queue is not empty.
-        /// </summary>
-        /// <returns>true if a message has been processed, false if it hasn't</returns>
+        /*
+            Processes a single message if the queue is not empty.
+        */
         bool process_message() {
             return internal_process_message();
         }
 
-        /// <summary>
-        /// Process messages while running. This is a blocking function.
-        /// </summary>
+        /*
+            Process messages while running.
+            This is a blocking function.
+        */
         void process_messages() {
             impl_process_messages();
         }
 
-        /// <summary>
-        /// Process messages while running. 
-        /// This function runs asynchronously.
-        /// </summary>
+        /*
+            Process messages while running.
+            This function runs asynchronously.
+        */
         void process_messages_async() {
             m_process_messages_thread = std::thread([&] { impl_process_messages(); });
         }
@@ -88,19 +88,19 @@ namespace libnetwrk {
 
     protected:
         /*
-            Initial message processing
+            Initial message processing.
         */
         virtual bool internal_process_message() {
             return false;
         }
   
         /*
-            User message processing
+            User message processing.
         */
         virtual void ev_message(owned_message_t& msg) {};
 
         /*
-            System message processing
+            System message processing.
         */
         virtual void ev_system_message(owned_message_t& msg) {}
 

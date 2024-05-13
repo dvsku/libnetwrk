@@ -49,7 +49,7 @@ namespace libnetwrk {
 
     public:
         /*
-            Get connection storage
+            Get connection storage.
         */
         storage_t& get_storage() {
             return m_storage;
@@ -57,7 +57,7 @@ namespace libnetwrk {
 
     public:
         /*
-            Start read/write operations
+            Start read/write operations.
         */
         void start() override final {
             auth_question = auth::generate_auth_question();
@@ -79,7 +79,7 @@ namespace libnetwrk {
 
     private:
         /*
-            Called when there's a disconnect during read/write
+            Called when there's a disconnect during read/write.
         */
         void internal_disconnect() override final {
             this->stop();
@@ -87,7 +87,7 @@ namespace libnetwrk {
         }
 
         /*
-            Called when there's a failure during read/write
+            Called when there's a failure during read/write.
         */
         void internal_failure(std::error_code ec) override final {
             internal_disconnect();
@@ -95,7 +95,7 @@ namespace libnetwrk {
         }
 
         /*
-            Called when finished reading a message
+            Called when finished reading a message.
         */
         void internal_read_callback() override final {
             owned_message_t owned_message;
@@ -131,7 +131,7 @@ namespace libnetwrk {
         }
 
         /*
-            Queue message reading job
+            Queue message reading job.
         */
         void read_message() override final {
             asio::post(*m_context.io_context, [this] {
@@ -140,7 +140,7 @@ namespace libnetwrk {
         }
 
         /*
-            Queue message writing job
+            Queue message writing job.
         */
         void write_message() override final {
             asio::post(*m_context.io_context, [this] {

@@ -52,20 +52,16 @@ namespace libnetwrk {
         };
 
     public:
-        /// <summary>
-        /// Get server status
-        /// </summary>
-        /// <returns>true if running, false if stopped</returns>
+        /*
+            Get service status.
+        */
         bool running() {
             return this->m_status == service_status::started;
         }
 
-        /// <summary>
-        /// Start server
-        /// </summary>
-        /// <param name="host">: IPv4 address</param>
-        /// <param name="port">: port</param>
-        /// <returns>true if started, false if failed to start</returns>
+        /*
+            Start service.
+        */
         bool start(const char* host, const unsigned short port) {
             if (this->m_status != service_status::stopped)
                 return false;
@@ -85,36 +81,32 @@ namespace libnetwrk {
             return started;
         }
 
-        /// <summary>
-        /// Stop server
-        /// </summary>
+        /*
+            Stop service.
+        */
         virtual void stop() = 0;
 
-        /// <summary>
-        /// Queue up a function to run
-        /// </summary>
-        /// <param name="lambda">: function to run</param>
+        /*
+            Queue up a function to run.
+        */
         void queue_async_job(std::function<void()> const& lambda) {
             asio::post(*(this->io_context), lambda);
         }
 
-        /// <summary>
-        /// Send a message to client.
-        /// Message object after sending should be considered in an undefined state and
-        /// shouldn't be used further without reassigning.
-        /// </summary>
-        /// <param name="client">: client to send to</param>
-        /// <param name="message">: message to send</param>
+        /*
+            Send a message to client.
+            Message object after sending should be considered in an undefined state and
+            shouldn't be used further without reassigning.
+        */
         void send(std::shared_ptr<connection_t> client, message_t& message) {
             impl_send(client, std::make_shared<message_t>(std::move(message)));
         }
 
-        /// <summary>
-        /// Send a message to all clients.
-        /// Message object after sending should be considered in an undefined state and
-        /// shouldn't be used further without reassigning.
-        /// </summary>
-        /// <param name="message">: message to send</param>
+        /*
+            Send a message to all clients.
+            Message object after sending should be considered in an undefined state and
+            shouldn't be used further without reassigning.
+        */
         void send_all(message_t& message) {
             auto msg = std::make_shared<message_t>(std::move(message));
 
@@ -123,13 +115,11 @@ namespace libnetwrk {
                 impl_send(client, msg);
         }
 
-        /// <summary>
-        /// Send a message to clients that satisfy the predicate.
-        /// Message object after sending should be considered in an undefined state and
-        /// shouldn't be used further without reassigning.
-        /// </summary>
-        /// <param name="message">: message to send</param>
-        /// <param name="predicate">: predicate for sending to client</param>
+        /*
+            Send a message to clients that satisfy the predicate.
+            Message object after sending should be considered in an undefined state and
+            shouldn't be used further without reassigning.
+        */
         void send_all(message_t& message, send_predicate predicate) {
             auto msg = std::make_shared<message_t>(std::move(message));
 
@@ -148,39 +138,55 @@ namespace libnetwrk {
         std::mutex                               m_connections_mutex;
 
     protected:
-        // Called when the service was successfully started
+        /*
+            Called when the service was successfully started.
+        */
         virtual void ev_service_started() {};
-        
-        // Called when service stopped
+
+        /*
+            Called when service stopped.
+        */
         virtual void ev_service_stopped() {};
 
-        // Called when processing messages
+        /*
+            Called when processing messages.
+        */
         virtual void ev_message(owned_message_t& msg) override {};
 
-        // Called before client is fully accepted
-        // Allows performing checks on client before accepting (blacklist, whitelist)
+        /*
+            Called before client is fully accepted.
+            Allows performing checks on client before accepting (blacklist, whitelist).
+        */
         virtual bool ev_before_client_connected(std::shared_ptr<connection_t> client) { return true; };
 
-        // Called when a client has connected
+        /*
+            Called when a client has connected.
+        */
         virtual void ev_client_connected(std::shared_ptr<connection_t> client) {};
         
-        // Called when a client has disconnected
+        /*
+            Called when a client has disconnected.
+        */
         virtual void ev_client_disconnected(std::shared_ptr<connection_t> client) {};
 
     protected:
-        // Service start implementation
+        /*
+            Service start implementation.
+        */
         virtual bool impl_start(const char* host, const unsigned short port) = 0;
 
-        // Client accept implementation
+        /*
+            Client accept implementation.
+        */
         virtual void impl_accept() = 0;
 
         /*
-            Pre process message data before writing
+            Pre process message data before writing.
         */
         virtual void pre_process_message(message_t::buffer_t& buffer) override {}
 
         /*
-            Post process message data after reading
+            Post process message data after reading.
         */
         virtual void post_process_message(message_t::buffer_t& buffer) override {}
 

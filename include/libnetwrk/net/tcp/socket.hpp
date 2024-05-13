@@ -21,21 +21,21 @@ namespace libnetwrk::tcp {
 
     public:
         /*
-            Get socket ip address
+            Get socket ip address.
         */
         std::string get_ip() {
             return m_socket.remote_endpoint().address().to_string();
         }
 
         /*
-            Get socket port
+            Get socket port.
         */
         uint16_t get_port() {
             return m_socket.remote_endpoint().port();
         }
 
         /*
-            Check if socket is connected
+            Check if socket is connected.
         */
         bool is_connected() {
             return m_socket.is_open();

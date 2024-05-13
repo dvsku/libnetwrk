@@ -48,9 +48,9 @@ namespace libnetwrk::tcp {
             teardown();
         }
 
-        /// <summary>
-        /// Stop server
-        /// </summary>
+        /*
+            Stop service.
+        */
         void stop() override final {
             if (this->m_status != service_status::started)
                 return;
@@ -69,33 +69,45 @@ namespace libnetwrk::tcp {
         std::unique_ptr<acceptor_t> m_acceptor;
 
     protected:
-        // Called when the service was successfully started
+        /*
+            Called when the service was successfully started.
+        */
         virtual void ev_service_started() override {};
 
-        // Called when service stopped
+        /*
+            Called when service stopped.
+        */
         virtual void ev_service_stopped() override {};
 
-        // Called when processing messages
+        /*
+            Called when processing messages.
+        */
         virtual void ev_message(owned_message_t& msg) override {};
 
-        // Called before client is fully accepted
-        // Allows performing checks on client before accepting (blacklist, whitelist)
+        /*
+            Called before client is fully accepted.
+            Allows performing checks on client before accepting (blacklist, whitelist).
+        */
         virtual bool ev_before_client_connected(std::shared_ptr<connection_t> client) override { return true; };
 
-        // Called when a client has connected
+        /*
+            Called when a client has connected.
+        */
         virtual void ev_client_connected(std::shared_ptr<connection_t> client) override {};
 
-        // Called when a client has disconnected
+        /*
+            Called when a client has disconnected.
+        */
         virtual void ev_client_disconnected(std::shared_ptr<connection_t> client) override {};
 
     protected:
         /*
-            Pre process message data before writing
+            Pre process message data before writing.
         */
         virtual void pre_process_message(message_t::buffer_t& buffer) override {}
 
         /*
-            Post process message data after reading
+            Post process message data after reading.
         */
         virtual void post_process_message(message_t::buffer_t& buffer) override {}
 

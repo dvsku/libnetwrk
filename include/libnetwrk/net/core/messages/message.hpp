@@ -43,16 +43,16 @@ namespace libnetwrk {
             head.command = static_cast<uint64_t>(command);
         }
 
-        /// <summary>
-        /// Get milliseconds it took from sending the message to receiving the message.
-        /// </summary>
+        /*
+            Get milliseconds it took from sending the message to receiving the message.
+        */
         milliseconds_t latency() {
             return latency(head.recv_timestamp);
         }
 
-        /// <summary>
-        /// Get milliseconds it took from receiving the message to a relative timestamp.
-        /// </summary>
+        /*
+            Get milliseconds it took from receiving the message to a relative timestamp.
+        */
         milliseconds_t latency(uint64_t timestamp) {
             return std::chrono::duration_cast<milliseconds_t>(milliseconds_t(head.send_timestamp) - milliseconds_t(timestamp));
         }

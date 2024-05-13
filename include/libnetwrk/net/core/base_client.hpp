@@ -43,20 +43,16 @@ namespace libnetwrk {
         };
 
     public:
-        /// <summary>
-        /// Client status
-        /// </summary>
-        /// <returns>true if connected, false if disconnected</returns>
+        /*
+            Client status.
+        */
         bool connected() {
             return this->m_status == service_status::started;
         }
-    
-        /// <summary>
-        /// Connect to TCP server
-        /// </summary>
-        /// <param name="host">: IPv4 address</param>
-        /// <param name="port">: port</param>
-        /// <returns>true if connected, false if not</returns>
+
+        /*
+            Connect to service.
+        */
         bool connect(const char* host, const unsigned short port) {
             if (this->m_status != service_status::stopped) 
                 return false;
@@ -77,14 +73,13 @@ namespace libnetwrk {
         }
     
         /*
-            Disconnect the client and clean up
+            Disconnect the client and clean up.
         */
         virtual void disconnect() {}
     
-        /// <summary>
-        /// Send a message
-        /// </summary>
-        /// <param name="message">: message to send</param>
+        /*
+            Send a message.
+        */
         void send(message_t& message) {
             if (m_connection && connected()) {
                 if (m_connection->is_connected()) {
@@ -100,26 +95,34 @@ namespace libnetwrk {
         std::shared_ptr<connection_t> m_connection;
     
     protected:
-        // Called when successfully connected
+        /*
+            Called when successfully connected.
+        */
         virtual void ev_connected() {};
 
-        // Called when disconnected
+        /*
+            Called when disconnected.
+        */
         virtual void ev_disconnected() {};
 
-        // Called when processing messages
+        /*
+            Called when processing messages.
+        */
         virtual void ev_message(owned_message_t& msg) override {};
 
     protected:
-        // Connect implementation
+        /*
+            Connect implementation.
+        */
         virtual bool impl_connect(const char* host, const unsigned short port) = 0;
 
         /*
-            Pre process message data before writing
+            Pre process message data before writing.
         */
         virtual void pre_process_message(message_t::buffer_t& buffer) override {}
 
         /*
-            Post process message data after reading
+            Post process message data after reading.
         */
         virtual void post_process_message(message_t::buffer_t& buffer) override {}
 
