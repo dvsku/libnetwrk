@@ -25,8 +25,14 @@ namespace libnetwrk {
     template<typename Desc, typename Connection>
     class context : public work_context {
     public:
-        using owned_message_t   = owned_message<Desc, Connection>;
+        // Connection type for this context
         using base_connection_t = Connection;
+
+        // Owned message type for this context
+        using owned_message_t = owned_message<Desc, base_connection_t>;
+        
+        // Buffer type
+        using buffer_t = owned_message_t::message_t::buffer_t;
 
     public:
         const std::string name;
@@ -41,6 +47,16 @@ namespace libnetwrk {
 
     public:
         virtual void internal_ev_client_disconnected(std::shared_ptr<base_connection_t> client) = 0;
+
+        /*
+            Pre process message data before writing
+        */
+        virtual void pre_process_message(buffer_t& buffer) = 0;
+
+        /*
+            Post process message data after reading
+        */
+        virtual void post_process_message(buffer_t& buffer) = 0;
 
     public:
         /// <summary>

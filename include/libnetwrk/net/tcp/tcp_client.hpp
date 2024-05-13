@@ -65,6 +65,17 @@ namespace libnetwrk::tcp {
         // Called when processing messages
         virtual void ev_message(owned_message_t& msg) override {};
 
+    protected:
+        /*
+            Pre process message data before writing
+        */
+        virtual void pre_process_message(message_t::buffer_t& buffer) override {}
+
+        /*
+            Post process message data after reading
+        */
+        virtual void post_process_message(message_t::buffer_t& buffer) override {}
+
     private:
         // Native socket type for this client
         using native_socket_t = libnetwrk::tcp::socket::native_socket_t;

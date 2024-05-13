@@ -88,6 +88,17 @@ namespace libnetwrk::tcp {
         // Called when a client has disconnected
         virtual void ev_client_disconnected(std::shared_ptr<connection_t> client) override {};
 
+    protected:
+        /*
+            Pre process message data before writing
+        */
+        virtual void pre_process_message(message_t::buffer_t& buffer) override {}
+
+        /*
+            Post process message data after reading
+        */
+        virtual void post_process_message(message_t::buffer_t& buffer) override {}
+
     private:
         // Native socket type for this service
         using native_socket_t = libnetwrk::tcp::socket::native_socket_t;

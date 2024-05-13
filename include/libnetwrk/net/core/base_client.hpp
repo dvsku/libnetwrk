@@ -113,6 +113,16 @@ namespace libnetwrk {
         // Connect implementation
         virtual bool impl_connect(const char* host, const unsigned short port) = 0;
 
+        /*
+            Pre process message data before writing
+        */
+        virtual void pre_process_message(message_t::buffer_t& buffer) override {}
+
+        /*
+            Post process message data after reading
+        */
+        virtual void post_process_message(message_t::buffer_t& buffer) override {}
+
     protected:
         void teardown() {
             if (this->io_context && !this->io_context->stopped())

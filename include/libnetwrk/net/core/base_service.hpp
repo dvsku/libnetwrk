@@ -174,6 +174,16 @@ namespace libnetwrk {
         // Client accept implementation
         virtual void impl_accept() = 0;
 
+        /*
+            Pre process message data before writing
+        */
+        virtual void pre_process_message(message_t::buffer_t& buffer) override {}
+
+        /*
+            Post process message data after reading
+        */
+        virtual void post_process_message(message_t::buffer_t& buffer) override {}
+
     protected:
         void teardown() {
             if (this->m_gc_timer)

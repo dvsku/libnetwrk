@@ -79,6 +79,12 @@ namespace libnetwrk {
             owned_message.msg.data = std::move(this->m_recv_message.data);
             owned_message.sender   = this->shared_from_this();
 
+            // Post process message data
+            m_context.post_process_message(owned_message.msg.data);
+
+            // Set new data size
+            owned_message.msg.head.data_size = owned_message.msg.data.size();
+
             {
                 std::lock_guard<std::mutex> guard(this->m_context.incoming_mutex);
 
@@ -132,6 +138,13 @@ namespace libnetwrk {
                         this->m_send_message->head.send_timestamp =
                             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
+                        // Pre process message data
+                        m_context.pre_process_message(this->m_send_message->data);
+
+                        // Set new data size
+                        this->m_send_message->head.data_size = this->m_send_message->data.size();
+
+                        // Serialize head
                         this->m_send_message->head.serialize(this->m_send_message->data_head);
                     }
 
