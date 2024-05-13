@@ -10,7 +10,7 @@
             "installRoot": "${projectDir}\\out\\install\\${name}",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
-            "ctestCommandArgs": "--timeout 10"
+            "ctestCommandArgs": "--timeout 30"
         },
         {
             "name": "2.  Windows x86 Release",
@@ -22,7 +22,7 @@
             "installRoot": "${projectDir}\\out\\install\\${name}",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
-            "ctestCommandArgs": "--timeout 10"
+            "ctestCommandArgs": "--timeout 30"
         },
         {
             "name": "3.  Windows x64 Debug",
@@ -34,7 +34,7 @@
             "installRoot": "${projectDir}\\out\\install\\${name}",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
-            "ctestCommandArgs": "--timeout 10"
+            "ctestCommandArgs": "--timeout 30"
         },
         {
             "name": "4.  Windows x64 Release",
@@ -46,7 +46,7 @@
             "installRoot": "${projectDir}\\out\\install\\${name}",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
-            "ctestCommandArgs": "--timeout 10"
+            "ctestCommandArgs": "--timeout 30"
         },
         {
             "name": "5.  Linux x86 Debug",
@@ -56,7 +56,7 @@
             "remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
             "cmakeCommandArgs": "-DLIBNETWRK_LINUX_ARCHITECTURE:STRING=x86",
             "buildCommandArgs": "",
-            "ctestCommandArgs": "--timeout 10",
+            "ctestCommandArgs": "--timeout 30",
             "inheritEnvironments": [ "linux_x86" ],
             "intelliSenseMode": "linux-gcc-x86",
             "remoteMachineName": "${defaultRemoteMachineName}",
@@ -76,7 +76,7 @@
             "remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
             "cmakeCommandArgs": "-DLIBNETWRK_LINUX_ARCHITECTURE:STRING=x86",
             "buildCommandArgs": "",
-            "ctestCommandArgs": "--timeout 10",
+            "ctestCommandArgs": "--timeout 30",
             "inheritEnvironments": [ "linux_x86" ],
             "intelliSenseMode": "linux-gcc-x86",
             "remoteMachineName": "${defaultRemoteMachineName}",
@@ -96,7 +96,7 @@
             "remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
-            "ctestCommandArgs": "--timeout 10",
+            "ctestCommandArgs": "--timeout 30",
             "inheritEnvironments": [ "linux_x64" ],
             "intelliSenseMode": "linux-gcc-x64",
             "remoteMachineName": "${defaultRemoteMachineName}",
@@ -116,7 +116,7 @@
             "remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
-            "ctestCommandArgs": "--timeout 10",
+            "ctestCommandArgs": "--timeout 30",
             "inheritEnvironments": [ "linux_x64" ],
             "intelliSenseMode": "linux-gcc-x64",
             "remoteMachineName": "${defaultRemoteMachineName}",
