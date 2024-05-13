@@ -103,8 +103,10 @@ namespace libnetwrk {
             Queue message reading job.
         */
         void read_message() override final {
-            asio::post(*m_context.io_context, [this] {
-                this->read_message_head();
+            auto shared = this->shared_from_this();
+
+            asio::post(*m_context.io_context, [shared] {
+                shared->read_message_head();
             });
         }
 
@@ -112,46 +114,48 @@ namespace libnetwrk {
             Queue message writing job.
         */
         void write_message() override final {
-            asio::post(*m_context.io_context, [this] {
+            auto shared = this->shared_from_this();
+
+            asio::post(*m_context.io_context, [shared] {
                 {
-                    std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
+                    std::lock_guard<std::mutex> guard(shared->m_outgoing_mutex);
 
                     /*
                         If not authenticated, write only system messages and
                         keep the user messages in the queue
                     */
 
-                    if (!this->m_outgoing_system_messages.empty()) {
-                        this->m_send_message = this->m_outgoing_system_messages.front();
-                        this->m_outgoing_system_messages.pop();
+                    if (!shared->m_outgoing_system_messages.empty()) {
+                        shared->m_send_message = shared->m_outgoing_system_messages.front();
+                        shared->m_outgoing_system_messages.pop();
                     }
                     else {
-                        if (this->is_authenticated.load() && !this->m_outgoing_messages.empty()) {
-                            this->m_send_message = this->m_outgoing_messages.front();
-                            this->m_outgoing_messages.pop();
+                        if (shared->is_authenticated.load() && !shared->m_outgoing_messages.empty()) {
+                            shared->m_send_message = shared->m_outgoing_messages.front();
+                            shared->m_outgoing_messages.pop();
                         }
                     }
                 }
 
-                if (this->m_send_message) {
-                    if (this->m_send_message->data_head.empty()) {
-                        this->m_send_message->head.send_timestamp =
+                if (shared->m_send_message) {
+                    if (shared->m_send_message->data_head.empty()) {
+                        shared->m_send_message->head.send_timestamp =
                             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
                         // Pre process message data
-                        m_context.pre_process_message(this->m_send_message->data);
+                        shared->m_context.pre_process_message(shared->m_send_message->data);
 
                         // Set new data size
-                        this->m_send_message->head.data_size = this->m_send_message->data.size();
+                        shared->m_send_message->head.data_size = shared->m_send_message->data.size();
 
                         // Serialize head
-                        this->m_send_message->head.serialize(this->m_send_message->data_head);
+                        shared->m_send_message->head.serialize(shared->m_send_message->data_head);
                     }
 
-                    return this->write_message_head();
+                    return shared->write_message_head();
                 }
 
-                write_message();
+                shared->write_message();
             });
         }
     };
