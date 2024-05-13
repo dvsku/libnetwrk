@@ -327,6 +327,17 @@ namespace libnetwrk {
                     return true;
                 }
 
+                if (!client->is_authenticated) {
+                    uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::system_clock::now().time_since_epoch()).count();
+
+                    if (timestamp > client->auth_timeout_timestamp) {
+                        client->stop();
+                        internal_ev_client_disconnected(client);
+                        return true;
+                    }
+                }
+
                 return false;
             });
 

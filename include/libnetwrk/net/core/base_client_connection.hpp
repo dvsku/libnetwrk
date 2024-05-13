@@ -35,6 +35,7 @@ namespace libnetwrk {
 
     public:
         auth::question_t auth_question{};
+        uint64_t         auth_timeout_timestamp = 0U;
 
     public:
         base_client_connection()                              = delete;
@@ -68,6 +69,9 @@ namespace libnetwrk {
             request << auth_question;
 
             this->send(request);
+
+            auto limit             = std::chrono::system_clock::now() + std::chrono::seconds(10);
+            auth_timeout_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(limit.time_since_epoch()).count();
 
             read_message();
             write_message();
