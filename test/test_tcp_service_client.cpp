@@ -110,6 +110,78 @@ class test_client : public tcp_client<service_desc> {
         }
 };
 
+class test_service_pp : public tcp_service<service_desc> {
+public:
+    test_service_pp() : tcp_service() {}
+
+    std::string ping = "";
+
+    void ev_message(owned_message_t& msg) override {
+        message_t response;
+        switch (msg.msg.command()) {
+            case commands::c2s_ping:
+                msg.msg >> ping;
+                response.set_command(commands::s2c_pong);
+                response << std::string("pOnG");
+                msg.sender->send(response);
+                break;
+            default:
+                break;
+        }
+    }
+
+protected:
+    void pre_process_message(message_t::buffer_t& buffer) override final {
+        for (uint8_t& byte : buffer.underlying()) {
+            byte ^= 69;
+        }
+
+        buffer.underlying().push_back(155);
+    }
+
+    void post_process_message(message_t::buffer_t& buffer) override final {
+        buffer.underlying().resize(buffer.size() - 1);
+
+        for (uint8_t& byte : buffer.underlying()) {
+            byte ^= 69;
+        }
+    }
+};
+
+class test_client_pp : public tcp_client<service_desc> {
+public:
+    test_client_pp() : tcp_client() {}
+
+    std::string pong = "";
+
+    void ev_message(owned_message_t& msg) override {
+        switch (msg.msg.command()) {
+            case commands::s2c_pong:
+                msg.msg >> pong;
+                break;
+            default:
+                break;
+        }
+    }
+
+protected:
+    void pre_process_message(message_t::buffer_t& buffer) override final {
+        for (uint8_t& byte : buffer.underlying()) {
+            byte ^= 69;
+        }
+
+        buffer.underlying().push_back(155);
+    }
+
+    void post_process_message(message_t::buffer_t& buffer) override final {
+        buffer.underlying().resize(buffer.size() - 1);
+
+        for (uint8_t& byte : buffer.underlying()) {
+            byte ^= 69;
+        }
+    }
+};
+
 TEST(tcp_service_client, connect) {
     {
         test_service service;
@@ -212,4 +284,24 @@ TEST(tcp_service_client, broadcast) {
     EXPECT_TRUE(service.client_said_broadcast  == true);
     EXPECT_TRUE(client1.service_said_broadcast == true);
     EXPECT_TRUE(client2.service_said_broadcast == true);
+}
+
+TEST(tcp_service_client, ping_pong_pre_post_process) {
+    test_service_pp service;
+    service.start("127.0.0.1", 21205);
+
+    test_client_pp client;
+    client.connect("127.0.0.1", 21205);
+
+    test_client_pp::message_t msg(commands::c2s_ping);
+    msg << std::string("PiNg");
+    client.send(msg);
+
+    service.process_messages_async();
+    client.process_messages_async();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(service.ping == "PiNg");
+    EXPECT_TRUE(client.pong == "pOnG");
 }
