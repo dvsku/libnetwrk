@@ -130,6 +130,10 @@ namespace libnetwrk {
                 {
                     std::lock_guard<std::mutex> guard(shared->m_outgoing_mutex);
 
+                    if (shared->m_send_message) {
+                        return;
+                    }
+
                     if (shared->m_outgoing_system_messages.empty() && shared->m_outgoing_messages.empty()) {
                         return;
                     }

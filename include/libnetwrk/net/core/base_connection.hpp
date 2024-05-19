@@ -202,6 +202,7 @@ namespace libnetwrk {
                     write_message_body();
                 }
                 else {
+                    m_send_message = nullptr;
                     write_message();
                 }
             }
@@ -220,6 +221,7 @@ namespace libnetwrk {
 
         void write_message_body_callback(std::error_code ec, std::size_t len) {
             if (!ec) {
+                m_send_message = nullptr;
                 write_message();
             }
             else if (ec == asio::error::eof || ec == asio::error::connection_reset) {
