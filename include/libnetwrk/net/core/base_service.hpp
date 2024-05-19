@@ -288,6 +288,8 @@ namespace libnetwrk {
         }
 
         void on_system_verify_message(owned_message_t& msg) {
+            LIBNETWRK_DEBUG(name, "Received verify response.");
+
             auth::answer_t answer{};    
             msg.msg >> answer;
 

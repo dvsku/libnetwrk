@@ -221,6 +221,8 @@ namespace libnetwrk {
         }
 
         void on_system_verify_message(owned_message_t& msg) {
+            LIBNETWRK_DEBUG(name, "Received verify request.");
+
             auth::question_t question{};
             auth::answer_t   answer{};
 
@@ -236,6 +238,8 @@ namespace libnetwrk {
         }
 
         void on_system_verify_ok_message(owned_message_t& msg) {
+            LIBNETWRK_DEBUG(name, "Verification successful.");
+
             m_connection->is_authenticated.store(true);
             m_connection->write_message();
         }
