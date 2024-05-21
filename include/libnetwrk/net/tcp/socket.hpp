@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libnetwrk/dependencies/asio/asio.hpp"
+#include "asio.hpp"
 #include "libnetwrk/net/core/containers/buffer.hpp"
 
 #include <cstdint>
