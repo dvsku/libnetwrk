@@ -180,8 +180,7 @@ namespace libnetwrk::tcp {
 
                 if (ec) {
                     if (ec != asio::error::operation_aborted) {
-                        LIBNETWRK_ERROR(this->name, "Failed to accept connection. | {}", ec.message());
-                        continue;
+                        LIBNETWRK_ERROR(this->name, "Failed to accept connection. | {}: {}", ec.value(), ec.message());
                     }
 
                     break;
