@@ -180,11 +180,6 @@ namespace libnetwrk {
         virtual bool impl_start(const char* host, const unsigned short port) = 0;
 
         /*
-            Client accept implementation.
-        */
-        virtual void impl_accept() = 0;
-
-        /*
             Pre process message data before writing.
         */
         virtual void pre_process_message(message_t::buffer_t& buffer) override {}
