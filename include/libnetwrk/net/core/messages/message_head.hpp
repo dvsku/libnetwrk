@@ -62,9 +62,7 @@ namespace libnetwrk {
         }
 
     public:
-        constexpr size_t size() const {
-            return sizeof(type) + sizeof(command) + sizeof(send_timestamp) + sizeof(data_size);
-        }
+        static constexpr size_t size = sizeof(type) + sizeof(command) + sizeof(send_timestamp) + sizeof(data_size);
 
         template<typename T>
         void serialize(buffer<T>& buffer) const {
