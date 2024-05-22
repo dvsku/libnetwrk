@@ -59,12 +59,13 @@ namespace libnetwrk {
 
     private:
         asio::awaitable<void> co_read() {
-            owned_message_t owned_message;
             std::error_code ec;
 
             while (true) {
                 if (!this->is_connected())
                     break;
+
+                owned_message_t owned_message;
 
                 co_await this->co_read_message(owned_message.msg, ec);
 
