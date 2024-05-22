@@ -89,6 +89,8 @@ namespace libnetwrk {
         asio::awaitable<void> co_read() {
             std::error_code ec;
 
+            this->read_operations++;
+
             while (true) {
                 if (!this->is_connected())
                     break;
@@ -138,11 +140,14 @@ namespace libnetwrk {
                     this->m_context.m_cv.notify_one();
                 }
             }
+
+            this->read_operations--;
         }
 
         asio::awaitable<void> co_write() {
             std::error_code ec;
 
+            this->write_operations++;
 
             while (true) {
                 if (!this->is_connected())
@@ -200,6 +205,8 @@ namespace libnetwrk {
                     break;
                 }
             }
+
+            this->write_operations--;
         }
 
         /*

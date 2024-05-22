@@ -25,7 +25,9 @@ namespace libnetwrk {
         using serialize_t = typename Desc::serialize_t;
 
     public:
-        std::atomic_bool is_authenticated;
+        std::atomic_bool   is_authenticated;
+        std::atomic_ushort read_operations;
+        std::atomic_ushort write_operations;
 
     public:
         base_connection()                       = delete;
@@ -36,6 +38,8 @@ namespace libnetwrk {
             : m_socket(std::move(socket))
         {
             is_authenticated.store(false);
+            read_operations.store(0U);
+            write_operations.store(0U);
         }
 
         connection_t& operator=(const connection_t&) = delete;
