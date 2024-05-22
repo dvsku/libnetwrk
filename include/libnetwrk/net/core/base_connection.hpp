@@ -36,7 +36,6 @@ namespace libnetwrk {
             : m_socket(std::move(socket))
         {
             is_authenticated.store(false);
-            m_recv_message.data_head.resize(m_recv_message.head.size());
         }
 
         connection_t& operator=(const connection_t&) = delete;
@@ -113,7 +112,6 @@ namespace libnetwrk {
         std::queue<std::shared_ptr<message_t>> m_outgoing_system_messages;
         std::mutex                             m_outgoing_mutex;
 
-        message_t                  m_recv_message;
         std::shared_ptr<message_t> m_send_message;
 
     protected:
@@ -128,67 +126,42 @@ namespace libnetwrk {
         virtual void internal_failure(std::error_code ec) {}
 
         /*
-            Called when finished reading a message.
-        */
-        virtual void internal_read_callback() {}
-
-        /*
-            Queue message reading job.
-        */
-        virtual void read_message() {}
-
-        /*
             Queue message writing job.
         */
         virtual void write_message() {}
 
     protected:
-        virtual void read_message_head() {
-            m_socket.async_read(m_recv_message.data_head,
-                std::bind(&connection_t::read_message_head_callback, this, std::placeholders::_1, std::placeholders::_2));
-        };
+        asio::awaitable<void> co_read_message(message_t& recv_message, std::error_code& ec) {
+            buffer<serialize_t> head_buffer;
+            head_buffer.resize(message_t::message_head_t::size);
 
-        void read_message_head_callback(std::error_code ec, std::size_t len) {
-            if (!ec) {
-                m_recv_message.data_head.reset_read_offset();
-                m_recv_message.head.deserialize(m_recv_message.data_head);
+            auto [h_ec, h_size] = co_await m_socket.async_read(head_buffer);
 
-                m_recv_message.head.recv_timestamp =
-                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            if (h_ec) {
+                ec = h_ec;
+                co_return;
+            }
 
-                // MESSAGE HAS A BODY
-                if (m_recv_message.head.data_size > 0) {
-                    m_recv_message.data.resize(m_recv_message.head.data_size);
-                    read_message_body();
-                }
-                else {    // MESSAGE HAS NO BODY
-                    m_recv_message.data.clear();
-                    internal_read_callback();
-                }
-            }
-            else if (ec == asio::error::eof || ec == asio::error::connection_reset) {
-                internal_disconnect();
-            }
-            else {
-                internal_failure(ec);
-            }
-        }
+            recv_message.head.deserialize(head_buffer);
 
-        virtual void read_message_body() {
-            m_socket.async_read(m_recv_message.data,
-                std::bind(&connection_t::read_message_body_callback, this, std::placeholders::_1, std::placeholders::_2));
-        };
+            recv_message.head.recv_timestamp =
+                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-        void read_message_body_callback(std::error_code ec, std::size_t len) {
-            if (!ec) {
-                internal_read_callback();
+            if (recv_message.head.data_size == 0) {
+                ec = {};
+                co_return;
             }
-            else if (ec == asio::error::eof || ec == asio::error::connection_reset) {
-                internal_disconnect();
+
+            recv_message.data.resize(recv_message.head.data_size);
+
+            auto [b_ec, b_size] = co_await m_socket.async_read(recv_message.data);
+
+            if (b_ec) {
+                ec = b_ec;
+                co_return;
             }
-            else {
-                internal_failure(ec);
-            }
+
+            ec = {};
         }
 
         virtual void write_message_head() {
