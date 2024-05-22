@@ -78,7 +78,7 @@ namespace libnetwrk {
             auto limit             = std::chrono::system_clock::now() + std::chrono::seconds(10);
             auth_timeout_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(limit.time_since_epoch()).count();
 
-            read_message();
+            asio::co_spawn(*m_context.io_context, co_read(), asio::detached);
         }
 
     protected:
@@ -102,56 +102,57 @@ namespace libnetwrk {
             LIBNETWRK_ERROR(this->m_context.name, "Failed during read/write. | {}", ec.message());
         }
 
-        /*
-            Called when finished reading a message.
-        */
-        void internal_read_callback() override final {
+        asio::awaitable<void> co_read() {
             owned_message_t owned_message;
-            owned_message.msg.head = std::move(this->m_recv_message.head);
-            owned_message.msg.data = std::move(this->m_recv_message.data);
-            owned_message.sender   = this->shared_from_this();
+            std::error_code ec;
 
-            /*
-                If client is not authenticated, discard user messages
-            */
+            while (true) {
+                if (!this->is_connected())
+                    break;
 
-            if (!this->is_authenticated.load() && owned_message.msg.head.type != message_type::system)
-                this->read_message();
+                co_await this->co_read_message(owned_message.msg, ec);
 
-            // Post process message data
-            m_context.post_process_message(owned_message.msg.data);
+                if (ec) {
+                    if (ec != asio::error::eof && ec != asio::error::connection_reset) {
+                        LIBNETWRK_ERROR(this->m_context.name, "Failed during read/write. | {}", ec.message());
+                    }
 
-            // Set new data size
-            owned_message.msg.head.data_size = owned_message.msg.data.size();
+                    this->stop();
+                    this->m_context.internal_ev_client_disconnected(this->shared_from_this());
+                    break;
+                }
 
-            {
-                std::lock_guard<std::mutex> guard(this->m_context.m_incoming_mutex);
+                /*
+                    If client is not authenticated, discard user messages
+                */
+
+                if (!this->is_authenticated.load() && owned_message.msg.head.type != message_type::system)
+                    continue;
+
+                owned_message.sender = this->shared_from_this();
+
+                // Post process message data
+                m_context.post_process_message(owned_message.msg.data);
+
+                // Set new data size
+                owned_message.msg.head.data_size = owned_message.msg.data.size();
 
                 {
-                    std::lock_guard<std::mutex> cv_lock(this->m_context.m_cv_mutex);
+                    std::lock_guard<std::mutex> guard(this->m_context.m_incoming_mutex);
 
-                    if (owned_message.msg.head.type == message_type::system) {
-                        this->m_context.m_incoming_system_messages.push(std::move(owned_message));
+                    {
+                        std::lock_guard<std::mutex> cv_lock(this->m_context.m_cv_mutex);
+
+                        if (owned_message.msg.head.type == message_type::system) {
+                            this->m_context.m_incoming_system_messages.push(std::move(owned_message));
+                        }
+                        else {
+                            this->m_context.m_incoming_messages.push(std::move(owned_message));
+                        }
                     }
-                    else {
-                        this->m_context.m_incoming_messages.push(std::move(owned_message));
-                    }
+                    this->m_context.m_cv.notify_one();
                 }
-                this->m_context.m_cv.notify_one();
             }
-
-            this->read_message();
-        }
-
-        /*
-            Queue message reading job.
-        */
-        void read_message() override final {
-            auto shared = this->shared_from_this();
-
-            asio::post(*m_context.io_context, [shared] {
-                shared->read_message_head();
-            });
         }
 
         /*

@@ -51,7 +51,7 @@ namespace libnetwrk {
             Start read/write operations.
         */
         void start() override final {
-            read_message();
+            asio::co_spawn(*m_context.io_context, co_read(), asio::detached);
         }
 
     protected:
@@ -74,50 +74,51 @@ namespace libnetwrk {
             LIBNETWRK_ERROR(this->m_context.name, "Failed during read/write. | {}", ec.message());
         }
 
-        /*
-            Called when finished reading a message.
-        */
-        void internal_read_callback() override final {
+        asio::awaitable<void> co_read() {
             owned_message_t owned_message;
-            owned_message.msg.head = std::move(this->m_recv_message.head);
-            owned_message.msg.data = std::move(this->m_recv_message.data);
-            owned_message.sender   = this->shared_from_this();
+            std::error_code ec;
 
-            // Post process message data
-            m_context.post_process_message(owned_message.msg.data);
+            while (true) {
+                if (!this->is_connected())
+                    break;
 
-            // Set new data size
-            owned_message.msg.head.data_size = owned_message.msg.data.size();
+                co_await this->co_read_message(owned_message.msg, ec);
 
-            {
-                std::lock_guard<std::mutex> guard(this->m_context.m_incoming_mutex);
-
-                {
-                    std::lock_guard<std::mutex> cv_lock(this->m_context.m_cv_mutex);
-
-                    if (owned_message.msg.head.type == message_type::system) {
-                        this->m_context.m_incoming_system_messages.push(std::move(owned_message));
+                if (ec) {
+                    if (ec != asio::error::eof && ec != asio::error::connection_reset) {
+                        LIBNETWRK_ERROR(this->m_context.name, "Failed during read/write. | {}", ec.message());
                     }
-                    else {
-                        this->m_context.m_incoming_messages.push(std::move(owned_message));
-                    }
+
+                    this->stop();
+                    this->m_context.internal_ev_client_disconnected(this->shared_from_this());
+                    break;
                 }
 
-                this->m_context.m_cv.notify_one();
+                owned_message.sender = this->shared_from_this();
+
+                // Post process message data
+                m_context.post_process_message(owned_message.msg.data);
+
+                // Set new data size
+                owned_message.msg.head.data_size = owned_message.msg.data.size();
+
+                {
+                    std::lock_guard<std::mutex> guard(this->m_context.m_incoming_mutex);
+
+                    {
+                        std::lock_guard<std::mutex> cv_lock(this->m_context.m_cv_mutex);
+
+                        if (owned_message.msg.head.type == message_type::system) {
+                            this->m_context.m_incoming_system_messages.push(std::move(owned_message));
+                        }
+                        else {
+                            this->m_context.m_incoming_messages.push(std::move(owned_message));
+                        }
+                    }
+
+                    this->m_context.m_cv.notify_one();
+                }
             }
-
-            this->read_message();
-        }
-
-        /*
-            Queue message reading job.
-        */
-        void read_message() override final {
-            auto shared = this->shared_from_this();
-
-            asio::post(*m_context.io_context, [shared] {
-                shared->read_message_head();
-            });
         }
 
         /*
