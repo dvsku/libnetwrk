@@ -112,19 +112,7 @@ namespace libnetwrk {
         std::queue<std::shared_ptr<message_t>> m_outgoing_system_messages;
         std::mutex                             m_outgoing_mutex;
 
-        std::shared_ptr<message_t> m_send_message;
-
     protected:
-        /*
-            Called when there's a disconnect during read/write.
-        */
-        virtual void internal_disconnect() {}
-
-        /*
-            Called when there's a failure during read/write.
-        */
-        virtual void internal_failure(std::error_code ec) {}
-
         /*
             Queue message writing job.
         */
@@ -164,45 +152,27 @@ namespace libnetwrk {
             ec = {};
         }
 
-        virtual void write_message_head() {
-            m_socket.async_write(m_send_message->data_head,
-                std::bind(&connection_t::write_message_head_callback, this, std::placeholders::_1, std::placeholders::_2));
-        };
+        asio::awaitable<void> co_write_message(std::shared_ptr<message_t> message, std::error_code& ec) {
+            auto [h_ec, h_size] = co_await m_socket.async_write(message->data_head);
 
-        void write_message_head_callback(std::error_code ec, std::size_t len) {
-            if (!ec) {
-                if (m_send_message->data.size() > 0) {
-                    write_message_body();
-                }
-                else {
-                    m_send_message = nullptr;
-                    write_message();
-                }
+            if (h_ec) {
+                ec = h_ec;
+                co_return;
             }
-            else if (ec == asio::error::eof || ec == asio::error::connection_reset) {
-                internal_disconnect();
-            }
-            else {
-                internal_failure(ec);
-            }
-        }
 
-        virtual void write_message_body() {
-            m_socket.async_write(m_send_message->data,
-                std::bind(&connection_t::write_message_body_callback, this, std::placeholders::_1, std::placeholders::_2));
-        };
+            if (message->data.size() == 0) {
+                ec = {};
+                co_return;
+            }
 
-        void write_message_body_callback(std::error_code ec, std::size_t len) {
-            if (!ec) {
-                m_send_message = nullptr;
-                write_message();
+            auto [b_ec, b_size] = co_await m_socket.async_write(message->data);
+
+            if (b_ec) {
+                ec = b_ec;
+                co_return;
             }
-            else if (ec == asio::error::eof || ec == asio::error::connection_reset) {
-                internal_disconnect();
-            }
-            else {
-                internal_failure(ec);
-            }
+
+            ec = {};
         }
     };
 }
