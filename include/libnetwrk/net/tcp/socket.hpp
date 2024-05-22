@@ -47,8 +47,11 @@ namespace libnetwrk::tcp {
         }
 
         template<typename Serialize>
-        void async_read(libnetwrk::buffer<Serialize>& buffer, read_callback_t callback) {
-            asio::async_read(m_socket, asio::buffer(buffer.data(), buffer.size()), callback);
+        asio::awaitable<std::tuple<std::error_code, size_t>> async_read(libnetwrk::buffer<Serialize>& buffer) {
+            std::tuple<std::error_code, size_t> result = co_await asio::async_read(m_socket,
+                asio::buffer(buffer.data(), buffer.size()), asio::as_tuple(asio::use_awaitable));
+
+            co_return result;
         }
 
         template<typename Serialize>
