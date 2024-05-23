@@ -48,7 +48,7 @@ namespace libnetwrk {
         base_client_connection(base_client_connection&&)      = default;
 
         base_client_connection(context_t& context, socket_t socket)
-            : base_connection<Desc, Socket>(std::move(socket)), m_context(context) {}
+            : base_connection<Desc, Socket>(context, std::move(socket)), m_context(context) {}
 
         base_client_connection& operator=(const base_client_connection&) = delete;
         base_client_connection& operator=(base_client_connection&&)      = default;
@@ -78,7 +78,8 @@ namespace libnetwrk {
             auto limit             = std::chrono::system_clock::now() + std::chrono::seconds(10);
             auth_timeout_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(limit.time_since_epoch()).count();
 
-            asio::co_spawn(*m_context.io_context, co_read(), asio::detached);
+            asio::co_spawn(*m_context.io_context, co_read(),  asio::detached);
+            asio::co_spawn(*m_context.io_context, co_write(), asio::detached);
         }
 
     protected:
@@ -153,67 +154,77 @@ namespace libnetwrk {
                 if (!this->is_connected())
                     break;
 
-                std::shared_ptr<message_t> send_message;
-
                 {
-                    std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
+                    std::unique_lock<std::mutex> lock(this->m_outgoing_mutex);
 
                     if (this->m_outgoing_system_messages.empty() && this->m_outgoing_messages.empty()) {
+                        lock.unlock();
+                        co_await this->co_wait_for_write_message();
+                    }
+                }
+
+                if (!this->is_connected())
+                    break;
+
+                while (true) {
+                    std::shared_ptr<message_t> send_message;
+
+                    {
+                        std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
+
+                        if (this->m_outgoing_system_messages.empty() && this->m_outgoing_messages.empty()) {
+                            break;
+                        }
+
+                        if (!this->m_outgoing_system_messages.empty()) {
+                            send_message = this->m_outgoing_system_messages.front();
+                            this->m_outgoing_system_messages.pop();
+                        }
+                        else if (!this->m_outgoing_messages.empty()) {
+                            send_message = this->m_outgoing_messages.front();
+                            this->m_outgoing_messages.pop();
+                        }
+                    }
+
+                    if (!send_message)
+                        break;
+
+                    // TODO: Add mutex here
+
+                    {
+                        if (send_message->data_head.empty()) {
+                            send_message->head.send_timestamp =
+                                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+                            // Pre process message data
+                            m_context.pre_process_message(send_message->data);
+
+                            // Set new data size
+                            send_message->head.data_size = send_message->data.size();
+
+                            // Serialize head
+                            send_message->head.serialize(send_message->data_head);
+                        }
+                    }
+
+                    co_await this->co_write_message(send_message, ec);
+
+                    if (ec) {
+                        if (ec != asio::error::eof && ec != asio::error::connection_reset) {
+                            LIBNETWRK_ERROR(this->m_context.name, "Failed during write. | {}", ec.message());
+                        }
+
+                        this->stop();
+                        m_context.internal_ev_client_disconnected(this->shared_from_this());
                         break;
                     }
-
-                    if (!this->m_outgoing_system_messages.empty()) {
-                        send_message = this->m_outgoing_system_messages.front();
-                        this->m_outgoing_system_messages.pop();
-                    }
-                    else if (!this->m_outgoing_messages.empty()) {
-                        send_message = this->m_outgoing_messages.front();
-                        this->m_outgoing_messages.pop();
-                    }
                 }
 
-                if (!send_message)
+                if (ec)
                     break;
-
-                // TODO: Add mutex here
-
-                {
-                    if (send_message->data_head.empty()) {
-                        send_message->head.send_timestamp =
-                            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-                        // Pre process message data
-                        m_context.pre_process_message(send_message->data);
-
-                        // Set new data size
-                        send_message->head.data_size = send_message->data.size();
-
-                        // Serialize head
-                        send_message->head.serialize(send_message->data_head);
-                    }
-                }
-
-                co_await this->co_write_message(send_message, ec);
-
-                if (ec) {
-                    if (ec != asio::error::eof && ec != asio::error::connection_reset) {
-                        LIBNETWRK_ERROR(this->m_context.name, "Failed during write. | {}", ec.message());
-                    }
-
-                    this->stop();
-                    m_context.internal_ev_client_disconnected(this->shared_from_this());
-                    break;
-                }
             }
 
             this->write_operations--;
-        }
-
-        /*
-            Queue message writing job.
-        */
-        void write_message() override final {
-            asio::co_spawn(*m_context.io_context, co_write(), asio::detached);
         }
     };
 }

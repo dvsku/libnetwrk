@@ -34,8 +34,9 @@ namespace libnetwrk {
         base_connection(const base_connection&) = delete;
         base_connection(base_connection&&)      = default;
 
-        base_connection(socket_t socket)
-            : m_socket(std::move(socket))
+        base_connection(work_context& context, socket_t socket)
+            : m_socket(std::move(socket)),
+              m_write_timer(*context.io_context, asio::steady_timer::time_point::max())
         {
             is_authenticated.store(false);
             read_operations.store(0U);
@@ -81,6 +82,7 @@ namespace libnetwrk {
 
         void stop() {
             m_socket.close();
+            m_write_timer.cancel();
         };
 
         /*
@@ -88,7 +90,7 @@ namespace libnetwrk {
         */
         void send(const std::shared_ptr<message_t> message) {
             {
-                std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
+                std::lock_guard<std::mutex> guard(m_outgoing_mutex);
 
                 if (message->head.type == message_type::system) {
                     m_outgoing_system_messages.push(message);
@@ -96,9 +98,9 @@ namespace libnetwrk {
                 else {
                     m_outgoing_messages.push(message);
                 }
+
+                m_write_timer.cancel_one();
             }
-            
-            write_message();
         }
 
         /*
@@ -115,12 +117,7 @@ namespace libnetwrk {
         std::queue<std::shared_ptr<message_t>> m_outgoing_messages;
         std::queue<std::shared_ptr<message_t>> m_outgoing_system_messages;
         std::mutex                             m_outgoing_mutex;
-
-    protected:
-        /*
-            Queue message writing job.
-        */
-        virtual void write_message() {}
+        asio::steady_timer                     m_write_timer;
 
     protected:
         asio::awaitable<void> co_read_message(message_t& recv_message, std::error_code& ec) {
@@ -177,6 +174,11 @@ namespace libnetwrk {
             }
 
             ec = {};
+        }
+
+        asio::awaitable<void> co_wait_for_write_message() {
+            co_await m_write_timer.async_wait(asio::as_tuple(asio::use_awaitable));
+            co_return;
         }
     };
 }
