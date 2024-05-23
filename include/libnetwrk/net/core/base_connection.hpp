@@ -84,7 +84,9 @@ namespace libnetwrk {
         virtual void start() = 0;
 
         void stop() {
-            m_socket.close();
+            if(is_connected())
+                m_socket.close();
+
             m_write_cv.notify_all();
             m_cancel_cv.notify_all();
         };
