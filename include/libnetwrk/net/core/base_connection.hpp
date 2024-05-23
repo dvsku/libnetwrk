@@ -2,6 +2,7 @@
 
 #include "libnetwrk/net/core/context.hpp"
 #include "libnetwrk/net/core/messages/owned_message.hpp"
+#include "libnetwrk/net/core/messages/outgoing_message.hpp"
 
 #include <chrono>
 #include <mutex>
@@ -20,6 +21,9 @@ namespace libnetwrk {
 
         // Message type
         using message_t = message<Desc>;
+
+        // Outgoing message type
+        using outgoing_message_t = outgoing_message<Desc>;
 
         // Serializer type
         using serialize_t = typename Desc::serialize_t;
@@ -86,15 +90,15 @@ namespace libnetwrk {
         /*
             Send message.
         */
-        void send(const std::shared_ptr<message_t> message) {
+        void send(const std::shared_ptr<outgoing_message_t> outgoing_message) {
             {
                 std::lock_guard<std::mutex> guard(m_outgoing_mutex);
 
-                if (message->head.type == message_type::system) {
-                    m_outgoing_system_messages.push(message);
+                if (outgoing_message->message.head.type == message_type::system) {
+                    m_outgoing_system_messages.push(outgoing_message);
                 }
                 else {
-                    m_outgoing_messages.push(message);
+                    m_outgoing_messages.push(outgoing_message);
                 }
 
                 m_write_timer.cancel_one();
@@ -105,17 +109,17 @@ namespace libnetwrk {
             Send message.
         */
         void send(message_t& message) {
-            send(std::make_shared<message_t>(std::move(message)));
+            send(std::make_shared<outgoing_message_t>(std::move(message)));
         }
 
     protected:
         socket_t m_socket;
         uint64_t m_id = 0U;
 
-        std::queue<std::shared_ptr<message_t>> m_outgoing_messages;
-        std::queue<std::shared_ptr<message_t>> m_outgoing_system_messages;
-        std::mutex                             m_outgoing_mutex;
-        asio::steady_timer                     m_write_timer;
+        std::queue<std::shared_ptr<outgoing_message_t>> m_outgoing_messages;
+        std::queue<std::shared_ptr<outgoing_message_t>> m_outgoing_system_messages;
+        std::mutex                                      m_outgoing_mutex;
+        asio::steady_timer                              m_write_timer;
 
     protected:
         asio::awaitable<void> co_read_message(message_t& recv_message, std::error_code& ec) {
@@ -151,20 +155,20 @@ namespace libnetwrk {
             ec = {};
         }
 
-        asio::awaitable<void> co_write_message(std::shared_ptr<message_t> message, std::error_code& ec) {
-            auto [h_ec, h_size] = co_await m_socket.async_write(message->data_head);
+        asio::awaitable<void> co_write_message(std::shared_ptr<outgoing_message_t> message, std::error_code& ec) {
+            auto [h_ec, h_size] = co_await m_socket.async_write(message->serialized_head);
 
             if (h_ec) {
                 ec = h_ec;
                 co_return;
             }
 
-            if (message->data.size() == 0) {
+            if (message->message.data.size() == 0) {
                 ec = {};
                 co_return;
             }
 
-            auto [b_ec, b_size] = co_await m_socket.async_write(message->data);
+            auto [b_ec, b_size] = co_await m_socket.async_write(message->message.data);
 
             if (b_ec) {
                 ec = b_ec;

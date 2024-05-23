@@ -136,7 +136,7 @@ namespace libnetwrk {
                     break;
 
                 while (true) {
-                    std::shared_ptr<message_t> send_message;
+                    std::shared_ptr<outgoing_message<Desc>> send_message;
 
                     {
                         std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
@@ -166,18 +166,18 @@ namespace libnetwrk {
                     // TODO: Add mutex here
 
                     {
-                        if (send_message->data_head.empty()) {
-                            send_message->head.send_timestamp =
-                                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                        if (send_message->serialized_head.empty()) {
+                            send_message->message.head.send_timestamp =
+                                std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
                             // Pre process message data
-                            m_context.pre_process_message(send_message->data);
+                            m_context.pre_process_message(send_message->message.data);
 
                             // Set new data size
-                            send_message->head.data_size = send_message->data.size();
+                            send_message->message.head.data_size = send_message->message.data.size();
 
                             // Serialize head
-                            send_message->head.serialize(send_message->data_head);
+                            send_message->message.head.serialize(send_message->serialized_head);
                         }
                     }
 

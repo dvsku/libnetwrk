@@ -20,7 +20,6 @@ namespace libnetwrk {
     public:
         message_head_t head;
         buffer_t       data;
-        buffer_t       data_head;
 
     public:
         message()                 = default;

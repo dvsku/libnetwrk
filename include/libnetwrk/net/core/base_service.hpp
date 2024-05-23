@@ -94,7 +94,9 @@ namespace libnetwrk {
             shouldn't be used further without reassigning.
         */
         void send(std::shared_ptr<connection_t> client, message_t& message) {
-            impl_send(client, std::make_shared<message_t>(std::move(message)));
+            if (!client || client->is_connected()) return;
+
+            client->send(message);
         }
 
         /*
@@ -103,11 +105,15 @@ namespace libnetwrk {
             shouldn't be used further without reassigning.
         */
         void send_all(message_t& message) {
-            auto msg = std::make_shared<message_t>(std::move(message));
+            auto outgoing_message =
+                std::make_shared<libnetwrk::outgoing_message<Desc>>(std::move(message));
 
             std::lock_guard<std::mutex> guard(m_connections_mutex);
-            for (auto& client : m_connections)
-                impl_send(client, msg);
+            for (auto& client : m_connections) {
+                if (!client || !client->is_connected()) continue;
+
+                client->send(outgoing_message);
+            }
         }
 
         /*
@@ -116,13 +122,15 @@ namespace libnetwrk {
             shouldn't be used further without reassigning.
         */
         void send_all(message_t& message, send_predicate predicate) {
-            auto msg = std::make_shared<message_t>(std::move(message));
+            auto outgoing_message =
+                std::make_shared<libnetwrk::outgoing_message<Desc>>(std::move(message));
 
             std::lock_guard<std::mutex> guard(m_connections_mutex);
             for (auto& client : m_connections) {
-                if (client && predicate(client)) {
-                    impl_send(client, msg);
-                }
+                if (!client || !client->is_connected()) continue;
+                if (!predicate(client))                 continue;
+
+                client->send(outgoing_message);
             }
         }
 

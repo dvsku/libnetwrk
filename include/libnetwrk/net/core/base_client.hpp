@@ -74,7 +74,7 @@ namespace libnetwrk {
         void send(message_t& message) {
             if (m_connection && connected()) {
                 if (m_connection->is_connected()) {
-                    m_connection->send(std::make_shared<message_t>(std::move(message)));
+                    m_connection->send(message);
                 }
                 else {
                     disconnect();
