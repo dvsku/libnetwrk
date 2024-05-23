@@ -7,6 +7,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 namespace libnetwrk {
     class work_context {
@@ -36,7 +37,10 @@ namespace libnetwrk {
 
     public:
         context(const std::string& name)
-            : name(name) {}
+            : name(name)
+        {
+            m_status = libnetwrk::service_status::stopped;
+        }
 
     public:
         /*
@@ -70,7 +74,7 @@ namespace libnetwrk {
         }
 
     protected:
-        service_status m_status = service_status::stopped;
+        std::atomic_uint8_t m_status;
 
         std::queue<owned_message_t> m_incoming_messages;
         std::queue<owned_message_t> m_incoming_system_messages;

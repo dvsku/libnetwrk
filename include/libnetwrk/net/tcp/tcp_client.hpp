@@ -37,7 +37,9 @@ namespace libnetwrk::tcp {
             : base_client_t(name) {}
 
         virtual ~tcp_client() {
-            if (this->m_status == service_status::stopped || this->m_status == service_status::stopping)
+            auto status = this->m_status.load();
+
+            if (status == service_status::stopped || status == service_status::stopping)
                 return;
 
             this->m_status = service_status::stopping;
