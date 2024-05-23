@@ -1,5 +1,6 @@
 #pragma once
 
+#include "libnetwrk/net/core/enums.hpp"
 #include "libnetwrk/net/core/messages/owned_message.hpp"
 
 #include <string>
@@ -8,13 +9,6 @@
 #include <condition_variable>
 
 namespace libnetwrk {
-    enum class service_status : uint8_t {
-        stopped  = 0x0,
-        starting = 0x1,
-        started  = 0x2,
-        stopping = 0x3
-    };
-
     class work_context {
     public:
         using io_context_t = asio::io_context;
