@@ -48,7 +48,7 @@ namespace libnetwrk {
         base_client_connection(base_client_connection&&)      = default;
 
         base_client_connection(context_t& context, socket_t socket)
-            : base_connection<Desc, Socket>(std::move(socket)), m_context(context) {}
+            : base_connection<Desc, Socket>(context, std::move(socket)), m_context(context) {}
 
         base_client_connection& operator=(const base_client_connection&) = delete;
         base_client_connection& operator=(base_client_connection&&)      = default;
@@ -78,7 +78,8 @@ namespace libnetwrk {
             auto limit             = std::chrono::system_clock::now() + std::chrono::seconds(10);
             auth_timeout_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(limit.time_since_epoch()).count();
 
-            read_message();
+            asio::co_spawn(*m_context.io_context, co_read(),  asio::detached);
+            asio::co_spawn(*m_context.io_context, co_write(), asio::detached);
         }
 
     protected:
@@ -86,124 +87,148 @@ namespace libnetwrk {
         storage_t  m_storage;
 
     private:
-        /*
-            Called when there's a disconnect during read/write.
-        */
-        void internal_disconnect() override final {
-            this->stop();
-            this->m_context.internal_ev_client_disconnected(this->shared_from_this());
-        }
+        asio::awaitable<void> co_read() {
+            std::error_code ec;
 
-        /*
-            Called when there's a failure during read/write.
-        */
-        void internal_failure(std::error_code ec) override final {
-            internal_disconnect();
-            LIBNETWRK_ERROR(this->m_context.name, "Failed during read/write. | {}", ec.message());
-        }
+            this->active_operations++;
+            LIBNETWRK_DEBUG(m_context.name, "{}: Started reading messages.", this->m_id);
 
-        /*
-            Called when finished reading a message.
-        */
-        void internal_read_callback() override final {
-            owned_message_t owned_message;
-            owned_message.msg.head = std::move(this->m_recv_message.head);
-            owned_message.msg.data = std::move(this->m_recv_message.data);
-            owned_message.sender   = this->shared_from_this();
+            while (true) {
+                if (!this->is_connected())
+                    break;
 
-            /*
-                If client is not authenticated, discard user messages
-            */
+                owned_message_t owned_message;
 
-            if (!this->is_authenticated.load() && owned_message.msg.head.type != message_type::system)
-                this->read_message();
+                co_await this->co_read_message(owned_message.msg, ec);
 
-            // Post process message data
-            m_context.post_process_message(owned_message.msg.data);
+                if (ec) {
+                    if (ec != asio::error::eof && ec != asio::error::connection_reset) {
+                        LIBNETWRK_ERROR(m_context.name, "{}: Failed during read. | {}", this->m_id, ec.message());
+                    }
 
-            // Set new data size
-            owned_message.msg.head.data_size = owned_message.msg.data.size();
+                    this->stop();
+                    m_context.internal_ev_client_disconnected(this->shared_from_this());
+                    break;
+                }
 
-            {
-                std::lock_guard<std::mutex> guard(this->m_context.m_incoming_mutex);
+                /*
+                    If client is not authenticated, discard user messages
+                */
+
+                if (!this->is_authenticated.load() && owned_message.msg.head.type != message_type::system)
+                    continue;
+
+                owned_message.sender = this->shared_from_this();
+
+                // Post process message data
+                m_context.post_process_message(owned_message.msg.data);
+
+                // Set new data size
+                owned_message.msg.head.data_size = owned_message.msg.data.size();
 
                 {
-                    std::lock_guard<std::mutex> cv_lock(this->m_context.m_cv_mutex);
+                    std::lock_guard<std::mutex> guard(m_context.m_incoming_mutex);
 
-                    if (owned_message.msg.head.type == message_type::system) {
-                        this->m_context.m_incoming_system_messages.push(std::move(owned_message));
+                    {
+                        std::lock_guard<std::mutex> cv_lock(m_context.m_cv_mutex);
+
+                        if (owned_message.msg.head.type == message_type::system) {
+                            m_context.m_incoming_system_messages.push(std::move(owned_message));
+                        }
+                        else {
+                            m_context.m_incoming_messages.push(std::move(owned_message));
+                        }
                     }
-                    else {
-                        this->m_context.m_incoming_messages.push(std::move(owned_message));
-                    }
+                    m_context.m_cv.notify_one();
                 }
-                this->m_context.m_cv.notify_one();
             }
 
-            this->read_message();
+            this->active_operations--;
+            LIBNETWRK_DEBUG(m_context.name, "{}: Stopped reading messages.", this->m_id);
         }
 
-        /*
-            Queue message reading job.
-        */
-        void read_message() override final {
-            auto shared = this->shared_from_this();
+        asio::awaitable<void> co_write() {
+            std::error_code ec;
 
-            asio::post(*m_context.io_context, [shared] {
-                shared->read_message_head();
-            });
-        }
+            this->active_operations++;
+            LIBNETWRK_DEBUG(m_context.name, "{}: Started writing messages.", this->m_id);
 
-        /*
-            Queue message writing job.
-        */
-        void write_message() override final {
-            auto shared = this->shared_from_this();
+            while (true) {
+                if (!this->is_connected())
+                    break;
 
-            asio::post(*m_context.io_context, [shared] {
                 {
-                    std::lock_guard<std::mutex> guard(shared->m_outgoing_mutex);
+                    std::unique_lock<std::mutex> lock(this->m_outgoing_mutex);
 
-                    if (shared->m_send_message) {
-                        return;
-                    }
-
-                    if (shared->m_outgoing_system_messages.empty() && shared->m_outgoing_messages.empty()) {
-                        return;
-                    }
-
-                    if (!shared->m_outgoing_system_messages.empty()) {
-                        shared->m_send_message = shared->m_outgoing_system_messages.front();
-                        shared->m_outgoing_system_messages.pop();
-                    }
-                    else if (!shared->m_outgoing_messages.empty()) {
-                        shared->m_send_message = shared->m_outgoing_messages.front();
-                        shared->m_outgoing_messages.pop();
-                    }
-                    else {
-                        shared->m_send_message = nullptr;
+                    if (this->m_outgoing_system_messages.empty() && this->m_outgoing_messages.empty()) {
+                        lock.unlock();
+                        co_await this->co_wait_for_write_message();
                     }
                 }
 
-                if (!shared->m_send_message)
-                    return;
+                if (!this->is_connected())
+                    break;
 
-                if (shared->m_send_message->data_head.empty()) {
-                    shared->m_send_message->head.send_timestamp =
-                        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                while (true) {
+                    std::shared_ptr<message_t> send_message;
 
-                    // Pre process message data
-                    shared->m_context.pre_process_message(shared->m_send_message->data);
+                    {
+                        std::lock_guard<std::mutex> guard(this->m_outgoing_mutex);
 
-                    // Set new data size
-                    shared->m_send_message->head.data_size = shared->m_send_message->data.size();
+                        if (this->m_outgoing_system_messages.empty() && this->m_outgoing_messages.empty()) {
+                            break;
+                        }
 
-                    // Serialize head
-                    shared->m_send_message->head.serialize(shared->m_send_message->data_head);
+                        if (!this->m_outgoing_system_messages.empty()) {
+                            send_message = this->m_outgoing_system_messages.front();
+                            this->m_outgoing_system_messages.pop();
+                        }
+                        else if (!this->m_outgoing_messages.empty()) {
+                            send_message = this->m_outgoing_messages.front();
+                            this->m_outgoing_messages.pop();
+                        }
+                    }
+
+                    if (!send_message)
+                        break;
+
+                    // TODO: Add mutex here
+
+                    {
+                        if (send_message->data_head.empty()) {
+                            send_message->head.send_timestamp =
+                                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+                            // Pre process message data
+                            m_context.pre_process_message(send_message->data);
+
+                            // Set new data size
+                            send_message->head.data_size = send_message->data.size();
+
+                            // Serialize head
+                            send_message->head.serialize(send_message->data_head);
+                        }
+                    }
+
+                    co_await this->co_write_message(send_message, ec);
+
+                    if (ec) {
+                        if (ec != asio::error::eof && ec != asio::error::connection_reset) {
+                            LIBNETWRK_ERROR(m_context.name, "{}: Failed during write. | {}", this->m_id, ec.message());
+                        }
+
+                        this->stop();
+                        m_context.internal_ev_client_disconnected(this->shared_from_this());
+                        break;
+                    }
                 }
 
-                return shared->write_message_head();
-            });
+                if (ec)
+                    break;
+            }
+
+            this->active_operations--;
+            LIBNETWRK_DEBUG(m_context.name, "{}: Stopped writing messages.", this->m_id);
         }
     };
 }

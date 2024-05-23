@@ -305,3 +305,38 @@ TEST(tcp_service_client, ping_pong_pre_post_process) {
     EXPECT_TRUE(service.ping == "PiNg");
     EXPECT_TRUE(client.pong == "pOnG");
 }
+
+TEST(tcp_service_client, two_clients_out_of_order) {
+    test_service service;
+    service.start("127.0.0.1", 21205);
+    service.process_messages_async();
+
+    test_client client1;
+    EXPECT_TRUE(client1.connect("127.0.0.1", 21205) == true);
+    client1.process_messages_async();
+
+    test_client client2;
+    EXPECT_TRUE(client2.connect("127.0.0.1", 21205) == true);
+    client2.process_messages_async();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    {
+        test_client::message_t msg(commands::c2s_ping);
+        msg << std::string("PiNg");
+        client2.send(msg);
+    }
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    {
+        test_client::message_t msg(commands::c2s_ping);
+        msg << std::string("PiNg");
+        client1.send(msg);
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    EXPECT_TRUE(client1.pong == "pOnG");
+    EXPECT_TRUE(client2.pong == "pOnG");
+}

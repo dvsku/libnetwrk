@@ -127,7 +127,7 @@ namespace libnetwrk {
         }
 
     protected:
-        uint64_t m_ids     = 0U;
+        uint64_t m_ids = 0U;
 
         std::list<std::shared_ptr<connection_t>> m_connections;
         std::mutex                               m_connections_mutex;
@@ -180,11 +180,6 @@ namespace libnetwrk {
         virtual bool impl_start(const char* host, const unsigned short port) = 0;
 
         /*
-            Client accept implementation.
-        */
-        virtual void impl_accept() = 0;
-
-        /*
             Pre process message data before writing.
         */
         virtual void pre_process_message(message_t::buffer_t& buffer) override {}
@@ -196,8 +191,11 @@ namespace libnetwrk {
 
     protected:
         void teardown() {
-            if (this->m_gc_timer)
-                this->m_gc_timer->cancel();
+            if (m_gc_timer)
+                m_gc_timer->cancel();
+
+            if (m_gc_future.valid())
+                m_gc_future.wait();
 
             if (this->io_context && !this->io_context->stopped())
                 this->io_context->stop();
@@ -220,17 +218,16 @@ namespace libnetwrk {
             LIBNETWRK_INFO(this->name, "Stopped.");
         };
 
-        void start_context() {
-            m_gc_timer = std::make_unique<timer_t>(*this->io_context, std::chrono::seconds(gc_freq_sec));
-            m_gc_timer->async_wait(std::bind(&base_service::impl_gc, this, std::placeholders::_1));
-            
+        void start_context() { 
+            m_gc_future      = asio::co_spawn(*this->io_context, co_gc(), asio::use_future);
             m_context_thread = std::thread([this] { this->io_context->run(); });
         }
 
     private:
         std::thread              m_context_thread;
         std::unique_ptr<timer_t> m_gc_timer;
-
+        std::future<void>        m_gc_future;
+        
     private:
         bool internal_process_message() override final {
             try {
@@ -274,7 +271,7 @@ namespace libnetwrk {
             Client disconnected callback from connection.
         */
         void internal_ev_client_disconnected(std::shared_ptr<connection_t> client) override final {
-            LIBNETWRK_INFO(this->name, "Client disconnected.");
+            LIBNETWRK_INFO(this->name, "{}: Client disconnected.", client->id());
         }
 
         void ev_system_message(owned_message_t& msg) override final {
@@ -310,46 +307,60 @@ namespace libnetwrk {
                 client->send(message);
         }
 
-        void impl_gc(const std::error_code& ec) {
-            if (ec) {
-                if (ec != asio::error::operation_aborted)
-                    LIBNETWRK_ERROR(this->name, "Failed to run GC. | {}", ec.message());
+        asio::awaitable<void> co_gc() {
+            auto current_executor = co_await asio::this_coro::executor;
+            m_gc_timer            = std::make_unique<timer_t>(current_executor, std::chrono::seconds(gc_freq_sec));
 
-                return;
-            }
+            size_t count_before = 0U;
+            size_t count_after  = 0U;
 
-            std::unique_lock<std::mutex> guard(m_connections_mutex);
+            while (true) {
+                auto [ec] = co_await m_gc_timer->async_wait(asio::as_tuple(asio::use_awaitable));
 
-            size_t prev_size = m_connections.size();
-
-            m_connections.remove_if([this](auto& client) {
-                if (!client)
-                    return true;
-
-                if (!client->is_connected()) {
-                    ev_client_disconnected(client);
-                    return true;
-                }
-
-                if (!client->is_authenticated.load()) {
-                    uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                        std::chrono::system_clock::now().time_since_epoch()).count();
-
-                    if (timestamp > client->auth_timeout_timestamp) {
-                        client->stop();
-                        LIBNETWRK_VERBOSE(this->name, "Auth timeout. Client disconnected.");
-                        ev_client_disconnected(client);
-                        return true;
+                if (ec) {
+                    if (ec != asio::error::operation_aborted) {
+                        LIBNETWRK_ERROR(this->name, "Failed to run GC. | {}", ec.message());
                     }
+
+                    break;
                 }
 
-                return false;
-            });
+                {
+                    std::lock_guard<std::mutex> guard(m_connections_mutex);
 
-            LIBNETWRK_VERBOSE(this->name, "GC tc: {} rc: {}", m_connections.size(), prev_size - m_connections.size());
+                    count_before = m_connections.size();
 
-            m_gc_timer->expires_at(m_gc_timer->expiry() + std::chrono::seconds(gc_freq_sec));
-            m_gc_timer->async_wait(std::bind(&base_service::impl_gc, this, std::placeholders::_1));
+                    m_connections.remove_if([this](auto& client) {
+                        if (!client)
+                            return true;
+
+                        if (!client->is_connected()) {
+                            ev_client_disconnected(client);
+                            return true;
+                        }
+
+                        if (!client->is_authenticated.load()) {
+                            uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                std::chrono::system_clock::now().time_since_epoch()).count();
+
+                            if (timestamp > client->auth_timeout_timestamp) {
+                                client->stop();
+                                LIBNETWRK_VERBOSE(this->name, "{}: Auth timeout. Client disconnected.", client->id());
+                                ev_client_disconnected(client);
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    });
+
+                    count_after = m_connections.size();
+                }
+
+                LIBNETWRK_VERBOSE(this->name, "GC tc: {} rc: {}", count_before, count_before - count_after);
+
+                m_gc_timer->expires_after(std::chrono::seconds(gc_freq_sec));
+            }
         }
     };
 }

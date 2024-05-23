@@ -4,6 +4,11 @@ SET(FETCHCONTENT_QUIET OFF)
 SET(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
 ###############################################################################
+## asio
+
+SET(ASIO_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/asio/include" PARENT_SCOPE)
+
+###############################################################################
 ## dv_utilities
 
 IF(LIBNETWRK_EXAMPLES)
