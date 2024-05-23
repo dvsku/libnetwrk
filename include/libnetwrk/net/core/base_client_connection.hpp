@@ -1,5 +1,6 @@
 #pragma once
 
+#include "asio/experimental/awaitable_operators.hpp"
 #include "libnetwrk/net/core/base_connection.hpp"
 #include "libnetwrk/net/core/auth.hpp"
 #include "libnetwrk/net/core/system_commands.hpp"
@@ -99,7 +100,11 @@ namespace libnetwrk {
 
                 owned_message_t owned_message;
 
-                co_await this->co_read_message(owned_message.msg, ec);
+                using namespace asio::experimental::awaitable_operators;
+                co_await (
+                    this->co_read_message(owned_message.msg, ec) || 
+                    this->m_cancel_cv.wait()
+                );
 
                 if (ec) {
                     if (ec != asio::error::eof && ec != asio::error::connection_reset) {
@@ -210,7 +215,11 @@ namespace libnetwrk {
                         }
                     }
 
-                    co_await this->co_write_message(send_message, ec);
+                    using namespace asio::experimental::awaitable_operators;
+                    co_await (
+                        this->co_write_message(send_message, ec) ||
+                        this->m_cancel_cv.wait()
+                    );
 
                     if (ec) {
                         if (ec != asio::error::eof && ec != asio::error::connection_reset) {
