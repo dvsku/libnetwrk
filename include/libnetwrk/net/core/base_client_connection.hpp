@@ -192,9 +192,9 @@ namespace libnetwrk {
                     if (!send_message)
                         break;
 
-                    // TODO: Add mutex here
-
                     {
+                        std::lock_guard<std::mutex> guard(send_message->mutex);
+
                         if (send_message->serialized_head.empty()) {
                             send_message->message.head.send_timestamp =
                                 std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());

@@ -3,6 +3,8 @@
 #include "libnetwrk/net/core/messages/message.hpp"
 #include "libnetwrk/net/core/containers/buffer.hpp"
 
+#include <mutex>
+
 namespace libnetwrk {
     template<typename Desc>
     requires is_libnetwrk_service_desc<Desc>
@@ -25,5 +27,6 @@ namespace libnetwrk {
     public:
         message_t  message;
         buffer_t   serialized_head;
+        std::mutex mutex;
     };
 }
