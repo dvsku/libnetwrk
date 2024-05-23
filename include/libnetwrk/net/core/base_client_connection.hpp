@@ -90,7 +90,7 @@ namespace libnetwrk {
         asio::awaitable<void> co_read() {
             std::error_code ec;
 
-            this->read_operations++;
+            this->active_operations++;
             LIBNETWRK_DEBUG(m_context.name, "{}: Started reading messages.", this->m_id);
 
             while (true) {
@@ -143,14 +143,14 @@ namespace libnetwrk {
                 }
             }
 
-            this->read_operations--;
+            this->active_operations--;
             LIBNETWRK_DEBUG(m_context.name, "{}: Stopped reading messages.", this->m_id);
         }
 
         asio::awaitable<void> co_write() {
             std::error_code ec;
 
-            this->write_operations++;
+            this->active_operations++;
             LIBNETWRK_DEBUG(m_context.name, "{}: Started writing messages.", this->m_id);
 
             while (true) {
@@ -227,7 +227,7 @@ namespace libnetwrk {
                     break;
             }
 
-            this->write_operations--;
+            this->active_operations--;
             LIBNETWRK_DEBUG(m_context.name, "{}: Stopped writing messages.", this->m_id);
         }
     };

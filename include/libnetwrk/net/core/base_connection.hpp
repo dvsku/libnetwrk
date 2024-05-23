@@ -26,8 +26,7 @@ namespace libnetwrk {
 
     public:
         std::atomic_bool   is_authenticated;
-        std::atomic_ushort read_operations;
-        std::atomic_ushort write_operations;
+        std::atomic_ushort active_operations;
 
     public:
         base_connection()                       = delete;
@@ -39,8 +38,7 @@ namespace libnetwrk {
               m_write_timer(*context.io_context, asio::steady_timer::time_point::max())
         {
             is_authenticated.store(false);
-            read_operations.store(0U);
-            write_operations.store(0U);
+            active_operations.store(0U);
         }
 
         connection_t& operator=(const connection_t&) = delete;
