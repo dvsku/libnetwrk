@@ -113,8 +113,8 @@ namespace libnetwrk {
 
             std::lock_guard<std::mutex> guard(m_connections_mutex);
             for (auto& client : m_connections) {
-                if (!client    || !client->is_connected()) continue;
-                if (!predicate || !predicate(client))      continue;
+                if (!client   || !client->is_connected()) continue;
+                if (predicate && !predicate(client))      continue;
 
                 client->send(outgoing_message);
             }
