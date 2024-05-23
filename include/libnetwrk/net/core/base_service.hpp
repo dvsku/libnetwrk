@@ -90,45 +90,31 @@ namespace libnetwrk {
 
         /*
             Send a message to client.
-            Message object after sending should be considered in an undefined state and
-            shouldn't be used further without reassigning.
         */
-        void send(std::shared_ptr<connection_t> client, message_t& message) {
+        void send(std::shared_ptr<connection_t> client, message_t& message, libnetwrk::send_flags flags = libnetwrk::send_flags::none) {
             if (!client || client->is_connected()) return;
 
-            client->send(message);
+            client->send(message, flags);
         }
 
         /*
-            Send a message to all clients.
-            Message object after sending should be considered in an undefined state and
-            shouldn't be used further without reassigning.
+            Send a message to clients.
+            Predicate can be used to filter clients.
         */
-        void send_all(message_t& message) {
-            auto outgoing_message =
-                std::make_shared<libnetwrk::outgoing_message<Desc>>(std::move(message));
+        void send_all(message_t& message, libnetwrk::send_flags flags = libnetwrk::send_flags::none, send_predicate predicate = nullptr) {
+            std::shared_ptr<libnetwrk::outgoing_message<Desc>> outgoing_message;
 
-            std::lock_guard<std::mutex> guard(m_connections_mutex);
-            for (auto& client : m_connections) {
-                if (!client || !client->is_connected()) continue;
-
-                client->send(outgoing_message);
+            if (LIBNETWRK_FLAG_SET(flags, libnetwrk::send_flags::keep_message)) {
+                outgoing_message = std::make_shared<libnetwrk::outgoing_message<Desc>>(message);
             }
-        }
-
-        /*
-            Send a message to clients that satisfy the predicate.
-            Message object after sending should be considered in an undefined state and
-            shouldn't be used further without reassigning.
-        */
-        void send_all(message_t& message, send_predicate predicate) {
-            auto outgoing_message =
-                std::make_shared<libnetwrk::outgoing_message<Desc>>(std::move(message));
+            else {
+                outgoing_message = std::make_shared<libnetwrk::outgoing_message<Desc>>(std::move(message));
+            }
 
             std::lock_guard<std::mutex> guard(m_connections_mutex);
             for (auto& client : m_connections) {
-                if (!client || !client->is_connected()) continue;
-                if (!predicate(client))                 continue;
+                if (!client    || !client->is_connected()) continue;
+                if (!predicate || !predicate(client))      continue;
 
                 client->send(outgoing_message);
             }

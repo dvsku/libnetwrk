@@ -1,6 +1,7 @@
 #pragma once
 
 #include "libnetwrk/net/core/context.hpp"
+#include "libnetwrk/net/core/enums.hpp"
 #include "libnetwrk/net/core/messages/owned_message.hpp"
 #include "libnetwrk/net/core/messages/outgoing_message.hpp"
 
@@ -108,8 +109,17 @@ namespace libnetwrk {
         /*
             Send message.
         */
-        void send(message_t& message) {
-            send(std::make_shared<outgoing_message_t>(std::move(message)));
+        void send(message_t& message, libnetwrk::send_flags flags = libnetwrk::send_flags::none) {
+            std::shared_ptr<outgoing_message_t> outgoing_message;
+
+            if (LIBNETWRK_FLAG_SET(flags, libnetwrk::send_flags::keep_message)) {
+                outgoing_message = std::make_shared<outgoing_message_t>(message);
+            }
+            else {
+                outgoing_message = std::make_shared<outgoing_message_t>(std::move(message));
+            }
+
+            send(outgoing_message);
         }
 
     protected:

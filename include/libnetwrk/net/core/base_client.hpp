@@ -71,10 +71,10 @@ namespace libnetwrk {
         /*
             Send a message.
         */
-        void send(message_t& message) {
+        void send(message_t& message, libnetwrk::send_flags flags = libnetwrk::send_flags::none) {
             if (m_connection && connected()) {
                 if (m_connection->is_connected()) {
-                    m_connection->send(message);
+                    m_connection->send(message, flags);
                 }
                 else {
                     disconnect();

@@ -18,6 +18,9 @@ namespace libnetwrk {
         outgoing_message(const outgoing_message&) = delete;
         outgoing_message(outgoing_message&&)      = delete;
 
+        outgoing_message(const message_t& message)
+            : message(message) {}
+
         outgoing_message(message_t&& message)
             : message(std::move(message)) {}
 
