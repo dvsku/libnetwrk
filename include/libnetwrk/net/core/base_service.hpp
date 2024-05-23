@@ -5,6 +5,7 @@
 
 #include <chrono>
 #include <list>
+#include <algorithm>
 
 namespace libnetwrk {
     template<typename Desc, typename Socket>
@@ -191,6 +192,16 @@ namespace libnetwrk {
             if (m_gc_future.valid())
                 m_gc_future.wait();
 
+            /*
+                Close all connections and signal coroutines to stop
+            */
+            stop_all_connections();
+
+            /*
+                Wait for all coroutines to stop
+            */
+            wait_for_coroutines_to_stop();
+
             if (this->io_context && !this->io_context->stopped())
                 this->io_context->stop();
 
@@ -299,6 +310,37 @@ namespace libnetwrk {
         void impl_send(std::shared_ptr<connection_t>& client, std::shared_ptr<message_t> message) {
             if (client && client->is_connected())
                 client->send(message);
+        }
+
+        void stop_all_connections() {
+            std::lock_guard<std::mutex> guard(m_connections_mutex);
+
+            for (auto& client : m_connections) {
+                if (!client) continue;
+
+                client->stop();
+            }
+        }
+
+        void wait_for_coroutines_to_stop() {
+            bool running;
+
+            while (true) {
+                {
+                    std::lock_guard<std::mutex> guard(m_connections_mutex);
+
+                    running = std::any_of(m_connections.begin(), m_connections.end(),
+                        [](auto& client) {
+                            return client && client->active_operations != 0;
+                        }
+                    );
+                }
+
+                if (!running)
+                    break;
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            }
         }
 
         asio::awaitable<void> co_gc() {

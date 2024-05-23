@@ -128,11 +128,16 @@ namespace libnetwrk {
 
     protected:
         void teardown() {
+            if (m_connection)
+                m_connection->stop();
+
+            /*
+                Wait for all coroutines to stop
+            */
+            wait_for_coroutines_to_stop();
+
             if (this->io_context && !this->io_context->stopped())
                 this->io_context->stop();
-    
-            if (m_connection && m_connection->is_connected())
-                m_connection->stop();
 
             if (m_context_thread.joinable())
                 m_context_thread.join();
@@ -208,6 +213,15 @@ namespace libnetwrk {
                 this->disconnect();
             });
             thread.detach();
+        }
+
+        void wait_for_coroutines_to_stop() {
+            while (true) {
+                if (!m_connection)                        break;
+                if (m_connection->active_operations == 0) break;
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            }
         }
 
         void ev_system_message(owned_message_t& msg) override final {
