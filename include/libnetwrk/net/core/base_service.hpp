@@ -271,7 +271,7 @@ namespace libnetwrk {
             Client disconnected callback from connection.
         */
         void internal_ev_client_disconnected(std::shared_ptr<connection_t> client) override final {
-            LIBNETWRK_INFO(this->name, "Client disconnected.");
+            LIBNETWRK_INFO(this->name, "{}: Client disconnected.", client->id());
         }
 
         void ev_system_message(owned_message_t& msg) override final {
@@ -345,7 +345,7 @@ namespace libnetwrk {
 
                             if (timestamp > client->auth_timeout_timestamp) {
                                 client->stop();
-                                LIBNETWRK_VERBOSE(this->name, "Auth timeout. Client disconnected.");
+                                LIBNETWRK_VERBOSE(this->name, "{}: Auth timeout. Client disconnected.", client->id());
                                 ev_client_disconnected(client);
                                 return true;
                             }

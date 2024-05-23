@@ -91,6 +91,7 @@ namespace libnetwrk {
             std::error_code ec;
 
             this->read_operations++;
+            LIBNETWRK_DEBUG(m_context.name, "{}: Started reading messages.", this->m_id);
 
             while (true) {
                 if (!this->is_connected())
@@ -102,11 +103,11 @@ namespace libnetwrk {
 
                 if (ec) {
                     if (ec != asio::error::eof && ec != asio::error::connection_reset) {
-                        LIBNETWRK_ERROR(this->m_context.name, "Failed during read/write. | {}", ec.message());
+                        LIBNETWRK_ERROR(m_context.name, "{}: Failed during read. | {}", this->m_id, ec.message());
                     }
 
                     this->stop();
-                    this->m_context.internal_ev_client_disconnected(this->shared_from_this());
+                    m_context.internal_ev_client_disconnected(this->shared_from_this());
                     break;
                 }
 
@@ -126,29 +127,31 @@ namespace libnetwrk {
                 owned_message.msg.head.data_size = owned_message.msg.data.size();
 
                 {
-                    std::lock_guard<std::mutex> guard(this->m_context.m_incoming_mutex);
+                    std::lock_guard<std::mutex> guard(m_context.m_incoming_mutex);
 
                     {
-                        std::lock_guard<std::mutex> cv_lock(this->m_context.m_cv_mutex);
+                        std::lock_guard<std::mutex> cv_lock(m_context.m_cv_mutex);
 
                         if (owned_message.msg.head.type == message_type::system) {
-                            this->m_context.m_incoming_system_messages.push(std::move(owned_message));
+                            m_context.m_incoming_system_messages.push(std::move(owned_message));
                         }
                         else {
-                            this->m_context.m_incoming_messages.push(std::move(owned_message));
+                            m_context.m_incoming_messages.push(std::move(owned_message));
                         }
                     }
-                    this->m_context.m_cv.notify_one();
+                    m_context.m_cv.notify_one();
                 }
             }
 
             this->read_operations--;
+            LIBNETWRK_DEBUG(m_context.name, "{}: Stopped reading messages.", this->m_id);
         }
 
         asio::awaitable<void> co_write() {
             std::error_code ec;
 
             this->write_operations++;
+            LIBNETWRK_DEBUG(m_context.name, "{}: Started writing messages.", this->m_id);
 
             while (true) {
                 if (!this->is_connected())
@@ -211,7 +214,7 @@ namespace libnetwrk {
 
                     if (ec) {
                         if (ec != asio::error::eof && ec != asio::error::connection_reset) {
-                            LIBNETWRK_ERROR(this->m_context.name, "Failed during write. | {}", ec.message());
+                            LIBNETWRK_ERROR(m_context.name, "{}: Failed during write. | {}", this->m_id, ec.message());
                         }
 
                         this->stop();
@@ -225,6 +228,7 @@ namespace libnetwrk {
             }
 
             this->write_operations--;
+            LIBNETWRK_DEBUG(m_context.name, "{}: Stopped writing messages.", this->m_id);
         }
     };
 }
