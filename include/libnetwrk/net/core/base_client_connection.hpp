@@ -162,7 +162,7 @@ namespace libnetwrk {
 
                     if (this->m_outgoing_system_messages.empty() && this->m_outgoing_messages.empty()) {
                         lock.unlock();
-                        co_await this->co_wait_for_write_message();
+                        co_await this->m_write_cv.wait();
                     }
                 }
 

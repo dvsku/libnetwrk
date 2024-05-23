@@ -241,7 +241,7 @@ namespace libnetwrk {
             LIBNETWRK_DEBUG(this->name, "Verification successful.");
 
             m_connection->is_authenticated.store(true);
-            m_connection->m_write_timer.cancel();
+            m_connection->m_write_cv.notify_all();
         }
     };
 }

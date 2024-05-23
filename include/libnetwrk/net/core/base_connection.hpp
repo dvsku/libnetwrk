@@ -1,6 +1,7 @@
 #pragma once
 
 #include "libnetwrk/net/core/context.hpp"
+#include "libnetwrk/net/core/misc/coroutine_cv.hpp"
 #include "libnetwrk/net/core/enums.hpp"
 #include "libnetwrk/net/core/messages/owned_message.hpp"
 #include "libnetwrk/net/core/messages/outgoing_message.hpp"
@@ -39,8 +40,7 @@ namespace libnetwrk {
         base_connection(base_connection&&)      = default;
 
         base_connection(work_context& context, socket_t socket)
-            : m_socket(std::move(socket)),
-              m_write_timer(*context.io_context, asio::steady_timer::time_point::max())
+            : m_socket(std::move(socket)), m_write_cv(context), m_cancel_cv(context)
         {
             is_authenticated.store(false);
             active_operations.store(0U);
@@ -85,7 +85,8 @@ namespace libnetwrk {
 
         void stop() {
             m_socket.close();
-            m_write_timer.cancel();
+            m_write_cv.notify_all();
+            m_cancel_cv.notify_all();
         };
 
         /*
@@ -102,7 +103,7 @@ namespace libnetwrk {
                     m_outgoing_messages.push(outgoing_message);
                 }
 
-                m_write_timer.cancel_one();
+                m_write_cv.notify_one();
             }
         }
 
@@ -129,7 +130,8 @@ namespace libnetwrk {
         std::queue<std::shared_ptr<outgoing_message_t>> m_outgoing_messages;
         std::queue<std::shared_ptr<outgoing_message_t>> m_outgoing_system_messages;
         std::mutex                                      m_outgoing_mutex;
-        asio::steady_timer                              m_write_timer;
+        coroutine_cv                                    m_write_cv;
+        coroutine_cv                                    m_cancel_cv;
 
     protected:
         asio::awaitable<void> co_read_message(message_t& recv_message, std::error_code& ec) {
@@ -186,11 +188,6 @@ namespace libnetwrk {
             }
 
             ec = {};
-        }
-
-        asio::awaitable<void> co_wait_for_write_message() {
-            co_await m_write_timer.async_wait(asio::as_tuple(asio::use_awaitable));
-            co_return;
         }
     };
 }
