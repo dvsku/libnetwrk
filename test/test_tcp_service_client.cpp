@@ -340,3 +340,51 @@ TEST(tcp_service_client, two_clients_out_of_order) {
     EXPECT_TRUE(client1.pong == "pOnG");
     EXPECT_TRUE(client2.pong == "pOnG");
 }
+
+TEST(tcp_service_client, send_keep_message) {
+    test_service service;
+    service.start("127.0.0.1", 21205);
+    service.process_messages_async();
+
+    test_client client;
+    EXPECT_TRUE(client.connect("127.0.0.1", 21205) == true);
+    client.process_messages_async();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    {
+        test_service::message_t message(commands::s2c_pong);
+        message << std::string("pOnG");
+        service.send_all(message, libnetwrk::send_flags::keep_message);
+
+        EXPECT_TRUE(message.command()   == commands::s2c_pong);
+        EXPECT_TRUE(message.data.size() != 0);
+    }
+
+    {
+        test_client::message_t message(commands::c2s_ping);
+        message << std::string("PiNg");
+        client.send(message, libnetwrk::send_flags::keep_message);
+
+        EXPECT_TRUE(message.command()   == commands::c2s_ping);
+        EXPECT_TRUE(message.data.size() != 0);
+    }
+    
+    {
+        test_service::message_t message(commands::s2c_pong);
+        message << std::string("pOnG");
+        service.send_all(message, libnetwrk::send_flags::none);
+
+        EXPECT_TRUE(message.command()   != commands::s2c_pong);
+        EXPECT_TRUE(message.data.size() == 0);
+    }
+
+    {
+        test_client::message_t message(commands::c2s_ping);
+        message << std::string("PiNg");
+        client.send(message, libnetwrk::send_flags::none);
+
+        EXPECT_TRUE(message.command()   != commands::c2s_ping);
+        EXPECT_TRUE(message.data.size() == 0);
+    }
+}
