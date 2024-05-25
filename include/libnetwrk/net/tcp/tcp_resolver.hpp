@@ -10,7 +10,7 @@ namespace libnetwrk {
     class tcp_resolver {
     public:
         // Context type for this resolver
-        using context_t = libnetwrk::work_context;
+        using context_t = asio::io_context;
 
         // Endpoint type for this resolver
         using endpoint_t = asio::ip::tcp::endpoint;
@@ -26,7 +26,7 @@ namespace libnetwrk {
         tcp_resolver(context_t& context)
             : m_context(context)
         {
-            m_native = std::make_unique<native_resolver_t>(*(context.io_context));
+            m_native = std::make_unique<native_resolver_t>(context);
         }
 
         tcp_resolver& operator=(const tcp_resolver&) = delete;
@@ -34,7 +34,7 @@ namespace libnetwrk {
 
     public:
         bool get_endpoint(const std::string& host, uint16_t port, endpoint_t& out_endpoint) {
-            if (!m_context.io_context || !m_native) return false;
+            if (!m_native) return false;
 
             static const std::regex pattern("([a-zA-Z0-9]+):\\/\\/([a-zA-Z0-9.-]+)\\/*");
 

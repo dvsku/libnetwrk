@@ -44,14 +44,18 @@ class basic_client : public tcp_client<service_desc<T>> {
 public:
     using base_t = tcp_client<service_desc<T>>;
 
-    basic_client() : tcp_client<service_desc<T>>() {}
+    basic_client() : tcp_client<service_desc<T>>() {
+        this->set_message_callback([this](auto command, auto message) {
+            ev_message(command, message);
+        });
+    }
 
     std::string pong = "";
 
-    void ev_message(base_t::owned_message_t& message) override {
-        switch (message.msg.command()) {
+    void ev_message(base_t::command_t command, base_t::owned_message_t* msg) {
+        switch (command) {
             case base_t::command_t::s2c_pong:
-                message.msg >> pong;
+                msg->msg >> pong;
                 break;
             default: break;
         }

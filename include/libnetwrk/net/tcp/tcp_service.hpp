@@ -128,7 +128,7 @@ namespace libnetwrk::tcp {
                 this->io_context = std::make_unique<asio::io_context>(1);
 
                 // Create resolver
-                tcp_resolver resolver(*this);
+                tcp_resolver resolver(*this->io_context);
 
                 // Resolve hostname
                 asio::ip::tcp::endpoint ep;
