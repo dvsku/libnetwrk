@@ -10,7 +10,7 @@ namespace libnetwrk {
     requires is_libnetwrk_service_desc<Desc>
     class outgoing_message {
     public:
-        using message_t = message<Desc>;
+        using message_t = libnetwrk::message<Desc>;
         using buffer_t  = buffer<typename Desc::serialize_t>;
 
     public:
