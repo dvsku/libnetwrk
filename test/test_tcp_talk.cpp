@@ -65,10 +65,6 @@ public:
                 response << "response_4";
                 msg.sender->send(response);
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-                stop();
-
                 break;
             }
             default: break;
@@ -78,15 +74,19 @@ public:
 
 class test_client : public tcp_client<service_desc> {
 public:
-    test_client() : tcp_client() {}
+    test_client() : tcp_client() {
+        set_message_callback([this](auto command, auto message) {
+            ev_message(command, message);
+        });
+    }
 
-    void ev_message(owned_message_t& msg) override {
+    void ev_message(command_t command, owned_message_t* msg) {
         message_t response;
 
         std::string received;
-        msg.msg >> received;
+        msg->msg >> received;
 
-        switch (msg.msg.command()) {
+        switch (command) {
             case commands::s2c_msg1: {
                 EXPECT_TRUE(received == "response_1");
 
@@ -133,7 +133,7 @@ TEST(tcp_talk, talking) {
     msg << "request_1";
     client.send(msg);
 
-    while (service.running() && client.connected()) {
+    while (client.is_connected()) {
         service.process_message();
         client.process_message();
     }

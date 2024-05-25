@@ -86,19 +86,23 @@ class test_service : public tcp_service<service_desc> {
 
 class test_client : public tcp_client<service_desc> {
     public:
-        test_client() : tcp_client() {}
+        test_client() : tcp_client() {
+            set_message_callback([this](auto command, auto message) {
+                ev_message(command, message);
+            });
+        }
 
         bool service_said_echo = false;
         bool service_said_broadcast = false;
         std::string pong = "";
 
-        void ev_message(owned_message_t& msg) override {
-            switch (msg.msg.command()) {
+        void ev_message(command_t command, owned_message_t* msg) {
+            switch (command) {
                 case commands::s2c_echo:
                     service_said_echo = true;
                     break;
                 case commands::s2c_pong:
-                    msg.msg >> pong;
+                    msg->msg >> pong;
                     break;
                 case commands::s2c_broadcast:
                     service_said_broadcast = true;
@@ -150,14 +154,26 @@ protected:
 
 class test_client_pp : public tcp_client<service_desc> {
 public:
-    test_client_pp() : tcp_client() {}
+    test_client_pp() : tcp_client() {
+        set_message_callback([this](auto command, auto message) {
+            ev_message(command, message);
+        });
+
+        set_pre_process_message_callback([this](auto buffer) {
+            pre_process_message(buffer);
+        });
+
+        set_post_process_message_callback([this](auto buffer) {
+            post_process_message(buffer);
+        });
+    }
 
     std::string pong = "";
 
-    void ev_message(owned_message_t& msg) override {
-        switch (msg.msg.command()) {
+    void ev_message(command_t command, owned_message_t* msg) {
+        switch (command) {
             case commands::s2c_pong:
-                msg.msg >> pong;
+                msg->msg >> pong;
                 break;
             default:
                 break;
@@ -165,18 +181,18 @@ public:
     }
 
 protected:
-    void pre_process_message(message_t::buffer_t& buffer) override final {
-        for (uint8_t& byte : buffer.underlying()) {
+    void pre_process_message(message_t::buffer_t* buffer) {
+        for (uint8_t& byte : buffer->underlying()) {
             byte ^= 69;
         }
 
-        buffer.underlying().push_back(155);
+        buffer->underlying().push_back(155);
     }
 
-    void post_process_message(message_t::buffer_t& buffer) override final {
-        buffer.underlying().resize(buffer.size() - 1);
+    void post_process_message(message_t::buffer_t* buffer) {
+        buffer->underlying().resize(buffer->size() - 1);
 
-        for (uint8_t& byte : buffer.underlying()) {
+        for (uint8_t& byte : buffer->underlying()) {
             byte ^= 69;
         }
     }
