@@ -17,6 +17,9 @@ namespace libnetwrk {
             : m_timer(*context.io_context, asio::steady_timer::time_point::max())
         {}
 
+        coroutine_cv(asio::io_context& context)
+            : m_timer(context, asio::steady_timer::time_point::max()) {}
+
         coroutine_cv& operator=(const coroutine_cv&) = delete;
         coroutine_cv& operator=(coroutine_cv&&)      = default;
 

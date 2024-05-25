@@ -12,10 +12,15 @@ namespace libnetwrk::tcp {
     class socket {
     public:
         using native_socket_t  = asio::ip::tcp::socket;
+        using io_context_t     = asio::io_context;
+        using endpoint_t       = asio::ip::tcp::endpoint;
         using read_callback_t  = std::function<void(std::error_code, std::size_t)>;
         using write_callback_t = std::function<void(std::error_code, std::size_t)>;
 
     public:
+        socket(io_context_t& context)
+            : m_socket(context) {}
+
         socket(native_socket_t socket)
             : m_socket(std::move(socket)) {}
 
@@ -39,6 +44,15 @@ namespace libnetwrk::tcp {
         */
         bool is_connected() {
             return m_socket.is_open();
+        }
+
+        void connect(const endpoint_t& endpoint) {
+            m_socket.connect(endpoint);
+        }
+
+        bool connect(const endpoint_t& endpoint, std::error_code& ec) {
+            m_socket.connect(endpoint, ec);
+            return !ec;
         }
 
     public:
