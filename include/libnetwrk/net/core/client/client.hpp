@@ -157,12 +157,10 @@ namespace libnetwrk {
 
     private:
         void wait_for_coroutines_to_stop() {
-            while (true) {
-                if (!m_comp_connection.connection)                        break;
-                if (m_comp_connection.connection->active_operations == 0) break;
+            if (!m_comp_connection.connection)                                    return;
+            if (!m_comp_connection.connection->cancel_cv.has_active_operations()) return;
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(5));
-            }
+            m_comp_connection.connection->cancel_cv.wait_for_end();
         }
     };
 }

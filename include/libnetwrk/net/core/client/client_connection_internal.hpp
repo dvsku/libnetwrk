@@ -2,6 +2,7 @@
 
 #include "libnetwrk/net/core/client/client_connection.hpp"
 #include "libnetwrk/net/core/misc/coroutine_cv.hpp"
+#include "libnetwrk/net/core/enums.hpp"
 
 #include <memory>
 #include <atomic>
@@ -32,15 +33,13 @@ namespace libnetwrk {
             : base_t(context), write_cv(context), cancel_cv(context)
         {
             is_authenticated  = false;
-            active_operations = 0U;
         }
 
         connection_t& operator=(const connection_t&) = delete;
         connection_t& operator=(connection_t&&)      = default;
 
     public:
-        std::atomic_bool   is_authenticated;
-        std::atomic_ushort active_operations;
+        std::atomic_bool is_authenticated;
 
         coroutine_cv write_cv;
         coroutine_cv cancel_cv;

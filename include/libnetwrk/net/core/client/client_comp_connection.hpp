@@ -25,7 +25,7 @@ namespace libnetwrk {
 
     public:
         void create_connection() {
-            connection = std::make_shared<connection_t>(*m_context.io_context);
+            connection = std::make_shared<connection_t>(m_context.io_context);
         }
 
         void establish_connection(const endpoint_t& endpoint) {
