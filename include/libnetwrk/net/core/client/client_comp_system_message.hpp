@@ -1,23 +1,28 @@
 #pragma once
 
-#include "libnetwrk/net/core/client/client_mngr_messages.hpp"
+#include "libnetwrk/net/core/client/client_context.hpp"
 #include "libnetwrk/net/core/auth.hpp"
 
 namespace libnetwrk {
-    template<typename tn_desc, typename tn_socket>
-    class client_mngr_system_messages : public client_mngr_messages<tn_desc, tn_socket> {
+    template<typename tn_context>
+    class client_comp_system_message {
     public:
-        using base_t          = client_mngr_messages<tn_desc, tn_socket>;
-        using connection_t    = base_t::connection_t;
-        using message_t       = base_t::message_t;
-        using owned_message_t = base_t::owned_message_t;
+        using context_t             = tn_context;
+        using connection_internal_t = context_t::connection_internal_t;
+        using message_t             = context_t::message_t;
+        using owned_message_t       = context_t::owned_message_t;
 
     public:
-        client_mngr_system_messages() {
-            this->set_system_message_callback([this](auto command, auto message) {
+        client_comp_system_message(context_t& context)
+            : m_context(context)
+        {
+            m_context.cb_system_message = [this](auto command, auto message) {
                 ev_system_message(command, message);
-            });
+            };
         }
+
+    private:
+        context_t& m_context;
 
     private:
         void ev_system_message(system_command command, owned_message_t* message) {
@@ -29,7 +34,7 @@ namespace libnetwrk {
         }
 
         void on_system_verify_message(owned_message_t* message) {
-            LIBNETWRK_DEBUG(this->m_name, "Received verify request.");
+            LIBNETWRK_DEBUG(m_context.name, "Received verify request.");
 
             auth::question_t question{};
             auth::answer_t   answer{};
@@ -38,18 +43,19 @@ namespace libnetwrk {
             answer = auth::generate_auth_answer(question);
 
             message_t response{};
-            response.head.type = message_type::system;
+            response.head.type    = message_type::system;
             response.head.command = static_cast<uint64_t>(system_command::c2s_verify);
             response << answer;
 
-            this->send(response);
+            message->sender->send(response);
         }
 
         void on_system_verify_ok_message(owned_message_t* msg) {
-            LIBNETWRK_DEBUG(this->m_name, "Verification successful.");
+            LIBNETWRK_DEBUG(m_context.name, "Verification successful.");
 
-            this->m_connection->is_authenticated = true;
-            this->m_connection->write_cv.notify_all();
+            auto connection = std::static_pointer_cast<connection_internal_t>(msg->sender);
+            connection->is_authenticated = true;
+            connection->write_cv.notify_all();
         }
     };
 }

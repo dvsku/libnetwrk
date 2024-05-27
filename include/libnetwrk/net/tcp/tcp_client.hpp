@@ -25,7 +25,7 @@ namespace libnetwrk::tcp {
             : base_t(name) {}
 
         virtual ~tcp_client() {
-            this->m_status = service_status::stopping;
+            this->m_context.status = service_status::stopping;
             this->teardown();
         };
 
@@ -37,10 +37,10 @@ namespace libnetwrk::tcp {
         bool connect_impl(const std::string& host, const uint16_t port) override final {
             try {
                 // Create context
-                this->create_io_context();
+                this->m_context.create_io_context();
 
                 // Create resolver
-                tcp_resolver resolver(*this->m_io_context);
+                tcp_resolver resolver(*this->m_context.io_context);
 
                 // Resolve hostname
                 asio::ip::tcp::endpoint ep;
@@ -48,28 +48,28 @@ namespace libnetwrk::tcp {
                     throw libnetwrk_exception("Failed to resolve hostname.");
 
                 // Create connection object
-                this->create_connection();
+                this->m_comp_connection.create_connection();
 
                 // Connect
-                this->establish_connection(ep);
+                this->m_comp_connection.establish_connection(ep);
 
                 // Start read/write
-                this->start_connection_read_and_write(this->m_connection);
+                this->m_comp_message.start_connection_read_and_write(this->m_comp_connection.connection);
 
                 // Start context
-                this->start_io_context();
+                this->m_context.start_io_context();
 
-                LIBNETWRK_INFO(this->m_name, "Connected to {}:{}.", host, port);
+                LIBNETWRK_INFO(this->m_context.name, "Connected to {}:{}.", host, port);
             }
             catch (const std::exception& e) {
                 (void)e;
 
-                LIBNETWRK_ERROR(this->m_name, "Failed to connect. | {}", e.what());
+                LIBNETWRK_ERROR(this->m_context.name, "Failed to connect. | {}", e.what());
                 this->teardown();
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(this->m_name, "Failed to connect. | Critical fail.");
+                LIBNETWRK_ERROR(this->m_context.name, "Failed to connect. | Critical fail.");
                 this->teardown();
                 return false;
             }
