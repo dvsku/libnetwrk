@@ -36,10 +36,13 @@ namespace libnetwrk {
 
             m_context.cb_internal_disconnect = [this](auto connection) {
                 connection->stop();
-                //std::thread t = std::thread([this] {
-                //    this->disconnect();
-                //});
-                //t.detach();
+
+                if (connection->disconnect_code == libnetwrk::disconnect_code::authentication_failed) {
+                    LIBNETWRK_VERBOSE(m_context.name, "{}: Auth timeout. Disconnecting client.", connection->get_id());
+                }
+                else {
+                    LIBNETWRK_VERBOSE(m_context.name, "{}: Client disconnected.", connection->get_id());
+                }
             };
         }
 

@@ -82,8 +82,6 @@ namespace libnetwrk {
 
                                 if (m_context.cb_internal_disconnect)
                                     m_context.cb_internal_disconnect(client);
-
-                                LIBNETWRK_VERBOSE(m_context.name, "{}: Auth timeout. Disconnecting client.", client->get_id());
                             }
                         }
 
