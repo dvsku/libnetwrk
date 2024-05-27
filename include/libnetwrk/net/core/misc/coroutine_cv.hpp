@@ -3,6 +3,8 @@
 #include "asio.hpp"
 #include "libnetwrk/net/core/context.hpp"
 
+#include <atomic>
+
 namespace libnetwrk {
     /*
         Condition variable for coroutines.
@@ -13,20 +15,36 @@ namespace libnetwrk {
         coroutine_cv(const coroutine_cv&) = delete;
         coroutine_cv(coroutine_cv&&)      = default;
 
-        coroutine_cv(work_context& context)
-            : m_timer(*context.io_context, asio::steady_timer::time_point::max())
-        {}
-
         coroutine_cv(asio::io_context& context)
-            : m_timer(context, asio::steady_timer::time_point::max()) {}
+            : m_io_context(context), m_timer(context, asio::steady_timer::duration::max())
+        {}
 
         coroutine_cv& operator=(const coroutine_cv&) = delete;
         coroutine_cv& operator=(coroutine_cv&&)      = default;
 
     public:
+        /*
+            Wait for notify or expire.
+        */
         asio::awaitable<void> wait() {
+            m_operations++;
             co_await m_timer.async_wait(asio::as_tuple(asio::use_awaitable));
+            m_operations--;
             co_return;
+        }
+
+        /*
+            Wait for all operations to finish.
+        */
+        void wait_for_end() {
+            if (m_operations == 0 || m_io_context.stopped()) return;
+
+            auto future = co_spawn(m_io_context, co_wait_for_end(), asio::use_future);
+            future.get();
+        }
+
+        bool has_active_operations() {
+            return m_operations != 0;
         }
 
         void notify_one() {
@@ -38,6 +56,23 @@ namespace libnetwrk {
         }
 
     private:
-        asio::steady_timer m_timer;
+        asio::io_context&    m_io_context;
+        asio::steady_timer   m_timer;
+        std::atomic_uint16_t m_operations = 0U;
+
+    private:
+        asio::awaitable<void> co_wait_for_end() {
+            asio::system_timer timer{ co_await asio::this_coro::executor };
+
+            while (true) {
+                timer.expires_after(std::chrono::milliseconds{ 5 });
+                auto [ec] = co_await timer.async_wait(asio::as_tuple(asio::use_awaitable));
+
+                if (ec || m_operations == 0)
+                    break;
+            }
+
+            co_return;
+        }
     };
 }

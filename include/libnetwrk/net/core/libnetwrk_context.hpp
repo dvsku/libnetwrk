@@ -18,25 +18,29 @@ namespace libnetwrk {
         using io_context_t = asio::io_context;
 
         using connection_internal_t = tn_connection;
-        using connection_t          = typename tn_connection::base_t; 
-        using command_t             = typename connection_t::command_t;
-        using endpoint_t            = typename connection_internal_t::endpoint_t;
-        using message_t             = typename connection_t::message_t;
-        using owned_message_t       = typename connection_t::owned_message_t;
-        using outgoing_message_t    = typename connection_t::outgoing_message_t;
-        using buffer_t              = typename message_t::buffer_t;
+        using connection_t          = connection_internal_t::base_t;
+        using command_t             = connection_t::command_t;
+        using endpoint_t            = connection_internal_t::endpoint_t;
+        using message_t             = connection_t::message_t;
+        using owned_message_t       = connection_t::owned_message_t;
+        using outgoing_message_t    = connection_t::outgoing_message_t;
+        using buffer_t              = message_t::buffer_t;
 
         using cb_message_t              = std::function<void(command_t,      owned_message_t*)>;
         using cb_system_message_t       = std::function<void(system_command, owned_message_t*)>;  
-        using cb_connect_t              = std::function<void(std::shared_ptr<tn_connection>)>;
-        using cb_internal_disconnect_t  = std::function<void(std::shared_ptr<tn_connection>)>;
+        using cb_connect_t              = std::function<void(std::shared_ptr<connection_t>)>;
+        using cb_internal_disconnect_t  = std::function<void(std::shared_ptr<connection_internal_t>)>;
         using cb_pre_process_message_t  = std::function<void(buffer_t*)>;
         using cb_post_process_message_t = std::function<void(buffer_t*)>;
 
     public:
-        std::string                   name   = "";
-        std::atomic_uint8_t           status = libnetwrk::service_status::stopped;
-        std::unique_ptr<io_context_t> io_context;
+        libnetwrk_context()
+            : io_context(1) {}
+
+    public:
+        std::string         name   = "";
+        std::atomic_uint8_t status = libnetwrk::service_status::stopped;
+        io_context_t        io_context;
 
         cb_message_t              cb_message;
         cb_system_message_t       cb_system_message;
@@ -50,20 +54,18 @@ namespace libnetwrk {
             return status == service_status::started;
         }
 
-        void create_io_context() {
-            io_context = std::make_unique<io_context_t>(1);
-        }
-
         void start_io_context() {
-            m_io_context_thread = std::thread([this] { this->io_context->run(); });
+            m_io_context_thread = std::thread([this] { 
+                this->io_context.run(); 
+            });
         }
 
         void stop_io_context() {
-            if (io_context && !io_context->stopped())
-                io_context->stop();
+            if (!io_context.stopped())
+                io_context.stop();
 
-            if (m_io_context_thread.joinable())
-                m_io_context_thread.join();
+            if(m_io_context_thread.joinable())
+               m_io_context_thread.join();
         }
 
     private:
