@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libnetwrk/net/core/exceptions/libnetwrk_exception.hpp"
+#include "libnetwrk/exceptions/libnetwrk_exception.hpp"
 
 #include <vector>
 

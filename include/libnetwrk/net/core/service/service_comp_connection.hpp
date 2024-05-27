@@ -2,8 +2,7 @@
 
 #include "asio.hpp"
 #include "asio/experimental/awaitable_operators.hpp"
-#include "libnetwrk/net/core/service/service_context.hpp"
-#include "libnetwrk/net/core/misc/coroutine_cv.hpp"
+#include "libnetwrk/net/misc/coroutine_cv.hpp"
 
 #include <list>
 #include <mutex>

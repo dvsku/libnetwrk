@@ -1,8 +1,8 @@
 #pragma once
 
 #include "asio.hpp"
-#include "libnetwrk/net/core/messages/message.hpp"
-#include "libnetwrk/net/core/messages/outgoing_message.hpp"
+#include "libnetwrk/net/messages/message.hpp"
+#include "libnetwrk/net/messages/outgoing_message.hpp"
 #include "libnetwrk/net/core/enums.hpp"
 
 #include <string>

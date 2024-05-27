@@ -1,9 +1,9 @@
 #pragma once
 
 #include "asio.hpp"
-#include "libnetwrk/net/core/messages/owned_message.hpp"
-#include "libnetwrk/net/core/messages/outgoing_message.hpp"
-#include "libnetwrk/net/core/exceptions/libnetwrk_exception.hpp"
+#include "libnetwrk/net/messages/owned_message.hpp"
+#include "libnetwrk/net/messages/outgoing_message.hpp"
+#include "libnetwrk/exceptions/libnetwrk_exception.hpp"
 
 #include <queue>
 #include <mutex>

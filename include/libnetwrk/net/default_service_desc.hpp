@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libnetwrk/net/core/serialization/bin_serialize.hpp"
+#include "libnetwrk/net/serialization/bin_serialize.hpp"
 
 #include <cstdint>
 

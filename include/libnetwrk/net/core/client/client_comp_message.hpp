@@ -1,8 +1,7 @@
 #pragma once
 
-#include "libnetwrk/net/core/client/client_context.hpp"
-#include "libnetwrk/net/core/client/client_comp_connection.hpp"
 #include "libnetwrk/net/core/shared/shared_comp_message.hpp"
+#include "libnetwrk/net/core/client/client_comp_connection.hpp"
 #include "libnetwrk/net/core/enums.hpp"
 
 namespace libnetwrk {

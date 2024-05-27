@@ -1,6 +1,7 @@
 #pragma once
 
 #include "libnetwrk/net/core/shared/shared_connection.hpp"
+#include "libnetwrk/net/messages/owned_message.hpp"
 
 namespace libnetwrk {
     template<typename tn_desc, typename tn_socket>

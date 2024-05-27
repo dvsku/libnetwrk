@@ -1,10 +1,10 @@
 #pragma once
 
-#include "libnetwrk/net/core/libnetwrk_context.hpp"
+#include "libnetwrk/net/core/shared/shared_context.hpp"
 
 namespace libnetwrk {
     template<typename tn_connection>
-    class client_context : public libnetwrk_context<tn_connection> {
+    class client_context : public shared_context<tn_connection> {
     public:
         using cb_disconnect_t = std::function<void()>;
 
@@ -13,6 +13,6 @@ namespace libnetwrk {
 
     public:
         client_context()
-            : libnetwrk_context<tn_connection>() {}
+            : shared_context<tn_connection>() {}
     };
 }

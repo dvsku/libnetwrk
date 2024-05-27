@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libnetwrk/net/core/messages/message.hpp"
+#include "libnetwrk/net/messages/message.hpp"
 
 namespace libnetwrk {
     template<typename Desc, typename Connection>

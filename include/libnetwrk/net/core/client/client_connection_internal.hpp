@@ -1,7 +1,7 @@
 #pragma once
 
 #include "libnetwrk/net/core/client/client_connection.hpp"
-#include "libnetwrk/net/core/misc/coroutine_cv.hpp"
+#include "libnetwrk/net/misc/coroutine_cv.hpp"
 #include "libnetwrk/net/core/enums.hpp"
 
 #include <memory>

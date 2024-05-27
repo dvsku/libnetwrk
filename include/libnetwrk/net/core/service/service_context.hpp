@@ -1,10 +1,10 @@
 #pragma once
 
-#include "libnetwrk/net/core/libnetwrk_context.hpp"
+#include "libnetwrk/net/core/shared/shared_context.hpp"
 #include "libnetwrk/net/core/service/service_connection.hpp"
-#include "libnetwrk/net/core/misc/coroutine_cv.hpp"
 #include "libnetwrk/net/core/system_commands.hpp"
 #include "libnetwrk/net/core/enums.hpp"
+#include "libnetwrk/net/misc/coroutine_cv.hpp"
 
 #include <functional>
 
@@ -15,7 +15,7 @@ namespace libnetwrk {
     };
 
     template<typename tn_connection>
-    class service_context : public libnetwrk_context<tn_connection> {
+    class service_context : public shared_context<tn_connection> {
     public:
         using connection_t = typename tn_connection::base_t;
 
@@ -35,7 +35,7 @@ namespace libnetwrk {
 
     public:
         service_context()
-            : libnetwrk_context<tn_connection>(),
+            : shared_context<tn_connection>(),
               cancel_cv(this->io_context)
         {}
     };

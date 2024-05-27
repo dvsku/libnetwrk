@@ -1,7 +1,7 @@
 #pragma once
 
-#include "libnetwrk/net/core/messages/message.hpp"
-#include "libnetwrk/net/core/containers/buffer.hpp"
+#include "libnetwrk/net/messages/message.hpp"
+#include "libnetwrk/net/containers/buffer.hpp"
 
 #include <mutex>
 

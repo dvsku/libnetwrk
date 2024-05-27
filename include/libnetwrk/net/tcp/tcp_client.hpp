@@ -4,7 +4,7 @@
 #include "libnetwrk/net/tcp/socket.hpp"
 #include "libnetwrk/net/tcp/tcp_resolver.hpp"
 #include "libnetwrk/net/core/client/client.hpp"
-#include "libnetwrk/net/core/serialization/bin_serialize.hpp"
+#include "libnetwrk/net/serialization/bin_serialize.hpp"
 
 #include <exception>
 #include <thread>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "libnetwrk/net/core/service/service_connection.hpp"
-#include "libnetwrk/net/core/auth.hpp"
+#include "libnetwrk/net/misc/authentication.hpp"
 
 #include <atomic>
 
@@ -38,7 +38,7 @@ namespace libnetwrk {
 
     public:
         std::atomic_bool           is_authenticated;
-        auth::question_t           auth_request;
+        authentication::request_t  auth_request;
         uint64_t                   auth_request_deadline;
         libnetwrk::disconnect_code disconnect_code;
 

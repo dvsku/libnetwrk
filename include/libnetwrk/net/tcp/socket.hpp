@@ -1,7 +1,7 @@
 #pragma once
 
 #include "asio.hpp"
-#include "libnetwrk/net/core/containers/buffer.hpp"
+#include "libnetwrk/net/containers/buffer.hpp"
 
 #include <cstdint>
 #include <cstddef>

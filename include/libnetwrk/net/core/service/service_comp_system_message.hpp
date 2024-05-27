@@ -1,7 +1,6 @@
 #pragma once
 
-#include "libnetwrk/net/core/service/service_context.hpp"
-#include "libnetwrk/net/core/auth.hpp"
+#include "libnetwrk/net/misc/authentication.hpp"
 
 namespace libnetwrk {
     template<typename tn_context>
@@ -22,7 +21,7 @@ namespace libnetwrk {
         }
 
         void send_auth_message(std::shared_ptr<connection_internal_t> connection) {
-            connection->auth_request = auth::generate_auth_question();
+            connection->auth_request = authentication::generate_request();
 
             message_t request{};
             request.head.type    = message_type::system;
@@ -51,10 +50,10 @@ namespace libnetwrk {
 
             auto sender = std::static_pointer_cast<connection_internal_t>(message->sender);
 
-            auth::answer_t answer{};
-            message->msg >> answer;
+            authentication::response_t auth_response{};
+            message->msg >> auth_response;
 
-            if (!auth::is_correct(sender->auth_request, answer))
+            if (!authentication::validate(sender->auth_request, auth_response))
                 return sender->stop();
 
             sender->is_authenticated = true;

@@ -9,7 +9,7 @@ namespace libnetwrk {
         libnetwrk_exception()
             : std::runtime_error("Undefined.") {}
 
-        libnetwrk_exception(const std::string& msg)
-            : std::runtime_error(msg) {}
+        libnetwrk_exception(const std::string& message)
+            : std::runtime_error(message) {}
     };
 }

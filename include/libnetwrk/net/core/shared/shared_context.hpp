@@ -13,7 +13,7 @@
 
 namespace libnetwrk {
     template<typename tn_connection>
-    class libnetwrk_context {
+    class shared_context {
     public:
         using io_context_t = asio::io_context;
 
@@ -34,7 +34,7 @@ namespace libnetwrk {
         using cb_post_process_message_t = std::function<void(buffer_t*)>;
 
     public:
-        libnetwrk_context()
+        shared_context()
             : io_context(1) {}
 
     public:

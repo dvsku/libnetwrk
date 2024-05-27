@@ -1,7 +1,6 @@
 #pragma once
 
-#include "libnetwrk/net/core/client/client_context.hpp"
-#include "libnetwrk/net/core/auth.hpp"
+#include "libnetwrk/net/misc/authentication.hpp"
 
 namespace libnetwrk {
     template<typename tn_context>
@@ -36,16 +35,16 @@ namespace libnetwrk {
         void on_system_verify_message(owned_message_t* message) {
             LIBNETWRK_DEBUG(m_context.name, "Received verify request.");
 
-            auth::question_t question{};
-            auth::answer_t   answer{};
+            authentication::request_t  auth_request{};
+            authentication::response_t auth_response{};
 
-            message->msg >> question;
-            answer = auth::generate_auth_answer(question);
+            message->msg >> auth_request;
+            auth_response = authentication::generate_response(auth_request);
 
             message_t response{};
             response.head.type    = message_type::system;
             response.head.command = static_cast<uint64_t>(system_command::c2s_verify);
-            response << answer;
+            response << auth_response;
 
             message->sender->send(response);
         }
