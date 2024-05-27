@@ -25,21 +25,25 @@ struct service_desc {
 
 class test_service : public tcp_service<service_desc> {
 public:
-    test_service() : tcp_service() {}
+    test_service() : tcp_service() {
+        set_message_callback([this](auto command, auto message) {
+            ev_message(command, message);
+        });
+    }
 
-    void ev_message(owned_message_t& msg) override {
+    void ev_message(command_t command, owned_message_t* msg) {
         message_t response;
         
         std::string received;
-        msg.msg >> received;
+        msg->msg >> received;
 
-        switch (msg.msg.command()) {
+        switch (command) {
             case commands::c2s_msg1: {
                 EXPECT_TRUE(received == "request_1");
 
                 response.set_command(commands::s2c_msg1);
                 response << "response_1";
-                msg.sender->send(response);
+                msg->sender->send(response);
                 break;
             }
             case commands::c2s_msg2: {
@@ -47,7 +51,7 @@ public:
 
                 response.set_command(commands::s2c_msg2);
                 response << "response_2";
-                msg.sender->send(response);
+                msg->sender->send(response);
                 break;
             }
             case commands::c2s_msg3: {
@@ -55,7 +59,7 @@ public:
 
                 response.set_command(commands::s2c_msg3);
                 response << "response_3";
-                msg.sender->send(response);
+                msg->sender->send(response);
                 break;
             }
             case commands::c2s_msg4: {
@@ -63,7 +67,7 @@ public:
 
                 response.set_command(commands::s2c_msg4);
                 response << "response_4";
-                msg.sender->send(response);
+                msg->sender->send(response);
 
                 break;
             }
@@ -122,12 +126,14 @@ public:
     }
 };
 
+#include <iostream>
+
 TEST(tcp_talk, talking) {
     test_service service;
-    service.start("127.0.0.1", 21205);
+    service.start("127.0.0.1", 0);
 
     test_client client;
-    client.connect("127.0.0.1", 21205);
+    client.connect("127.0.0.1", service.get_port());
 
     test_client::message_t msg(test_client::command_t::c2s_msg1);
     msg << "request_1";

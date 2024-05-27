@@ -51,16 +51,14 @@ namespace libnetwrk {
         void start_connection_read_and_write(std::shared_ptr<connection_t> connection) {
             using namespace asio::experimental::awaitable_operators;
 
-            asio::co_spawn(*m_context.io_context, this->co_read(connection) || connection->cancel_cv.wait(),
+            asio::co_spawn(m_context.io_context, this->co_read(connection) || connection->cancel_cv.wait(),
                 [this, connection](auto, auto) {
-                    connection->active_operations--;
                     LIBNETWRK_DEBUG(m_context.name, "{}: Stopped reading messages.", connection->get_id());
                 }
             );
 
-            asio::co_spawn(*m_context.io_context, this->co_write(connection) || connection->cancel_cv.wait(),
+            asio::co_spawn(m_context.io_context, this->co_write(connection) || connection->cancel_cv.wait(),
                 [this, connection](auto, auto) {
-                    connection->active_operations--;
                     LIBNETWRK_DEBUG(m_context.name, "{}: Stopped writing messages.", connection->get_id());
                 }
             );
@@ -95,7 +93,6 @@ namespace libnetwrk {
         asio::awaitable<void> co_read(std::shared_ptr<connection_t> connection) {
             std::error_code ec = {};
 
-            connection->active_operations++;
             LIBNETWRK_DEBUG(m_context.name, "Started reading messages.");
 
             while (true) {
@@ -111,7 +108,7 @@ namespace libnetwrk {
                         LIBNETWRK_ERROR(m_context.name, "Failed during read. | {}", ec.message());
                     }
 
-                    connection->stop();
+                    //connection->stop();
                     if (m_context.cb_internal_disconnect)
                         m_context.cb_internal_disconnect(connection);
 
@@ -148,7 +145,6 @@ namespace libnetwrk {
         asio::awaitable<void> co_write(std::shared_ptr<connection_t> connection) {
             std::error_code ec = {};
 
-            connection->active_operations++;
             LIBNETWRK_DEBUG(m_context.name, "Started writing messages.");
 
             while (true) {
@@ -208,7 +204,7 @@ namespace libnetwrk {
                             LIBNETWRK_ERROR(m_context.name, "Failed during write. | {}", ec.message());
                         }
 
-                        connection->stop();
+                        //connection->stop();
                         if (m_context.cb_internal_disconnect)
                             m_context.cb_internal_disconnect(connection);
 

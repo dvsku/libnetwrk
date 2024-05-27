@@ -3,156 +3,90 @@
 #include "libnetwrk/net/default_service_desc.hpp"
 #include "libnetwrk/net/tcp/socket.hpp"
 #include "libnetwrk/net/tcp/tcp_resolver.hpp"
-#include "libnetwrk/net/core/base_service.hpp"
+#include "libnetwrk/net/core/service/service.hpp"
 #include "libnetwrk/net/core/serialization/bin_serialize.hpp"
 
 #include <exception>
 #include <thread>
 
 namespace libnetwrk::tcp {
-    template<typename Desc = libnetwrk::default_service_desc>
-    requires is_libnetwrk_service_desc<Desc>
-    class tcp_service : public libnetwrk::base_service<Desc, libnetwrk::tcp::socket> {
+    template<typename tn_desc = libnetwrk::default_service_desc>
+    requires is_libnetwrk_service_desc<tn_desc>
+    class tcp_service : public libnetwrk::service<tn_desc, libnetwrk::tcp::socket> {
     public:
-        // This service type
-        using service_t = tcp_service<Desc>;
-
-        // Base service type
-        using base_service_t = libnetwrk::base_service<Desc, libnetwrk::tcp::socket>;
-
-        // Connection type for this service
-        using connection_t = base_service_t::connection_t;
-
-        // Message type
-        using message_t = base_service_t::message_t;
-
-        // Owned message type for this service
-        using owned_message_t = base_service_t::owned_message_t;
-
-        // Command type for this service
-        using command_t = typename Desc::command_t;
-
-    private:
-        // Client acceptor type
-        using acceptor_t = asio::ip::tcp::acceptor;
+        using base_t                = libnetwrk::service<tn_desc, libnetwrk::tcp::socket>;
+        using connection_t          = base_t::context_t::connection_t;
+        using connection_internal_t = base_t::context_t::connection_internal_t;
+        using command_t             = typename tn_desc::command_t;
+        using message_t             = base_t::message_t;
+        using owned_message_t       = base_t::owned_message_t;
 
     public:
         tcp_service(const std::string& name = "TCP service")
-            : base_service_t(name) {};
+            : base_t(name), m_acceptor(this->m_context.io_context) {};
 
         virtual ~tcp_service() {
-            auto status = this->m_status.load();
-
-            if (status == service_status::stopped || status == service_status::stopping)
-                return;
-
-            this->m_status = service_status::stopping;
-            teardown();
+            this->m_context.status = service_status::stopping;
+            this->teardown();
         }
 
-    public:
-        /*
-            Stop service.
-        */
-        void stop() override final {
-            if (this->m_status != service_status::started)
-                return;
-
-            this->m_status = service_status::stopping;
-
-            teardown();
-            base_service_t::teardown();
-
-            this->m_status = service_status::stopped;
-
-            ev_service_stopped();
+        uint16_t get_port() {
+            return m_acceptor.local_endpoint().port();
         }
 
     protected:
-        std::unique_ptr<acceptor_t> m_acceptor;
+        using acceptor_t = asio::ip::tcp::acceptor;
 
     protected:
-        /*
-            Called when the service was successfully started.
-        */
-        virtual void ev_service_started() override {};
-
-        /*
-            Called when service stopped.
-        */
-        virtual void ev_service_stopped() override {};
-
-        /*
-            Called when processing messages.
-        */
-        virtual void ev_message(owned_message_t& msg) override {};
-
-        /*
-            Called before client is fully accepted.
-            Allows performing checks on client before accepting (blacklist, whitelist).
-        */
-        virtual bool ev_before_client_connected(std::shared_ptr<connection_t> client) override { return true; };
-
-        /*
-            Called when a client has connected.
-        */
-        virtual void ev_client_connected(std::shared_ptr<connection_t> client) override {};
-
-        /*
-            Called when a client has disconnected.
-        */
-        virtual void ev_client_disconnected(std::shared_ptr<connection_t> client) override {};
-
-    protected:
-        /*
-            Pre process message data before writing.
-        */
-        virtual void pre_process_message(message_t::buffer_t& buffer) override {}
-
-        /*
-            Post process message data after reading.
-        */
-        virtual void post_process_message(message_t::buffer_t& buffer) override {}
+        acceptor_t m_acceptor;
 
     private:
-        // Native socket type for this service
-        using native_socket_t = libnetwrk::tcp::socket::native_socket_t;
+        void teardown() override final {
+            if (m_acceptor.is_open())
+                m_acceptor.close();
 
-    private:
-        std::future<void> m_listening_future;
+            base_t::teardown();
+        };
 
-    private:
-        bool impl_start(const char* host, const unsigned short port) override final {
+        bool start_impl(const std::string& host, const uint16_t port) override final {
+            using namespace asio::experimental::awaitable_operators;
+
             try {
-                // Create ASIO context
-                this->io_context = std::make_unique<asio::io_context>(1);
-
                 // Create resolver
-                tcp_resolver resolver(*this->io_context);
+                tcp_resolver resolver(this->m_context.io_context);
 
                 // Resolve hostname
                 asio::ip::tcp::endpoint ep;
                 if (!resolver.get_endpoint(host, port, ep))
                     throw libnetwrk_exception("Failed to resolve hostname.");
 
-                // Create ASIO acceptor
-                m_acceptor = std::make_unique<acceptor_t>(*(this->io_context), ep);
+                // Open acceptor
+                m_acceptor.open(asio::ip::tcp::v4());
+                m_acceptor.set_option(acceptor_t::reuse_address(true));
+                m_acceptor.bind(ep);
+                m_acceptor.listen();
 
-                m_listening_future = asio::co_spawn(*this->io_context, internal_listen(), asio::use_future);
+                // Start listening
+                asio::co_spawn(this->m_context.io_context, co_listen() || this->m_context.cancel_cv.wait(), [this](auto, auto) {
+                    LIBNETWRK_INFO(this->m_context.name, "Stopped listening.");
+                });
 
-                // Start ASIO context
-                this->start_context();
+                // Start GC
+                this->m_comp_connection.start_gc();
+
+                // Start context
+                this->m_context.start_io_context();
             }
             catch (const std::exception& e) {
                 (void)e;
 
-                LIBNETWRK_ERROR(this->name, "Failed to start listening. | {}", e.what());
-                stop();
+                LIBNETWRK_ERROR(this->m_context.name, "Failed to start listening. | {}", e.what());
+                this->teardown();
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(this->name, "Failed to start listening. | Critical fail.");
-                stop();
+                LIBNETWRK_ERROR(this->m_context.name, "Failed to start listening. | Critical fail.");
+                this->teardown();
                 return false;
             }
 
@@ -160,63 +94,49 @@ namespace libnetwrk::tcp {
         }
 
     private:
-        void teardown() {
-            if (m_acceptor && m_acceptor->is_open())
-                m_acceptor->close();
-
-            if (m_listening_future.valid())
-                m_listening_future.wait();
-
-            m_acceptor.reset();
-        };
-
-        asio::awaitable<void> internal_listen() {
+        asio::awaitable<void> co_listen() {
             auto current_executor = co_await asio::this_coro::executor;
 
-            LIBNETWRK_INFO(this->name, "Listening for connections on {}:{}.",
-                m_acceptor->local_endpoint().address().to_string(),
-                m_acceptor->local_endpoint().port());
+            LIBNETWRK_INFO(this->m_context.name, "Listening for connections on {}:{}.",
+                m_acceptor.local_endpoint().address().to_string(),
+                m_acceptor.local_endpoint().port());
 
             while (true) {
-                auto [ec, socket] = co_await m_acceptor->async_accept(asio::as_tuple(asio::use_awaitable));
+                auto connection = std::make_shared<connection_internal_t>(this->m_context.io_context);
+
+                auto [ec] = co_await m_acceptor.async_accept(connection->get_socket().native(),
+                    asio::as_tuple(asio::use_awaitable));
 
                 if (ec) {
                     if (ec != asio::error::operation_aborted) {
-                        LIBNETWRK_ERROR(this->name, "Failed to accept connection. | {}: {}", ec.value(), ec.message());
+                        LIBNETWRK_ERROR(this->m_context.name, "Failed to accept connection. | {}: {}", ec.value(), ec.message());
                     }
 
                     break;
                 }
 
-                asio::co_spawn(current_executor, internal_accept(std::move(socket)), asio::detached);
+                asio::co_spawn(current_executor, co_accept(connection), asio::detached);
             }
-
-            LIBNETWRK_INFO(this->name, "Stopped listening.");
         }
 
-        asio::awaitable<void> internal_accept(native_socket_t socket) {
-            LIBNETWRK_VERBOSE(this->name, "Attempted connection from {}:{}.",
-                socket.remote_endpoint().address().to_string(),
-                socket.remote_endpoint().port());
+        asio::awaitable<void> co_accept(std::shared_ptr<connection_internal_t> connection) {
+            LIBNETWRK_VERBOSE(this->m_context.name, "Attempted connection from {}:{}.",
+                connection->get_ip(), connection->get_port());
 
-            auto new_connection = std::make_shared<connection_t>(*this, std::move(socket));
+            if (!this->m_context.cb_before_connect || this->m_context.cb_before_connect(std::static_pointer_cast<connection_t>(connection))) {
+                this->m_comp_connection.accept_connection(connection);
+                connection->set_id(++this->m_comp_connection.id_counter);
+                this->m_comp_message.start_connection_read_and_write(connection);
+                this->m_comp_system_message.send_auth_message(connection);
 
-            if (ev_before_client_connected(new_connection)) {
-                {
-                    std::lock_guard<std::mutex> guard(this->m_connections_mutex);
-                    this->m_connections.push_back(new_connection);
-                    this->m_connections.back()->id() = ++this->m_ids;
-                    this->m_connections.back()->start();
-                }
+                if (this->m_context.cb_connect)
+                    this->m_context.cb_connect(std::static_pointer_cast<connection_t>(connection));
 
-                ev_client_connected(new_connection);
-
-                LIBNETWRK_INFO(this->name, "Connection success from {}:{}.",
-                    new_connection->get_ip(),
-                    new_connection->get_port());
+                LIBNETWRK_INFO(this->m_context.name, "Connection success from {}:{}.",
+                    connection->get_ip(), connection->get_port());
             }
             else {
-                LIBNETWRK_WARNING(this->name, "Connection denied.");
+                LIBNETWRK_WARNING(this->m_context.name, "Connection denied.");
             }
 
             co_return;

@@ -20,18 +20,22 @@ class basic_service : public tcp_service<service_desc<T>> {
 public:
     using base_t = tcp_service<service_desc<T>>;
 
-    basic_service() : tcp_service<service_desc<T>>() {}
+    basic_service() : tcp_service<service_desc<T>>() {
+        this->set_message_callback([this](auto command, auto message) {
+            ev_message(command, message);
+        });
+    }
 
     std::string ping = "";
 
-    void ev_message(base_t::owned_message_t& message) override {
-        switch (message.msg.command()) {
+    void ev_message(base_t::command_t command, base_t::owned_message_t* msg) {
+        switch (command) {
             case base_t::command_t::c2s_ping:
             {
-                message.msg >> ping;
+                msg->msg >> ping;
                 libnetwrk::message<service_desc<T>> response(base_t::command_t::s2c_pong);
                 response << std::string("pOnG");
-                message.sender->send(response);
+                msg->sender->send(response);
                 break;
             }
             default: break;
@@ -74,11 +78,11 @@ enum class commands_uint8 : unsigned char {
 TEST(commands, uint8) {
     ASSERT_NO_THROW(basic_service<commands_uint8> service);
     basic_service<commands_uint8> service;
-    service.start("127.0.0.1", 21205);
+    service.start("127.0.0.1", 0);
 
     ASSERT_NO_THROW(basic_client<commands_uint8> client);
     basic_client<commands_uint8> client;
-    client.connect("127.0.0.1", 21205);
+    client.connect("127.0.0.1", service.get_port());
 
     basic_client<commands_uint8>::message_t message(basic_client<commands_uint8>::command_t::c2s_ping);
     message << std::string("PiNg");
@@ -105,11 +109,11 @@ enum class commands_uint16 : unsigned short {
 TEST(commands, uint16) {
     ASSERT_NO_THROW(basic_service<commands_uint16> service);
     basic_service<commands_uint16> service;
-    service.start("127.0.0.1", 21205);
+    service.start("127.0.0.1", 0);
 
     ASSERT_NO_THROW(basic_client<commands_uint16> client);
     basic_client<commands_uint16> client;
-    client.connect("127.0.0.1", 21205);
+    client.connect("127.0.0.1", service.get_port());
 
     basic_client<commands_uint16>::message_t message(basic_client<commands_uint16>::command_t::c2s_ping);
     message << std::string("PiNg");
@@ -136,11 +140,11 @@ enum class commands_uint32 : unsigned int {
 TEST(commands, uint32) {
     ASSERT_NO_THROW(basic_service<commands_uint32> service);
     basic_service<commands_uint32> service;
-    service.start("127.0.0.1", 21205);
+    service.start("127.0.0.1", 0);
 
     ASSERT_NO_THROW(basic_client<commands_uint32> client);
     basic_client<commands_uint32> client;
-    client.connect("127.0.0.1", 21205);
+    client.connect("127.0.0.1", service.get_port());
 
     basic_client<commands_uint32>::message_t message(basic_client<commands_uint32>::command_t::c2s_ping);
     message << std::string("PiNg");
@@ -167,11 +171,11 @@ enum class commands_uint64 : unsigned long long {
 TEST(commands, uint64) {
     ASSERT_NO_THROW(basic_service<commands_uint64> service);
     basic_service<commands_uint64> service;
-    service.start("127.0.0.1", 21205);
+    service.start("127.0.0.1", 0);
 
     ASSERT_NO_THROW(basic_client<commands_uint64> client);
     basic_client<commands_uint64> client;
-    client.connect("127.0.0.1", 21205);
+    client.connect("127.0.0.1", service.get_port());
 
     basic_client<commands_uint64>::message_t message(basic_client<commands_uint64>::command_t::c2s_ping);
     message << std::string("PiNg");
@@ -198,11 +202,11 @@ enum class commands_int8 : char {
 TEST(commands, int8) {
     ASSERT_NO_THROW(basic_service<commands_int8> service);
     basic_service<commands_int8> service;
-    service.start("127.0.0.1", 21205);
+    service.start("127.0.0.1", 0);
 
     ASSERT_NO_THROW(basic_client<commands_int8> client);
     basic_client<commands_int8> client;
-    client.connect("127.0.0.1", 21205);
+    client.connect("127.0.0.1", service.get_port());
 
     basic_client<commands_int8>::message_t message(basic_client<commands_int8>::command_t::c2s_ping);
     message << std::string("PiNg");
@@ -229,11 +233,11 @@ enum class commands_int16 : short {
 TEST(commands, int16) {
     ASSERT_NO_THROW(basic_service<commands_int16> service);
     basic_service<commands_int16> service;
-    service.start("127.0.0.1", 21205);
+    service.start("127.0.0.1", 0);
 
     ASSERT_NO_THROW(basic_client<commands_int16> client);
     basic_client<commands_int16> client;
-    client.connect("127.0.0.1", 21205);
+    client.connect("127.0.0.1", service.get_port());
 
     basic_client<commands_int16>::message_t message(basic_client<commands_int16>::command_t::c2s_ping);
     message << std::string("PiNg");
@@ -260,11 +264,11 @@ enum class commands_int32 : int {
 TEST(commands, int32) {
     ASSERT_NO_THROW(basic_service<commands_int32> service);
     basic_service<commands_int32> service;
-    service.start("127.0.0.1", 21205);
+    service.start("127.0.0.1", 0);
 
     ASSERT_NO_THROW(basic_client<commands_int32> client);
     basic_client<commands_int32> client;
-    client.connect("127.0.0.1", 21205);
+    client.connect("127.0.0.1", service.get_port());
 
     basic_client<commands_int32>::message_t message(basic_client<commands_int32>::command_t::c2s_ping);
     message << std::string("PiNg");
@@ -291,11 +295,11 @@ enum class commands_int64 : long long {
 TEST(commands, int64) {
     ASSERT_NO_THROW(basic_service<commands_int64> service);
     basic_service<commands_int64> service;
-    service.start("127.0.0.1", 21205);
+    service.start("127.0.0.1", 0);
 
     ASSERT_NO_THROW(basic_client<commands_int64> client);
     basic_client<commands_int64> client;
-    client.connect("127.0.0.1", 21205);
+    client.connect("127.0.0.1", service.get_port());
 
     basic_client<commands_int64>::message_t message(basic_client<commands_int64>::command_t::c2s_ping);
     message << std::string("PiNg");

@@ -17,4 +17,9 @@ namespace libnetwrk {
         none         = 0,
         keep_message = 1 << 0       // Make message reusable (copy instead of move upon sending)
     };
+
+    enum disconnect_code : uint8_t {
+        unspecified           = 0,
+        authentication_failed = 1
+    };
 }

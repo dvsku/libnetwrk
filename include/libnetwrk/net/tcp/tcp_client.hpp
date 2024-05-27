@@ -36,11 +36,8 @@ namespace libnetwrk::tcp {
     private:
         bool connect_impl(const std::string& host, const uint16_t port) override final {
             try {
-                // Create context
-                this->m_context.create_io_context();
-
                 // Create resolver
-                tcp_resolver resolver(*this->m_context.io_context);
+                tcp_resolver resolver(this->m_context.io_context);
 
                 // Resolve hostname
                 asio::ip::tcp::endpoint ep;

@@ -56,8 +56,13 @@ namespace libnetwrk::tcp {
         }
 
     public:
+        native_socket_t& native() {
+            return m_socket;
+        }
+
         void close() {
-            m_socket.close();
+            if (m_socket.is_open())
+                m_socket.close();
         }
 
         template<typename Serialize>

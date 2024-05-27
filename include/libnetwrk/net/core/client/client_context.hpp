@@ -9,6 +9,10 @@ namespace libnetwrk {
         using cb_disconnect_t = std::function<void()>;
 
     public:
-        cb_disconnect_t cb_disconnect;  
+        cb_disconnect_t cb_disconnect;
+
+    public:
+        client_context()
+            : libnetwrk_context<tn_connection>() {}
     };
 }
