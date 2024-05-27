@@ -37,10 +37,12 @@ namespace libnetwrk {
             Wait for all operations to finish.
         */
         void wait_for_end() {
-            if (m_operations == 0 || m_io_context.stopped()) return;
+            while (true) {
+                if (m_operations == 0 || m_io_context.stopped())
+                    break;
 
-            auto future = co_spawn(m_io_context, co_wait_for_end(), asio::use_future);
-            future.get();
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
         }
 
         bool has_active_operations() {
