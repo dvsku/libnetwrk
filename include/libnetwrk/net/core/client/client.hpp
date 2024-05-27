@@ -1,18 +1,27 @@
 #pragma once
 
-#include "libnetwrk/net/core/client/client_mngr_system_messages.hpp"
+#include "libnetwrk/net/core/client/client_context.hpp"
+#include "libnetwrk/net/core/client/client_comp_connection.hpp"
+#include "libnetwrk/net/core/client/client_comp_message.hpp"
+#include "libnetwrk/net/core/client/client_comp_system_message.hpp"
+#include "libnetwrk/net/core/client/client_connection_internal.hpp"
 
 #include <string>
 #include <cstdint>
 
 namespace libnetwrk {
     template<typename tn_desc, typename tn_socket>
-    class client : public client_mngr_system_messages<tn_desc, tn_socket> {
+    class client {
     public:
+        using context_t             = client_context<client_connection_internal<tn_desc, tn_socket>>;
+        using comp_connection_t     = client_comp_connection<context_t>;
+        using comp_message_t        = client_comp_message<context_t>;
+        using comp_system_message_t = client_comp_system_message<context_t>;
+
         using client_t        = client<tn_desc, tn_socket>;
-        using connection_t    = client_mngr_system_messages<tn_desc, tn_socket>::connection_t;
-        using message_t       = connection_t::message_t;
-        using owned_message_t = connection_t::owned_message_t;
+        using connection_t    = context_t::connection_t;
+        using message_t       = context_t::message_t;
+        using owned_message_t = context_t::owned_message_t;
 
     public:
         client()                = delete;
@@ -20,78 +29,126 @@ namespace libnetwrk {
         client(client_t&&)      = default;
 
         client(const std::string& name)
-            : client_mngr_system_messages<tn_desc, tn_socket>()
+            : m_comp_connection(m_context),
+              m_comp_message(m_context, m_comp_connection),
+              m_comp_system_message(m_context)
         {
-            this->m_name = name;
+            m_context.name = name;
 
-            this->set_internal_disconnect_callback([this] {
+            m_context.cb_internal_disconnect = [this](auto) {
                 std::thread t = std::thread([this] {
                     this->disconnect();
                 });
                 t.detach();
-            });
+            };
         }
 
         client_t& operator=(const client_t&) = delete;
         client_t& operator=(client_t&&)      = default;
 
     public:
-        /*
-            Disconnect the client and clean up.
-        */
-        void disconnect() {
-            if (this->m_status != service_status::started)
-                return;
-
-            this->m_status = service_status::stopping;
-            this->teardown();
-
-            if (this->m_ev_disconnect_callback)
-                this->m_ev_disconnect_callback();
-
-            LIBNETWRK_INFO(this->m_name, "Disconnected.");
-
-            this->m_status = service_status::stopped;
+        bool is_connected() {
+            return m_context.is_running();
         }
 
         /*
             Connect to service.
         */
         bool connect(const std::string& host, const uint16_t port) {
-            if (this->m_status != service_status::stopped)
+            if (m_context.status != service_status::stopped)
                 return false;
 
-            this->m_status = service_status::starting;
+            m_context.status = service_status::starting;
 
             bool connected = connect_impl(host, port);
 
             if (connected) {
-                if (this->m_ev_connect_callback)
-                    this->m_ev_connect_callback();
+                if (m_context.cb_connect)
+                    m_context.cb_connect(m_comp_connection.connection);
 
-                this->m_status = service_status::started;
+                m_context.status = service_status::started;
             }
             else {
-                this->m_status = service_status::stopped;
+                m_context.status = service_status::stopped;
             }
 
             return connected;
         }
 
+        /*
+            Disconnect the client and clean up.
+        */
+        void disconnect() {
+            if (m_context.status != service_status::started)
+                return;
+
+            m_context.status = service_status::stopping;
+            this->teardown();
+
+            if (m_context.cb_disconnect)
+                m_context.cb_disconnect();
+
+            LIBNETWRK_INFO(m_context.name, "Disconnected.");
+
+            m_context.status = service_status::stopped;
+        }
+
+        void send(message_t& message, libnetwrk::send_flags flags = libnetwrk::send_flags::none) {
+            m_comp_message.send(message, flags);
+        }
+
+        bool process_message() {
+            return m_comp_message.process_message();
+        }
+
+        bool process_messages() {
+            return m_comp_message.process_messages();
+        }
+
+        bool process_messages_async() {
+            return m_comp_message.process_messages_async();
+        }
+
+    public:
+        const std::string& get_name() const {
+            return m_context.name;
+        }
+
+        void set_message_callback(context_t::cb_message_t cb) {
+            if (!m_context.cb_message)
+                m_context.cb_message = cb;
+        }
+
+        void set_pre_process_message_callback(context_t::cb_pre_process_message_t cb) {
+            if (!m_context.cb_pre_process_message)
+                m_context.cb_pre_process_message = cb;
+        }
+
+        void set_post_process_message_callback(context_t::cb_post_process_message_t cb) {
+            if (!m_context.cb_post_process_message)
+                m_context.cb_post_process_message = cb;
+        }
+
+    protected:
+        context_t             m_context;
+        comp_connection_t     m_comp_connection;
+        comp_message_t        m_comp_message;
+        comp_system_message_t m_comp_system_message;
+
     protected:
         virtual void teardown() {
-            if (this->m_connection)
-                this->m_connection->stop();
+            if (m_comp_connection.connection)
+                m_comp_connection.connection->stop();
 
             /*
                 Wait for all coroutines to stop
             */
             wait_for_coroutines_to_stop();
 
-            this->stop_io_context();
-            this->m_connection.reset();
+            m_context.stop_io_context();
+            m_comp_connection.connection.reset();
 
-            this->stop_processing_messages();
+            m_comp_message.stop_processing_messages();
         }
 
         virtual bool connect_impl(const std::string& host, const uint16_t port) {
@@ -101,8 +158,8 @@ namespace libnetwrk {
     private:
         void wait_for_coroutines_to_stop() {
             while (true) {
-                if (!this->m_connection)                        break;
-                if (this->m_connection->active_operations == 0) break;
+                if (!m_comp_connection.connection)                        break;
+                if (m_comp_connection.connection->active_operations == 0) break;
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
             }

@@ -20,7 +20,7 @@ protected:
             {
                 std::string text;
                 msg->msg >> text;
-                LIBNETWRK_INFO(this->m_name, "{}", text);
+                LIBNETWRK_INFO(get_name(), "{}", text);
                 break;
             }
             default: break;

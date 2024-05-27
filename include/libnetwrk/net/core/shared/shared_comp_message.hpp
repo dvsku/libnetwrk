@@ -12,14 +12,19 @@
 #include <exception>
 
 namespace libnetwrk {
-    template<typename tn_mngr_connections>
-    class shared_message_mngr : public tn_mngr_connections {
+    template<typename tn_context>
+    class shared_comp_message {
     public:
-        using connection_t = typename tn_mngr_connections::connection_t;
-        using command_t = connection_t::command_t;
-        using message_t = connection_t::message_t;
-        using owned_message_t = connection_t::owned_message_t;
-        using outgoing_message_t = connection_t::outgoing_message_t;
+        using context_t          = tn_context;
+        using connection_t       = context_t::connection_internal_t;
+        using command_t          = context_t::command_t;
+        using message_t          = context_t::message_t;
+        using owned_message_t    = context_t::owned_message_t;
+        using outgoing_message_t = context_t::outgoing_message_t;
+
+    public:
+        shared_comp_message(context_t& context)
+            : m_context(context) {}
 
     public:
         bool process_message() {
@@ -43,21 +48,20 @@ namespace libnetwrk {
             return true;
         }
 
-    protected:
         void start_connection_read_and_write(std::shared_ptr<connection_t> connection) {
             using namespace asio::experimental::awaitable_operators;
 
-            asio::co_spawn(*this->m_io_context, this->co_read(connection) || connection->cancel_cv.wait(),
+            asio::co_spawn(*m_context.io_context, this->co_read(connection) || connection->cancel_cv.wait(),
                 [this, connection](auto, auto) {
                     connection->active_operations--;
-                    LIBNETWRK_DEBUG(this->m_name, "{}: Stopped reading messages.", connection->get_id());
+                    LIBNETWRK_DEBUG(m_context.name, "{}: Stopped reading messages.", connection->get_id());
                 }
             );
 
-            asio::co_spawn(*this->m_io_context, this->co_write(connection) || connection->cancel_cv.wait(),
+            asio::co_spawn(*m_context.io_context, this->co_write(connection) || connection->cancel_cv.wait(),
                 [this, connection](auto, auto) {
                     connection->active_operations--;
-                    LIBNETWRK_DEBUG(this->m_name, "{}: Stopped writing messages.", connection->get_id());
+                    LIBNETWRK_DEBUG(m_context.name, "{}: Stopped writing messages.", connection->get_id());
                 }
             );
         }
@@ -76,11 +80,23 @@ namespace libnetwrk {
                 m_process_messages_thread.join();
         }
 
+    protected:
+        context_t& m_context;
+
+    private:
+        std::queue<owned_message_t> m_incoming_messages;
+        std::queue<owned_message_t> m_incoming_system_messages;
+        std::mutex                  m_incoming_mutex;
+        std::condition_variable     m_cv;
+        std::mutex                  m_cv_mutex;
+        std::thread                 m_process_messages_thread;
+
+    private:
         asio::awaitable<void> co_read(std::shared_ptr<connection_t> connection) {
             std::error_code ec = {};
 
             connection->active_operations++;
-            LIBNETWRK_DEBUG(this->m_name, "Started reading messages.");
+            LIBNETWRK_DEBUG(m_context.name, "Started reading messages.");
 
             while (true) {
                 if (!connection->is_connected())
@@ -92,12 +108,12 @@ namespace libnetwrk {
 
                 if (ec) {
                     if (ec != asio::error::eof && ec != asio::error::connection_reset) {
-                        LIBNETWRK_ERROR(this->m_name, "Failed during read. | {}", ec.message());
+                        LIBNETWRK_ERROR(m_context.name, "Failed during read. | {}", ec.message());
                     }
 
                     connection->stop();
-                    if (this->m_ev_internal_disconnect_callback)
-                        this->m_ev_internal_disconnect_callback();
+                    if (m_context.cb_internal_disconnect)
+                        m_context.cb_internal_disconnect(connection);
 
                     break;
                 }
@@ -105,8 +121,8 @@ namespace libnetwrk {
                 owned_message.sender = connection;
 
                 // Post process message data
-                if (this->m_ev_post_process_message_callback) {
-                    this->m_ev_post_process_message_callback(&owned_message.msg.data);
+                if (m_context.cb_post_process_message) {
+                    m_context.cb_post_process_message(&owned_message.msg.data);
                     owned_message.msg.head.data_size = owned_message.msg.data.size();
                 }
 
@@ -133,7 +149,7 @@ namespace libnetwrk {
             std::error_code ec = {};
 
             connection->active_operations++;
-            LIBNETWRK_DEBUG(this->m_name, "Started writing messages.");
+            LIBNETWRK_DEBUG(m_context.name, "Started writing messages.");
 
             while (true) {
                 if (!connection->is_connected())
@@ -151,7 +167,7 @@ namespace libnetwrk {
                     {
                         std::lock_guard<std::mutex> guard(connection->get_outgoing_mutex());
 
-                        auto& user_messages   = connection->get_user_messages();
+                        auto& user_messages = connection->get_user_messages();
                         auto& system_messages = connection->get_system_messages();
 
                         if (connection->has_system_messages()) {
@@ -175,8 +191,8 @@ namespace libnetwrk {
                                 std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
                             // Pre process message data
-                            if (this->m_ev_pre_process_message_callback) {
-                                this->m_ev_pre_process_message_callback(&send_message->message.data);
+                            if (m_context.cb_pre_process_message) {
+                                m_context.cb_pre_process_message(&send_message->message.data);
                                 send_message->message.head.data_size = send_message->message.data.size();
                             }
 
@@ -189,12 +205,12 @@ namespace libnetwrk {
 
                     if (ec) {
                         if (ec != asio::error::eof && ec != asio::error::connection_reset) {
-                            LIBNETWRK_ERROR(this->m_name, "Failed during write. | {}", ec.message());
+                            LIBNETWRK_ERROR(m_context.name, "Failed during write. | {}", ec.message());
                         }
 
                         connection->stop();
-                        if (this->m_ev_internal_disconnect_callback)
-                            this->m_ev_internal_disconnect_callback();
+                        if (m_context.cb_internal_disconnect)
+                            m_context.cb_internal_disconnect(connection);
 
                         break;
                     }
@@ -205,17 +221,8 @@ namespace libnetwrk {
             }
         }
 
-    private:
-        std::queue<owned_message_t> m_incoming_messages;
-        std::queue<owned_message_t> m_incoming_system_messages;
-        std::mutex                  m_incoming_mutex;
-        std::condition_variable     m_cv;
-        std::mutex                  m_cv_mutex;
-        std::thread                 m_process_messages_thread;
-
-    private:
         void process_messages_loop() {
-            while (this->m_status == service_status::started) {
+            while (m_context.status == service_status::started) {
                 bool wait = false;
 
                 {
@@ -228,7 +235,7 @@ namespace libnetwrk {
                     m_cv.wait(lock);
                 }
 
-                if (this->m_status != service_status::started)
+                if (m_context.status != service_status::started)
                     break;
 
                 invoke_processing_callbacks();
@@ -253,26 +260,26 @@ namespace libnetwrk {
                 }
 
                 if (message.msg.head.type == message_type::system) {
-                    if (!this->m_ev_system_message_callback)
+                    if (!m_context.cb_system_message)
                         throw libnetwrk_exception("System message callback not set.");
 
-                    this->m_ev_system_message_callback(static_cast<system_command>(message.msg.head.command), &message);
+                    m_context.cb_system_message(static_cast<system_command>(message.msg.head.command), &message);
                 }
                 else {
-                    if (!this->m_ev_message_callback)
+                    if (!m_context.cb_message)
                         throw libnetwrk_exception("Message callback not set.");
 
-                    this->m_ev_message_callback(message.msg.command(), &message);
+                    m_context.cb_message(message.msg.command(), &message);
                 }
             }
             catch (const std::exception& e) {
                 (void)e;
 
-                LIBNETWRK_ERROR(this->m_name, "Failed to process message. | {}", e.what());
+                LIBNETWRK_ERROR(m_context.name, "Failed to process message. | {}", e.what());
                 return false;
             }
             catch (...) {
-                LIBNETWRK_ERROR(this->m_name, "Failed to process message. | Critical fail.");
+                LIBNETWRK_ERROR(m_context.name, "Failed to process message. | Critical fail.");
                 return false;
             }
 
