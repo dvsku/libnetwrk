@@ -43,8 +43,7 @@ int main(int argc, char* argv[]) {
     dvsku::dv_util_log::create_source("console", &std::cout);
 
     tcp_echo_service service;
-    service.get_settings().gc_freq_sec = 3;
-    service.start("127.0.0.1", 0);
+    service.start("127.0.0.1", 21205);
     service.process_messages();
 
     service.stop();
