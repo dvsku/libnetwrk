@@ -7,22 +7,26 @@ using namespace libnetwrk;
 
 class tcp_echo_service : public tcp_service<service_desc> {
 public:
-    tcp_echo_service() : tcp_service() {}
+    tcp_echo_service() : tcp_service() {
+        set_message_callback([this](auto command, auto message) {
+            ev_message(command, message);
+        });
+    }
 
-    void ev_message(owned_message_t& msg) override {
+    void ev_message(command_t command, owned_message_t* msg) {
         message_t response;
-        switch (msg.msg.command()) {
+        switch (command) {
             case commands::c2s_echo: {
                 std::string text;
-                msg.msg >> text;
+                msg->msg >> text;
 
-                LIBNETWRK_INFO(this->name, "{}:{}\t{}",
-                    msg.sender->get_ip().c_str(), msg.sender->get_port(), text);
+                LIBNETWRK_INFO(get_name(), "{}:{}\t{}",
+                    msg->sender->get_ip().c_str(), msg->sender->get_port(), text);
 
                 response.set_command(commands::s2c_echo);
                 response << text;
 
-                msg.sender->send(response);
+                msg->sender->send(response);
                 break;
             }
             default: break;
@@ -39,7 +43,8 @@ int main(int argc, char* argv[]) {
     dvsku::dv_util_log::create_source("console", &std::cout);
 
     tcp_echo_service service;
-    service.start("127.0.0.1", 21205);
+    service.get_settings().gc_freq_sec = 3;
+    service.start("127.0.0.1", 0);
     service.process_messages();
 
     service.stop();
