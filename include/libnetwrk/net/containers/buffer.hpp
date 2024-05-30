@@ -7,6 +7,9 @@
 namespace libnetwrk {
     class buffer {
     public:
+        using value_t = uint8_t;
+
+    public:
         buffer()              = default;
         buffer(const buffer&) = default;
         buffer(buffer&&)      = default;
@@ -15,13 +18,15 @@ namespace libnetwrk {
         buffer& operator=(buffer&&)      = default;
 
     public:
-        virtual void clear() = 0;
+        virtual value_t* data()  = 0;
+        virtual uint32_t size()  = 0;
+        virtual void     clear() = 0;
 
-        friend size_t& get_buffer_read_index(buffer& buffer) {
+        friend uint32_t& get_buffer_read_index(buffer& buffer) {
             return buffer.m_read_index;
         }
 
     protected:
-        size_t m_read_index = 0U;
+        uint32_t m_read_index = 0U;
     };
 }

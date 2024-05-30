@@ -13,19 +13,3 @@ namespace libnetwrk::serialize {
         libnetwrk::serialize::internal::deserialize(buffer, obj);
     }
 }
-
-namespace libnetwrk {
-    template<typename Buffer, typename Value>
-    requires libnetwrk::serialize::internal::is_supported_buffer<Buffer>
-    Buffer& operator<<(Buffer& buffer, const Value& value) {
-        libnetwrk::serialize::serialize(buffer, value);
-        return buffer;
-    }
-
-    template<typename Buffer, typename Value>
-    requires libnetwrk::serialize::internal::is_supported_buffer<Buffer>
-    Buffer& operator>>(Buffer& buffer, Value& value) {
-        libnetwrk::serialize::deserialize(buffer, value);
-        return buffer;
-    }
-}
