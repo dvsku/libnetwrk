@@ -2,6 +2,7 @@
 
 #include "libnetwrk/net/containers/buffer.hpp"
 #include "libnetwrk/net/serialize/serialize_adapters.hpp"
+#include "libnetwrk/net/serialize/serialize_endian.hpp"
 #include "libnetwrk/net/type_traits.hpp"
 
 #include <cstdint>
@@ -132,7 +133,10 @@ namespace libnetwrk::serialize::internal {
     template<typename Buffer, typename Type>
     requires is_primitive<Type>
     void serialize(Buffer& buffer, const Type& value) {
-        internal::write(buffer, static_cast<const uint8_t*>(static_cast<const void*>(&value)), sizeof(Type));
+        Type le = value;
+        internal::to_little_endian(le);
+
+        internal::write(buffer, static_cast<const uint8_t*>(static_cast<const void*>(&le)), sizeof(Type));
     }
 
     template<typename Buffer, typename Type>
@@ -142,34 +146,24 @@ namespace libnetwrk::serialize::internal {
     }
 
     template<typename Buffer>
-    uint32_t serialize(Buffer& buffer, const std::size_t& value) {
-        if constexpr (sizeof(std::size_t) == 8) {
-            uint32_t casted = static_cast<uint32_t>(value);
-            serialize(buffer, casted);
-            return casted;
-        }
-        else {
-            internal::write(buffer, static_cast<const uint8_t*>(static_cast<const void*>(&value)), sizeof(std::size_t));
-            return value;
-        }
-    }
-
-    template<typename Buffer>
     void serialize(Buffer& buffer, const std::string& value) {
-        uint32_t size = serialize(buffer, value.size());
+        uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
             throw libnetwrk_exception("serialize: std::string size truncated.");
 
+        serialize(buffer, size);
         internal::write(buffer, static_cast<const uint8_t*>(static_cast<const void*>(value.data())), size);
     }
 
     template<typename Buffer, typename Type, size_t Size>
     void serialize(Buffer& buffer, const std::array<Type, Size>& value) {
-        uint32_t size = serialize(buffer, value.size());
+        uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
             throw libnetwrk_exception("serialize: std::array size truncated.");
+
+        serialize(buffer, size);
 
         if constexpr (is_primitive<Type>) {
             internal::write(buffer, 
@@ -185,10 +179,12 @@ namespace libnetwrk::serialize::internal {
     template<typename Buffer, typename Type>
     requires marked_supported_vector<Type>
     void serialize(Buffer& buffer, const std::vector<Type>& value) {
-        uint32_t size = serialize(buffer, value.size());
+        uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
             throw libnetwrk_exception("serialize: std::vector size truncated.");
+
+        serialize(buffer, size);
 
         if constexpr (is_primitive<Type>) {
             internal::write(buffer,
@@ -203,10 +199,12 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type>
     void serialize(Buffer& buffer, const std::deque<Type>& value) {
-        uint32_t size = serialize(buffer, value.size());
+        uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
             throw libnetwrk_exception("serialize: std::deque size truncated.");
+
+        serialize(buffer, size);
 
         for (uint32_t i = 0; i < size; i++) {
             serialize(buffer, value[i]);
@@ -215,10 +213,12 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type>
     void serialize(Buffer& buffer, const std::list<Type>& value) {
-        uint32_t size = serialize(buffer, value.size());
+        uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
             throw libnetwrk_exception("serialize: std::list size truncated.");
+
+        serialize(buffer, size);
 
         uint32_t count = 0;
         for (auto& element : value) {
@@ -230,10 +230,12 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type, typename... Args>
     void serialize(Buffer& buffer, const std::set<Type, Args...>& value) {
-        uint32_t size = serialize(buffer, value.size());
+        uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
             throw libnetwrk_exception("serialize: std::set size truncated.");
+
+        serialize(buffer, size);
 
         uint32_t count = 0;
         for (auto& element : value) {
@@ -245,10 +247,12 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type, typename... Args>
     void serialize(Buffer& buffer, const std::unordered_set<Type, Args...>& value) {
-        uint32_t size = serialize(buffer, value.size());
+        uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
             throw libnetwrk_exception("serialize: std::unordered_set size truncated.");
+
+        serialize(buffer, size);
 
         uint32_t count = 0;
         for (auto& element : value) {
@@ -260,10 +264,12 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Key, typename Value>
     void serialize(Buffer& buffer, const std::map<Key, Value>& value) {
-        uint32_t size = serialize(buffer, value.size());
+        uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
             throw libnetwrk_exception("serialize: std::unordered_set size truncated.");
+
+        serialize(buffer, size);
 
         uint32_t count = 0;
         for (auto& [kvp_key, kvp_value] : value) {
@@ -276,10 +282,12 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Key, typename Value>
     void serialize(Buffer& buffer, const std::unordered_map<Key, Value>& value) {
-        uint32_t size = serialize(buffer, value.size());
+        uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
             throw libnetwrk_exception("serialize: std::unordered_set size truncated.");
+
+        serialize(buffer, size);
 
         uint32_t count = 0;
         for (auto& [kvp_key, kvp_value] : value) {
@@ -303,18 +311,6 @@ namespace libnetwrk::serialize::internal {
     requires is_serializable<Buffer, Type>
     void deserialize(Buffer& buffer, Type& value) {
         value.deserialize(buffer);
-    }
-
-    template<typename Buffer>
-    void deserialize(Buffer& buffer, std::size_t& value) {
-        if constexpr (sizeof(std::size_t) == 8) {
-            uint32_t casted = 0U;
-            deserialize(buffer, casted);
-            value = static_cast<std::size_t>(casted);
-        }
-        else {
-            internal::read(buffer, static_cast<uint8_t*>(static_cast<void*>(&value)), sizeof(std::size_t));
-        }
     }
 
     template<typename Buffer>
