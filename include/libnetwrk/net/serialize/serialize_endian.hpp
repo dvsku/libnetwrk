@@ -84,7 +84,7 @@ namespace libnetwrk::serialize::internal {
     }
 
     template <typename Type>
-    constexpr auto adapt_endian(Type& value) {
+    constexpr auto to_little_endian(Type& value) {
         if constexpr (is_system_little_endian())
             return;
 
