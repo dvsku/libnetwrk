@@ -2,7 +2,7 @@
 
 #include "libnetwrk/net/core/shared/shared_comp_message.hpp"
 #include "libnetwrk/net/core/client/client_comp_connection.hpp"
-#include "libnetwrk/net/core/enums.hpp"
+#include "libnetwrk/net/enum/enums.hpp"
 
 namespace libnetwrk {
     template<typename tn_context>

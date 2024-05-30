@@ -3,7 +3,7 @@
 #include "libnetwrk/net/core/shared/shared_context.hpp"
 #include "libnetwrk/net/core/service/service_connection.hpp"
 #include "libnetwrk/net/core/system_commands.hpp"
-#include "libnetwrk/net/core/enums.hpp"
+#include "libnetwrk/net/enum/enums.hpp"
 #include "libnetwrk/net/misc/coroutine_cv.hpp"
 
 #include <functional>

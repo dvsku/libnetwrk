@@ -3,7 +3,7 @@
 #include "asio.hpp"
 #include "libnetwrk/net/messages/message.hpp"
 #include "libnetwrk/net/messages/outgoing_message.hpp"
-#include "libnetwrk/net/core/enums.hpp"
+#include "libnetwrk/net/enum/enums.hpp"
 
 #include <string>
 #include <queue>

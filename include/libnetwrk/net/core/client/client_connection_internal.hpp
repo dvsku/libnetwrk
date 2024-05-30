@@ -2,7 +2,7 @@
 
 #include "libnetwrk/net/core/client/client_connection.hpp"
 #include "libnetwrk/net/misc/coroutine_cv.hpp"
-#include "libnetwrk/net/core/enums.hpp"
+#include "libnetwrk/net/enum/enums.hpp"
 
 #include <memory>
 #include <atomic>

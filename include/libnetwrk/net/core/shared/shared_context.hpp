@@ -3,7 +3,7 @@
 #include "asio.hpp"
 #include "libnetwrk/net/containers/dynamic_buffer.hpp"
 #include "libnetwrk/net/core/system_commands.hpp"
-#include "libnetwrk/net/core/enums.hpp"
+#include "libnetwrk/net/enum/enums.hpp"
 
 #include <string>
 #include <memory>

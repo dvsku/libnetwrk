@@ -2,7 +2,7 @@
 
 #include "libnetwrk/net/core/shared/shared_comp_message.hpp"
 #include "libnetwrk/net/core/service/service_comp_connection.hpp"
-#include "libnetwrk/net/core/enums.hpp"
+#include "libnetwrk/net/enum/enums.hpp"
 
 #include <functional>
 
