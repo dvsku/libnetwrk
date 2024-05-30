@@ -1,4 +1,3 @@
-#define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
 #include <libnetwrk.hpp>
 #include <gtest/gtest.h>
 
