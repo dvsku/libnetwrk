@@ -1,7 +1,7 @@
 #pragma once
 
 #include "asio.hpp"
-#include "libnetwrk/net/core/client/client_connection.hpp"
+#include "libnetwrk/net/containers/dynamic_buffer.hpp"
 #include "libnetwrk/net/core/system_commands.hpp"
 #include "libnetwrk/net/core/enums.hpp"
 
@@ -24,14 +24,13 @@ namespace libnetwrk {
         using message_t             = connection_t::message_t;
         using owned_message_t       = connection_t::owned_message_t;
         using outgoing_message_t    = connection_t::outgoing_message_t;
-        using buffer_t              = message_t::buffer_t;
 
         using cb_message_t              = std::function<void(command_t,      owned_message_t*)>;
         using cb_system_message_t       = std::function<void(system_command, owned_message_t*)>;  
         using cb_connect_t              = std::function<void(std::shared_ptr<connection_t>)>;
         using cb_internal_disconnect_t  = std::function<void(std::shared_ptr<connection_internal_t>)>;
-        using cb_pre_process_message_t  = std::function<void(buffer_t*)>;
-        using cb_post_process_message_t = std::function<void(buffer_t*)>;
+        using cb_pre_process_message_t  = std::function<void(dynamic_buffer*)>;
+        using cb_post_process_message_t = std::function<void(dynamic_buffer*)>;
 
     public:
         shared_context()

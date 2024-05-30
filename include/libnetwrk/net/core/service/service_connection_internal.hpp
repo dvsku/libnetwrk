@@ -12,7 +12,6 @@ namespace libnetwrk {
         using base_t             = service_connection<tn_desc, tn_socket>;
         using io_context_t       = base_t::io_context_t;
         using command_t          = base_t::command_t;
-        using serialize_t        = base_t::serialize_t;
         using connection_t       = service_connection_internal<tn_desc, tn_socket>;
         using endpoint_t         = typename tn_socket::endpoint_t;
         using message_t          = base_t::message_t;

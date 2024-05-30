@@ -1,7 +1,7 @@
 #pragma once
 
 #include "libnetwrk/net/messages/message_head.hpp"
-#include "libnetwrk/net/containers/buffer.hpp"
+#include "libnetwrk/net/containers/dynamic_buffer.hpp"
 
 #include <chrono>
 
@@ -12,14 +12,13 @@ namespace libnetwrk {
     public:
         using message_head_t = message_head<Desc>;
         using message_t      = message<Desc>;
-        using buffer_t       = buffer<typename Desc::serialize_t>;
         using command_t      = typename Desc::command_t;
 
         using milliseconds_t = std::chrono::milliseconds;
 
     public:
         message_head_t head;
-        buffer_t       data;
+        dynamic_buffer data;
 
     public:
         message()                 = default;
