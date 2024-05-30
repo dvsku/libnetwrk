@@ -1,5 +1,7 @@
 #pragma once
 
+#include "libnetwrk/net/enum/enum_bitmask_operators.hpp"
+
 #include <cstdint>
 
 namespace libnetwrk {
