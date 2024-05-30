@@ -11,6 +11,8 @@
 #include <map>
 #include <unordered_set>
 #include <unordered_map>
+#include <forward_list>
+#include <stack>
 
 #ifdef LIBNETWRK_SERIALIZE_TEST_BUFFER_DYNAMIC
     #define __BUFFER libnetwrk::dynamic_buffer
@@ -108,34 +110,47 @@ struct architecture_struct {
 };
 
 TEST(serialize, supported) {
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, bool>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, char>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, int8_t>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, uint8_t>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, int16_t>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, uint16_t>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, int32_t>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, uint32_t>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, int64_t>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, uint64_t>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, float>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, double>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, bool>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, char>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, int8_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, uint8_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, int16_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, uint16_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, int32_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, uint32_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, int64_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, uint64_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, float>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, double>));
 
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::string>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, std::string>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, char*>));
 
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::array<int, 5>>));    
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::vector<int>>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::deque<int>>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::list<int>>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::set<int>>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::unordered_set<int>>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::map<int,int>>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::unordered_map<int, int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, std::array<int, 5>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, std::vector<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, std::deque<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, std::list<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, std::set<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, std::unordered_set<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, std::map<int,int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, std::unordered_map<int, int>>));
 
-    EXPECT_FALSE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::vector<bool>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_unsupported<__BUFFER, std::vector<bool>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_unsupported<__BUFFER, std::stack<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_unsupported<__BUFFER, std::queue<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_unsupported<__BUFFER, std::priority_queue<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_unsupported<__BUFFER, std::forward_list<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_unsupported<__BUFFER, std::multiset<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_unsupported<__BUFFER, std::multimap<int, int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_unsupported<__BUFFER, std::unordered_multiset<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_unsupported<__BUFFER, std::unordered_multimap<int, int>>));
 
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, base_struct>));
-    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, derived_struct>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, base_struct>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_supported<__BUFFER, derived_struct>));
+
+    struct failing_struct {};
+
+    EXPECT_TRUE((libnetwrk::serialize::internal::serialize_unsupported<__BUFFER, failing_struct>));
 }
 
 TEST(serialize, endian) {
@@ -207,7 +222,7 @@ static void read_to_buffer(const std::filesystem::path& filename, __BUFFER& buff
     std::ifstream stream(filename, std::ios::binary);
     ASSERT_TRUE(stream.is_open());
 
-    auto& underlying = get_buffer_underlying(buffer);
+    auto& underlying = buffer.underlying();
     underlying = { (std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>() };
 
     stream.close();
@@ -474,6 +489,15 @@ TEST(serialize, strings) {
 
         buffer << v1 >> v2;
         ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    {
+        std::string v2 = "";
+
+        buffer << "testing" >> v2;
+        ASSERT_TRUE(v2 == "testing");
     }
 }
 

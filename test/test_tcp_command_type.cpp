@@ -10,9 +10,8 @@ using namespace libnetwrk;
 
 template<typename T>
 struct service_desc {
-    using command_t   = T;
-    using serialize_t = libnetwrk::bin_serialize;
-    using storage_t   = libnetwrk::nothing;
+    using command_t = T;
+    using storage_t = libnetwrk::nothing;
 };
 
 template<typename T>

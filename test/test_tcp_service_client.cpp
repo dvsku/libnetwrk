@@ -23,9 +23,8 @@ enum class commands : unsigned int {
 };
 
 struct service_desc {
-    using command_t   = commands;
-    using serialize_t = libnetwrk::bin_serialize;
-    using storage_t   = libnetwrk::nothing;
+    using command_t = commands;
+    using storage_t = libnetwrk::nothing;
 };
 
 class test_service : public tcp_service<service_desc> {
@@ -151,7 +150,7 @@ public:
     }
 
 protected:
-    void pre_process_message(message_t::buffer_t* buffer) {
+    void pre_process_message(dynamic_buffer* buffer) {
         for (uint8_t& byte : buffer->underlying()) {
             byte ^= 69;
         }
@@ -159,7 +158,7 @@ protected:
         buffer->underlying().push_back(155);
     }
 
-    void post_process_message(message_t::buffer_t* buffer) {
+    void post_process_message(dynamic_buffer* buffer) {
         buffer->underlying().resize(buffer->size() - 1);
 
         for (uint8_t& byte : buffer->underlying()) {
@@ -197,7 +196,7 @@ public:
     }
 
 protected:
-    void pre_process_message(message_t::buffer_t* buffer) {
+    void pre_process_message(dynamic_buffer* buffer) {
         for (uint8_t& byte : buffer->underlying()) {
             byte ^= 69;
         }
@@ -205,7 +204,7 @@ protected:
         buffer->underlying().push_back(155);
     }
 
-    void post_process_message(message_t::buffer_t* buffer) {
+    void post_process_message(dynamic_buffer* buffer) {
         buffer->underlying().resize(buffer->size() - 1);
 
         for (uint8_t& byte : buffer->underlying()) {
