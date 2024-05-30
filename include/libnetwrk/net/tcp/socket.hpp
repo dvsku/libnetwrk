@@ -1,7 +1,9 @@
 #pragma once
 
 #include "asio.hpp"
-#include "libnetwrk/net/containers/buffer.hpp"
+#include "libnetwrk/net/containers/dynamic_buffer.hpp"
+#include "libnetwrk/net/containers/fixed_buffer.hpp"
+#include "libnetwrk/net/type_traits.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -65,16 +67,19 @@ namespace libnetwrk::tcp {
                 m_socket.close();
         }
 
-        template<typename Serialize>
-        asio::awaitable<std::tuple<std::error_code, size_t>> async_read(libnetwrk::buffer<Serialize>& buffer) {
+        template<typename Buffer>
+        asio::awaitable<std::tuple<std::error_code, size_t>> async_read(Buffer& buffer) {
             std::tuple<std::error_code, size_t> result = co_await asio::async_read(m_socket,
                 asio::buffer(buffer.data(), buffer.size()), asio::as_tuple(asio::use_awaitable));
+
+            if constexpr (std::derived_from<Buffer, fixed_size_buffer>) {
+                get_buffer_write_index(buffer) = (uint32_t)get<1>(result);
+            }
 
             co_return result;
         }
 
-        template<typename Serialize>
-        asio::awaitable<std::tuple<std::error_code, size_t>> async_write(libnetwrk::buffer<Serialize>& buffer) {
+        asio::awaitable<std::tuple<std::error_code, size_t>> async_write(buffer& buffer) {
             std::tuple<std::error_code, size_t> result = co_await asio::async_write(m_socket,
                 asio::buffer(buffer.data(), buffer.size()), asio::as_tuple(asio::use_awaitable));
 

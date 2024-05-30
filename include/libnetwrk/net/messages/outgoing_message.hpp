@@ -1,7 +1,7 @@
 #pragma once
 
 #include "libnetwrk/net/messages/message.hpp"
-#include "libnetwrk/net/containers/buffer.hpp"
+#include "libnetwrk/net/containers/fixed_buffer.hpp"
 
 #include <mutex>
 
@@ -11,7 +11,6 @@ namespace libnetwrk {
     class outgoing_message {
     public:
         using message_t = libnetwrk::message<Desc>;
-        using buffer_t  = buffer<typename Desc::serialize_t>;
 
     public:
         outgoing_message()                        = delete;
@@ -28,8 +27,8 @@ namespace libnetwrk {
         outgoing_message& operator=(outgoing_message&&)      = delete;
 
     public:
-        message_t  message;
-        buffer_t   serialized_head;
-        std::mutex mutex;
+        message_t                                     message;
+        fixed_buffer<message_t::message_head_t::size> serialized_head;
+        std::mutex                                    mutex;
     };
 }

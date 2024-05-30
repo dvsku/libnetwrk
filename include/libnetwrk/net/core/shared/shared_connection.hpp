@@ -16,7 +16,6 @@ namespace libnetwrk {
         using socket_t           = tn_socket;
         using io_context_t       = typename socket_t::io_context_t;
         using command_t          = typename tn_desc::command_t;
-        using serialize_t        = typename tn_desc::serialize_t;
         using connection_t       = shared_connection<tn_desc, socket_t>;
         using message_t          = message<tn_desc>;
         using outgoing_message_t = outgoing_message<tn_desc>;
@@ -106,8 +105,7 @@ namespace libnetwrk {
 
     protected:
         asio::awaitable<void> co_read_message(message_t& recv_message, std::error_code& ec) {
-            buffer<serialize_t> head_buffer;
-            head_buffer.resize(message_t::message_head_t::size);
+            fixed_buffer<message_t::message_head_t::size> head_buffer;
 
             auto [h_ec, h_size] = co_await m_socket.async_read(head_buffer);
 
@@ -126,7 +124,7 @@ namespace libnetwrk {
                 co_return;
             }
 
-            recv_message.data.resize(recv_message.head.data_size);
+            recv_message.data.underlying().resize(recv_message.head.data_size);
 
             auto [b_ec, b_size] = co_await m_socket.async_read(recv_message.data);
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "libnetwrk/net/containers/fixed_buffer.hpp"
 #include "libnetwrk/net/type_traits.hpp"
 
 namespace libnetwrk {
@@ -14,7 +15,6 @@ namespace libnetwrk {
     public:
         using message_head_t = message_head<Desc>;
         using message_type_t = message_type;
-        using buffer_t       = buffer<typename Desc::serialize_t>;
         using command_t      = typename Desc::command_t;
 
     public:
@@ -64,13 +64,11 @@ namespace libnetwrk {
     public:
         static constexpr size_t size = sizeof(type) + sizeof(command) + sizeof(send_timestamp) + sizeof(data_size);
 
-        template<typename T>
-        void serialize(buffer<T>& buffer) const {
+        void serialize(fixed_buffer<message_head_t::size>& buffer) const {
             buffer << type << command << send_timestamp << data_size;
         }
 
-        template<typename T>
-        void deserialize(buffer<T>& buffer) {
+        void deserialize(fixed_buffer<message_head_t::size>& buffer) {
             buffer >> type >> command >> send_timestamp >> data_size;
         }
     };
