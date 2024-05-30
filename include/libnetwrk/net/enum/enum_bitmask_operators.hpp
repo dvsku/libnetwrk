@@ -17,7 +17,7 @@ namespace libnetwrk {
     concept enum_bitmask_operators_enabled = enum_bitmask_operators<Enum>::enabled;
 
     template<typename Enum>
-    requires enum_bitmask_operators_enabled<Enum>
+    requires is_enum<Enum> && enum_bitmask_operators_enabled<Enum>
     constexpr Enum operator|(Enum lhs, Enum rhs) {
         using underlying = typename std::underlying_type<Enum>::type;
 
@@ -25,6 +25,13 @@ namespace libnetwrk {
     }
 
     template<typename Enum>
+    requires is_enum<Enum>
+    constexpr auto to_underlying(Enum e) noexcept {
+        return static_cast<std::underlying_type_t<Enum>>(e);
+    }
+
+    template<typename Enum>
+    requires is_enum<Enum>
     constexpr bool enum_has_flag(Enum flags, Enum flag) {
         using underlying = typename std::underlying_type<Enum>::type;
 
