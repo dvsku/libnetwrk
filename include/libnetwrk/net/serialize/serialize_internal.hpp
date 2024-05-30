@@ -323,7 +323,7 @@ namespace libnetwrk::serialize::internal {
         deserialize(buffer, size);
         
         value.resize(size);
-        internal::read(buffer, static_cast<uint8_t*>(static_cast<void*>(&value)), size);
+        internal::read(buffer, static_cast<uint8_t*>(static_cast<void*>(value.data())), size);
     }
 
     template<typename Buffer, typename Type, size_t Size>
