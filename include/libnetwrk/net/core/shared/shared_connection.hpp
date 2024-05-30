@@ -64,7 +64,7 @@ namespace libnetwrk {
         void send(message_t& message, libnetwrk::send_flags flags = libnetwrk::send_flags::none) {
             std::shared_ptr<outgoing_message_t> outgoing_message;
 
-            if (LIBNETWRK_FLAG_SET(flags, libnetwrk::send_flags::keep_message)) {
+            if (enum_has_flag(flags, libnetwrk::send_flags::keep_message)) {
                 outgoing_message = std::make_shared<outgoing_message_t>(message);
             }
             else {
