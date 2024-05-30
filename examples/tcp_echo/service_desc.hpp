@@ -8,7 +8,6 @@ enum class commands : unsigned int {
 };
 
 struct service_desc {
-    using command_t   = commands;
-    using serialize_t = libnetwrk::bin_serialize;
-    using storage_t   = libnetwrk::nothing;
+    using command_t = commands;
+    using storage_t = libnetwrk::nothing;
 };
