@@ -55,10 +55,10 @@ namespace libnetwrk {
         }
 
         bool start(const std::string& host, const uint16_t port) {
-            if (m_context.status != service_status::stopped)
+            if (m_context.status != to_underlying(service_status::stopped))
                 return false;
 
-            m_context.status = service_status::starting;
+            m_context.status = to_underlying(service_status::starting);
 
             bool started = start_impl(host, port);
 
@@ -66,24 +66,24 @@ namespace libnetwrk {
                 if (m_context.cb_start)
                     m_context.cb_start();
 
-                m_context.status = service_status::started;
+                m_context.status = to_underlying(service_status::started);
             }
             else {
-                m_context.status = service_status::stopped;
+                m_context.status = to_underlying(service_status::stopped);
             }
 
             return started;
         }
 
         void stop() {
-            if (m_context.status != service_status::started)
+            if (m_context.status != to_underlying(service_status::started))
                 return;
 
-            m_context.status = service_status::stopping;
+            m_context.status = to_underlying(service_status::stopping);
 
             this->teardown();
 
-            m_context.status = service_status::stopped;
+            m_context.status = to_underlying(service_status::stopped);
 
             if (m_context.cb_stop)
                 m_context.cb_stop();

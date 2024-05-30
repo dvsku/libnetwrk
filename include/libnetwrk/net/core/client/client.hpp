@@ -55,10 +55,10 @@ namespace libnetwrk {
             Connect to service.
         */
         bool connect(const std::string& host, const uint16_t port) {
-            if (m_context.status != service_status::stopped)
+            if (m_context.status != to_underlying(service_status::stopped))
                 return false;
 
-            m_context.status = service_status::starting;
+            m_context.status = to_underlying(service_status::starting);
 
             bool connected = connect_impl(host, port);
 
@@ -66,10 +66,10 @@ namespace libnetwrk {
                 if (m_context.cb_connect)
                     m_context.cb_connect(m_comp_connection.connection);
 
-                m_context.status = service_status::started;
+                m_context.status = to_underlying(service_status::started);
             }
             else {
-                m_context.status = service_status::stopped;
+                m_context.status = to_underlying(service_status::stopped);
             }
 
             return connected;
@@ -79,10 +79,10 @@ namespace libnetwrk {
             Disconnect the client and clean up.
         */
         void disconnect() {
-            if (m_context.status != service_status::started)
+            if (m_context.status != to_underlying(service_status::started))
                 return;
 
-            m_context.status = service_status::stopping;
+            m_context.status = to_underlying(service_status::stopping);
             this->teardown();
 
             if (m_context.cb_disconnect)
@@ -90,7 +90,7 @@ namespace libnetwrk {
 
             LIBNETWRK_INFO(m_context.name, "Disconnected.");
 
-            m_context.status = service_status::stopped;
+            m_context.status = to_underlying(service_status::stopped);
         }
 
         void send(message_t& message, libnetwrk::send_flags flags = libnetwrk::send_flags::none) {

@@ -218,7 +218,7 @@ namespace libnetwrk {
         }
 
         void process_messages_loop() {
-            while (m_context.status == service_status::started) {
+            while (m_context.status == to_underlying(service_status::started)) {
                 bool wait = false;
 
                 {
@@ -231,7 +231,7 @@ namespace libnetwrk {
                     m_cv.wait(lock);
                 }
 
-                if (m_context.status != service_status::started)
+                if (m_context.status != to_underlying(service_status::started))
                     break;
 
                 invoke_processing_callbacks();

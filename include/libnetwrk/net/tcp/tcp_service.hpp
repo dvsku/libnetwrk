@@ -25,7 +25,7 @@ namespace libnetwrk::tcp {
             : base_t(name), m_acceptor(this->m_context.io_context) {};
 
         virtual ~tcp_service() {
-            this->m_context.status = service_status::stopping;
+            this->m_context.status = to_underlying(service_status::stopping);
             this->teardown();
         }
 

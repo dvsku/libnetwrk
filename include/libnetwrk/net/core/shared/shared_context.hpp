@@ -38,7 +38,7 @@ namespace libnetwrk {
 
     public:
         std::string         name   = "";
-        std::atomic_uint8_t status = libnetwrk::service_status::stopped;
+        std::atomic_uint8_t status = to_underlying(libnetwrk::service_status::stopped);
         io_context_t        io_context;
 
         cb_message_t              cb_message;
@@ -50,7 +50,7 @@ namespace libnetwrk {
 
     public:
         bool is_running() const {
-            return status == service_status::started;
+            return status == to_underlying(service_status::started);
         }
 
         void start_io_context() {

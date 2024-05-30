@@ -24,7 +24,7 @@ namespace libnetwrk::tcp {
             : base_t(name) {}
 
         virtual ~tcp_client() {
-            this->m_context.status = service_status::stopping;
+            this->m_context.status = to_underlying(service_status::stopping);
             this->teardown();
         };
 
