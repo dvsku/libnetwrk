@@ -16,6 +16,7 @@ namespace libnetwrk {
         none         = 0,
         keep_message = 1 << 0       // Make message reusable (copy instead of move upon sending)
     };
+    LIBNETWRK_ENABLE_ENUM_BITMASK_OPERATORS(send_flags);
 
     enum class disconnect_code : uint8_t {
         unspecified           = 0,
