@@ -1,243 +1,846 @@
-#define LIBNETWRK_THROW_INSTEAD_OF_STATIC_ASSERT
-#include <libnetwrk.hpp>
+#include "libnetwrk/net/serialize/serialize.hpp"
+
 #include <gtest/gtest.h>
+#include <cstring>
+#include <vector>
+#include <deque>
+#include <list>
+#include <stack>
+#include <queue>
+#include <set>
+#include <map>
+#include <unordered_set>
+#include <unordered_map>
+
+#ifdef LIBNETWRK_SERIALIZE_TEST_BUFFER_DYNAMIC
+    #define __BUFFER libnetwrk::dynamic_buffer
+#else
+    #define __BUFFER libnetwrk::fixed_buffer<1024>
+#endif
 
 using namespace libnetwrk;
 
-struct simple_struct {
-    uint32_t a = 420;
-    std::string b = "";
+struct base_struct {
+    uint32_t    a = 420;
+    std::string b = "abcde";
 
-    simple_struct() {}
-
-    simple_struct(uint32_t a, std::string b) {
-        this->a = a;
-        this->b = b;
+    void serialize(__BUFFER& buffer) const {
+        buffer << a << b;
     }
 
-    template<typename Tserialize>
-    void serialize(buffer<Tserialize>& buffer) const {
-        buffer << a;
-        buffer << b;
-    }
-
-    template<typename Tserialize>
-    void deserialize(buffer<Tserialize>& buffer) {
+    void deserialize(__BUFFER& buffer) {
         buffer >> a >> b;
     }
 
-    bool equals(const simple_struct& obj) {
+    bool equals(const base_struct& obj) {
         return a == obj.a && b == obj.b;
     }
 };
 
-struct container_struct {
-    std::vector<int> a;
-    std::deque<int> b;
-    std::list<int> c;
-    std::forward_list<int> d;
+struct derived_struct : base_struct {
+    std::vector<int> c = { 123, 534, 346, 5432, 242, 735 };
+    bool             d = true;
 
-    template<typename Tserialize>
-    void serialize(buffer<Tserialize>& buffer) const {
-        buffer << a << b << c << d;
+    void serialize(__BUFFER& buffer) const {
+        base_struct::serialize(buffer);
+        buffer << c << d;
     }
 
-    template<typename Tserialize>
-    void deserialize(buffer<Tserialize>& buffer) {
-        buffer >> a >> b >> c >> d;
+    void deserialize(__BUFFER& buffer) {
+        base_struct::deserialize(buffer);
+        buffer >> c >> d;
     }
 
-    bool equals(const container_struct& obj) {
-        return a == obj.a && b == obj.b && c == obj.c && d == obj.d;
-    }
-};
-
-struct string_struct {
-    std::string a;
-
-    template<typename Tserialize>
-    void serialize(buffer<Tserialize>& buffer) const {
-        buffer << a;
+    bool equals(const derived_struct& obj) const {
+        return a == obj.a                                    &&
+               b == obj.b                                    &&
+               std::equal(c.begin(), c.end(), obj.c.begin()) &&
+               d == obj.d;
     }
 
-    template<typename Tserialize>
-    void deserialize(buffer<Tserialize>& buffer) {
-        buffer >> a;
-    }
-
-    bool equals(const string_struct& obj) {
-        return a == obj.a;
+    bool operator==(const derived_struct& rhs) const {
+        return equals(rhs);
     }
 };
 
-TEST(bin_serializer, serialize_deserialize_standard_layout) {
-    buffer<bin_serialize> buffer;
+struct architecture_struct {
+    bool                       m1 = true;
+    int8_t                     m2 = 23;
+    int16_t                    m3 = 876;
+    uint32_t                   m4 = 77;
+    int64_t                    m5 = 89777;
+    std::string                m6 = "gfdsoi'gj984fsdg'[][fsd4fds'f][sdf]dfg84df9g9fds48gdf";
+    std::vector<int>           m7 = { 478, 64, 7892 };
+    std::map<int, std::string> m8 = { {778, "gfdsg"}, {88, "vxcvw"}, {654, "qwepote"} };
 
-    int i1 = 156, i2 = 0;
-    buffer << i1 >> i2;
-    EXPECT_TRUE(i1 == i2);
+    architecture_struct() = delete;
+    architecture_struct(bool clean) {
+        if (!clean) return;
 
-    bool b1 = true, b2 = false;
-    buffer << b1;
-    buffer >> b2;
-    EXPECT_TRUE(b1 == b2);
+        m1 = false;
+        m2 = 0;
+        m3 = 0;
+        m4 = 0;
+        m5 = 0;
+        m6 = "";
+        m7 = {};
+        m8 = {};
+    }
 
-    char c1 = 69, c2 = 0;
-    buffer << c1 >> c2;
-    EXPECT_TRUE(c1 == c2);
+    void serialize(__BUFFER& buffer) const {
+        buffer << m1 << m2 << m3 << m4 << m5 << m6 << m7 << m8;
+    }
 
-    float f1 = 69.420f, f2 = 0.0f;
-    buffer << f1 >> f2;
-    EXPECT_TRUE(f1 == f2);
+    void deserialize(__BUFFER& buffer) {
+        buffer >> m1 >> m2 >> m3 >> m4 >> m5 >> m6 >> m7 >> m8;
+    }
 
-    double d1 = 420.69, d2 = 0;
-    buffer << d1 >> d2;
-    EXPECT_TRUE(d1 == d2);
+    bool operator==(const architecture_struct& rhs) const {
+        return m1 == rhs.m1 &&
+               m2 == rhs.m2 &&
+               m3 == rhs.m3 &&
+               m4 == rhs.m4 &&
+               m5 == rhs.m5 &&
+               m6 == rhs.m6 &&
+               m7 == rhs.m7 &&
+               m8 == rhs.m8;
+    }
+};
 
-    wchar_t w1 = 256, w2 = 0;
-    buffer << w1 >> w2;
-    EXPECT_TRUE(w1 == w2);
+TEST(serialize, supported) {
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, bool>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, char>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, int8_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, uint8_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, int16_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, uint16_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, int32_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, uint32_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, int64_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, uint64_t>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, float>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, double>));
+
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::string>));
+
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::array<int, 5>>));    
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::vector<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::deque<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::list<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::set<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::unordered_set<int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::map<int,int>>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::unordered_map<int, int>>));
+
+    EXPECT_FALSE((libnetwrk::serialize::internal::is_supported<__BUFFER, std::vector<bool>>));
+
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, base_struct>));
+    EXPECT_TRUE((libnetwrk::serialize::internal::is_supported<__BUFFER, derived_struct>));
 }
 
-TEST(bin_serializer, serialize_deserialize_standard_layout_containers) {
-    buffer<bin_serialize> buffer;
-    std::vector<int> v1({ 123, 534, 346, 5432, 242, 735 });
-    std::vector<int> v2;
+TEST(serialize, endian) {
+    {
+        int16_t value = (int16_t)0xAABB;
+        libnetwrk::serialize::internal::byte_swap(value);
+        ASSERT_TRUE(value == (int16_t)0xBBAA);
+    }
 
-    buffer << v1 >> v2;
-    EXPECT_TRUE(v1.size() == v2.size());
-    EXPECT_TRUE(v1 == v2);
+    {
+        uint16_t value = (uint16_t)0xAABB;
+        libnetwrk::serialize::internal::byte_swap(value);
+        ASSERT_TRUE(value == (uint16_t)0xBBAA);
+    }
+
+    {
+        int32_t value = (int32_t)0xAABBCCDD;
+        libnetwrk::serialize::internal::byte_swap(value);
+        ASSERT_TRUE(value == (int32_t)0xDDCCBBAA);
+    }
+
+    {
+        uint32_t value = (uint32_t)0xAABBCCDD;
+        libnetwrk::serialize::internal::byte_swap(value);
+        ASSERT_TRUE(value == (uint32_t)0xDDCCBBAA);
+    }
+
+    {
+        int64_t value = (int64_t)0xAAAABBBBCCCCDDDD;
+        libnetwrk::serialize::internal::byte_swap(value);
+        ASSERT_TRUE(value == (int64_t)0xDDDDCCCCBBBBAAAA);
+    }
+
+    {
+        uint64_t value = (uint64_t)0xAAAABBBBCCCCDDDD;
+        libnetwrk::serialize::internal::byte_swap(value);
+        ASSERT_TRUE(value == (uint64_t)0xDDDDCCCCBBBBAAAA);
+    }
+
+    {
+        uint32_t val = (uint32_t)0xAABBCCDD;
+
+        float value;
+        std::memcpy(&value, &val, 4);
+
+        libnetwrk::serialize::internal::byte_swap(value);
+        ASSERT_TRUE(*((uint32_t*)&value) == (uint32_t)0xDDCCBBAA);
+    }
+
+    {
+        uint64_t val = (uint64_t)0xAAAABBBBCCCCDDDD;
+
+        double value;
+        std::memcpy(&value, &val, 8);
+
+        libnetwrk::serialize::internal::byte_swap(value);
+        ASSERT_TRUE(*((uint64_t*)&value) == (uint64_t)0xDDDDCCCCBBBBAAAA);
+    }
+}
+
+#ifdef LIBNETWRK_SERIALIZE_TEST_BUFFER_DYNAMIC
+
+#include <fstream>
+#include <filesystem>
+
+static void read_to_buffer(const std::filesystem::path& filename, __BUFFER& buffer) {
+    ASSERT_TRUE(std::filesystem::exists(filename));
+
+    std::ifstream stream(filename, std::ios::binary);
+    ASSERT_TRUE(stream.is_open());
+
+    auto& underlying = get_buffer_underlying(buffer);
+    underlying = { (std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>() };
+
+    stream.close();
+};
+
+TEST(serialize, architecture) {
+    {
+        std::filesystem::path filename = LIBNETWRK_ARCHITECTURE_DIR;
+        filename.append("architecture_x86.data");
+
+        __BUFFER buffer;
+        read_to_buffer(filename, buffer);
+
+        architecture_struct as1(true);
+        architecture_struct as2(false);
+
+        ASSERT_FALSE(as1 == as2);
+        buffer >> as1;
+        ASSERT_TRUE(as1 == as2);
+    }
+
+    {
+        std::filesystem::path filename = LIBNETWRK_ARCHITECTURE_DIR;
+        filename.append("architecture_x64.data");
+
+        __BUFFER buffer;
+        read_to_buffer(filename, buffer);
+
+        architecture_struct as1(true);
+        architecture_struct as2(false);
+
+        ASSERT_FALSE(as1 == as2);
+        buffer >> as1;
+        ASSERT_TRUE(as1 == as2);
+    }
+}
+
+#endif
+
+TEST(serialize, primitives) {
+    __BUFFER buffer;
+
+    {
+        bool v1 = true;
+        bool v2 = false;
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
 
     buffer.clear();
 
-    std::deque<int> dq1({ 123, 534, 346, 5432, 242, 735 });
-    std::deque<int> dq2;
+    {
+        int8_t v1 = (int8_t)0xFF;
+        int8_t v2 = 0;
 
-    buffer << dq1 >> dq2;
-    EXPECT_TRUE(dq1.size() == dq2.size());
-    EXPECT_TRUE(dq1 == dq2);
-
-    buffer.clear();
-
-    std::forward_list<int> fl1({ 123, 534, 346, 5432, 242, 735 });
-    std::forward_list<int> fl2;
-
-    buffer << fl1 >> fl2;
-    EXPECT_TRUE(fl1 == fl2);
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
 
     buffer.clear();
 
-    std::list<int> l1({ 123, 534, 346, 5432, 242, 735 });
-    std::list<int> l2;
+    {
+        uint8_t v1 = (uint8_t)0xFF;
+        uint8_t v2 = 0;
 
-    buffer << l1 >> l2;
-    EXPECT_TRUE(l1.size() == l2.size());
-    EXPECT_TRUE(l1 == l2);
-
-    std::array<int, 6> ar1({ 123, 534, 346, 5432, 242, 735 });
-    std::array<int, 6> ar2{};
-
-    buffer << ar1 >> ar2;
-    EXPECT_TRUE(ar1 == ar2);
-}
-
-TEST(bin_serializer, serialize_deserialize_serializable) {
-    simple_struct ss1(16, "test_1");
-    simple_struct ss2(524, "test_2");
-    simple_struct ss3, ss4, ss5;
-
-    buffer<bin_serialize> buffer;
-    buffer << ss1 >> ss3;
-    EXPECT_TRUE(ss1.equals(ss3));
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
 
     buffer.clear();
 
-    buffer << ss1 << ss2 >> ss4 >> ss5;
-    EXPECT_TRUE(ss1.equals(ss4));
-    EXPECT_TRUE(ss2.equals(ss5));
+    {
+        int16_t v1 = (int16_t)0xFFFF;
+        int16_t v2 = 0;
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    {
+        uint16_t v1 = (uint16_t)0xFFFF;
+        uint16_t v2 = 0;
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    {
+        int32_t v1 = (int32_t)0xFFFFFFFF;
+        int32_t v2 = 0;
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    {
+        uint32_t v1 = (uint32_t)0xFFFFFFFF;
+        uint32_t v2 = 0;
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    {
+        int64_t v1 = (int64_t)0xFFFFFFFFFFFFFFFF;
+        int64_t v2 = 0;
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    {
+        uint64_t v1 = (uint64_t)0xFFFFFFFFFFFFFFFF;
+        uint64_t v2 = 0;
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    {
+        float v1 = 420.69f;
+        float v2 = 0.0f;
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    {
+        double v1 = 420.69;
+        double v2 = 0.0;
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
 }
 
-TEST(bin_serializer, serialize_deserialize_strings) {
-    buffer<bin_serialize> buffer;
+TEST(serialize, serializable) {
+    __BUFFER buffer;
 
-    std::string s1("SeRiaLiZE mE");
-    std::string s2;
+    {
+        base_struct s1{};
+        base_struct s2{ 69, "" };
 
-    buffer << s1 >> s2;
-    EXPECT_TRUE(s1 == s2);
+        ASSERT_FALSE(s1.equals(s2));
 
-    std::vector<std::string> vs1({ "nxnuNoeuLN", "XjTfSs5loB", "UWp8hsoW5s", "O0c7byqKfj", "CzAXjEObB0" });
-    std::vector<std::string> vs2;
+        buffer << s1 >> s2;
+        ASSERT_TRUE(s1.equals(s2));
+    }
 
-    buffer << vs1 >> vs2;
-    for (size_t i = 0; i < vs1.size(); i++)
-        EXPECT_TRUE(vs1[i] == vs2[i]);
+    buffer.clear();
+
+    {
+        derived_struct s1{};
+        derived_struct s2{ 69, "", { 567, 8910 }, false };
+
+        ASSERT_FALSE(s1.equals(s2));
+
+        buffer << s1 >> s2;
+        ASSERT_TRUE(s1.equals(s2));
+    }
 }
 
-TEST(bin_serializer, serialize_deserialize_unsupported) {
-    buffer<bin_serialize> buffer;
+TEST(serialize, out_of_bounds_fail) {
+#ifdef LIBNETWRK_SERIALIZE_TEST_BUFFER_DYNAMIC
 
-    std::stack<int> stack;
-    EXPECT_ANY_THROW(buffer << stack);
+    /*
+        Try to read out of bounds
+    */
 
-    std::queue<int> queue;
-    EXPECT_ANY_THROW(buffer << queue);
+    {
+        libnetwrk::dynamic_buffer buffer;
 
-    std::priority_queue<int> pqueue;
-    EXPECT_ANY_THROW(buffer << pqueue);
+        int  a1 = 15;
+        int  a2 = 0;
+        char b = 0;
 
-    std::set<int> set;
-    EXPECT_ANY_THROW(buffer << set);
+        buffer << a1;
+        ASSERT_NO_THROW(buffer >> a2);
+        ASSERT_TRUE(a1 == a2);
+        ASSERT_THROW(buffer >> b, libnetwrk::libnetwrk_exception);
+    }
 
-    std::multiset<int> mset;
-    EXPECT_ANY_THROW(buffer << mset);
+#else
+    /*
+        Try to write to a 0 size buffer
+    */
 
-    std::unordered_set<int> uset;
-    EXPECT_ANY_THROW(buffer << uset);
+    {
+        libnetwrk::fixed_buffer<0> buffer;
+        char a = 1;
 
-    std::unordered_multiset<int> umset;
-    EXPECT_ANY_THROW(buffer << umset);
+        ASSERT_THROW(buffer << a, libnetwrk::libnetwrk_exception);
+    }
 
-    std::map<int, int> map;
-    EXPECT_ANY_THROW(buffer << map);
+    /*
+        Try to write out of bounds
+    */
 
-    std::multimap<int, int> mmap;
-    EXPECT_ANY_THROW(buffer << mmap);
+    {
+        libnetwrk::fixed_buffer<2> buffer;
+        char a = 1;
 
-    std::unordered_map<int, int> umap;
-    EXPECT_ANY_THROW(buffer << umap);
+        ASSERT_NO_THROW(buffer << a << a);
+        ASSERT_THROW(buffer << a, libnetwrk::libnetwrk_exception);
+    }
 
-    std::unordered_multimap<int, int> ummap;
-    EXPECT_ANY_THROW(buffer << ummap);
+    /*
+        Try to read from a 0 size buffer
+    */
+
+    {
+        libnetwrk::fixed_buffer<0> buffer;
+        char a = 1;
+
+        ASSERT_THROW(buffer >> a, libnetwrk::libnetwrk_exception);
+    }
+
+    /*
+        Try to read out of bounds
+    */
+
+    {
+        libnetwrk::fixed_buffer<2> buffer;
+        char a = 1;
+
+        buffer << a << a;
+
+        ASSERT_NO_THROW(buffer >> a >> a);
+        ASSERT_THROW(buffer >> a, libnetwrk::libnetwrk_exception);
+    }
+    
+#endif
 }
 
-TEST(bin_serializer, serialize_deserialize_multiple_containers) {
-    buffer<bin_serialize> buffer;
-    container_struct cs1, cs2;
+TEST(serialize, strings) {
+    __BUFFER buffer;
 
-    cs1.a.push_back(435921472);
-    cs1.a.push_back(123);
-    cs1.a.push_back(85447);
+    {
+        std::string v1("SeRiaLiZE mE");
+        std::string v2("abcd");
+        ASSERT_FALSE(v1 == v2);
 
-    cs1.b.push_back(476516);
-    cs1.b.push_back(176541697);
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
 
-    cs1.c.push_back(778987562);
+    buffer.clear();
 
-    cs1.d.push_front(778151561);
-    cs1.d.push_front(111474);
-    cs1.d.push_front(87916);
+    {
+        std::vector<std::string> v1({ "nxnuNoeuLN", "XjTfSs5loB", "UWp8hsoW5s", "O0c7byqKfj", "CzAXjEObB0" });
+        std::vector<std::string> v2({ "ads" });
+        ASSERT_FALSE(v1 == v2);
 
-    buffer << cs1;
-    buffer >> cs2;
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+}
 
-    EXPECT_TRUE(cs1.a.size() == cs2.a.size());
-    EXPECT_TRUE(cs1.b.size() == cs2.b.size());
-    EXPECT_TRUE(cs1.c.size() == cs2.c.size());
-    EXPECT_TRUE(std::distance(cs1.d.begin(), cs1.d.end()) == std::distance(cs2.d.begin(), cs2.d.end()));
+TEST(serialize, arrays) {
+    __BUFFER buffer;
 
-    EXPECT_TRUE(std::equal(cs1.a.begin(), cs1.a.end(), cs2.a.begin()));
-    EXPECT_TRUE(std::equal(cs1.b.begin(), cs1.b.end(), cs2.b.begin()));
-    EXPECT_TRUE(std::equal(cs1.c.begin(), cs1.c.end(), cs2.c.begin()));
-    EXPECT_TRUE(std::equal(cs1.d.begin(), cs1.d.end(), cs2.d.begin()));
+    /*
+        Primitive
+    */
+
+    {
+        std::array<uint16_t, 6> v1({ 123, 534, 346, 5432, 242, 735 });
+        std::array<uint16_t, 6> v2({ 555, 666 });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    /*
+        Nested
+    */
+
+    {
+        std::array<std::array<int, 2>, 3> v1{ { {123, 534}, {346, 5432}, {242, 735} } };
+        std::array<std::array<int, 2>, 3> v2({ {555, 666} });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    /*
+        User defined serialize
+    */
+
+    {
+        std::array<derived_struct, 3> v1{ { {69, "a", { 567, 8910 }, false}, {70, "b", { 568, 8911 }, true} } };
+        std::array<derived_struct, 3> v2{ { {}, { 71, "c", { 569, 8912 }, false } } };
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    /*
+        Size doesn't match
+    */
+
+    {
+        std::array<uint64_t, 6> v1({ 123, 534, 346, 5432, 242, 735 });
+        std::array<uint64_t, 5> v2{};
+        std::array<uint64_t, 7> v3{};
+
+        ASSERT_NO_THROW(buffer << v1);
+        ASSERT_THROW(buffer >> v2, libnetwrk_exception);
+        ASSERT_THROW(buffer >> v3, libnetwrk_exception);
+    }
+}
+
+TEST(serialize, vectors) {
+    __BUFFER buffer;
+
+    /*
+        Primitive
+    */
+
+    {
+        std::vector<uint16_t> v1({ 123, 534, 346, 5432, 242, 735 });
+        std::vector<uint16_t> v2({ 555, 666 });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    /*
+        Nested
+    */
+
+    {
+        std::vector<std::vector<int>> v1({ {123, 534}, {346, 5432}, {242, 735} });
+        std::vector<std::vector<int>> v2({ {555, 666} });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    /*
+        User defined serialize
+    */
+
+    {
+        std::vector<derived_struct> v1({ {69, "a", { 567, 8910 }, false}, {70, "b", { 568, 8911 }, true} });
+        std::vector<derived_struct> v2({ {}, { 71, "c", { 569, 8912 }, false } });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+}
+
+TEST(serialize, dequeues) {
+    __BUFFER buffer;
+
+    /*
+        Primitive
+    */
+
+    {
+        std::deque<uint16_t> v1({ 123, 534, 346, 5432, 242, 735 });
+        std::deque<uint16_t> v2({ 555, 666 });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    /*
+        Nested
+    */
+
+    {
+        std::deque<std::deque<int>> v1({ {123, 534}, {346, 5432}, {242, 735} });
+        std::deque<std::deque<int>> v2({ {555, 666} });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    /*
+        User defined serialize
+    */
+
+    {
+        std::deque<derived_struct> v1({ {69, "a", { 567, 8910 }, false}, {70, "b", { 568, 8911 }, true} });
+        std::deque<derived_struct> v2({ {}, { 71, "c", { 569, 8912 }, false } });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+}
+
+TEST(serialize, lists) {
+    __BUFFER buffer;
+
+    /*
+        Primitive
+    */
+
+    {
+        std::list<uint16_t> v1({ 123, 534, 346, 5432, 242, 735 });
+        std::list<uint16_t> v2({ 555, 666 });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    /*
+        Nested
+    */
+
+    {
+        std::list<std::list<int>> v1({ {123, 534}, {346, 5432}, {242, 735} });
+        std::list<std::list<int>> v2({ {555, 666} });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    /*
+        User defined serialize
+    */
+
+    {
+        std::list<derived_struct> v1({ {69, "a", { 567, 8910 }, false}, {70, "b", { 568, 8911 }, true} });
+        std::list<derived_struct> v2({ {}, { 71, "c", { 569, 8912 }, false } });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+}
+
+TEST(serialize, sets) {
+    __BUFFER buffer;
+
+    /*
+        Primitive
+    */
+
+    {
+        std::set<uint16_t> v1({ 123, 534, 346, 5432, 242, 735 });
+        std::set<uint16_t> v2({ 555, 666 });
+        ASSERT_FALSE(v1 == v2);
+        
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+}
+
+TEST(serialize, unordered_sets) {
+    __BUFFER buffer;
+
+    /*
+        Primitive
+    */
+
+    {
+        std::unordered_set<uint16_t> v1({ 123, 534, 346, 5432, 242, 735 });
+        std::unordered_set<uint16_t> v2({ 555, 666 });
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v2.contains(123));
+        ASSERT_TRUE(v2.contains(534));
+        ASSERT_TRUE(v2.contains(346));
+        ASSERT_TRUE(v2.contains(5432));
+        ASSERT_TRUE(v2.contains(242));
+        ASSERT_TRUE(v2.contains(735));
+        ASSERT_FALSE(v2.contains(555));
+        ASSERT_FALSE(v2.contains(666));
+    }
+
+    buffer.clear();
+}
+
+TEST(serialize, maps) {
+    __BUFFER buffer;
+
+    /*
+        Primitive
+    */
+
+    {
+        std::map<int, uint16_t> v1({ {123, 534}, {346, 5432}, {242, 735} });
+        std::map<int, uint16_t> v2({ {555, 666} });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+
+    buffer.clear();
+
+    /*
+        Nested
+    */
+
+    {
+        std::map<int, std::map<int, int>> v1;
+        v1[123][536]  = 346;
+        v1[5432][242] = 735;
+        std::map<int, std::map<int, int>> v2;
+        v2[567][873] = 1248;
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v2[123][536]  == 346);
+        ASSERT_TRUE(v2[5432][242] == 735);
+        ASSERT_FALSE(v2[567][873] == 735);
+    }
+
+    buffer.clear();
+
+    /*
+        User defined serialize
+    */
+
+    {
+        std::map<int, derived_struct> v1({ { 32, {69, "a", { 567, 8910 }, false} }, { 557, {70, "b", { 568, 8911 }, true} } });
+        std::map<int, derived_struct> v2({ { 987, {32, "a", { 11, 78 }, false} } });
+        ASSERT_FALSE(v1 == v2);
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1 == v2);
+    }
+}
+
+TEST(serialize, unordered_maps) {
+    __BUFFER buffer;
+
+    /*
+        Primitive
+    */
+
+    {
+        std::unordered_map<int, uint16_t> v1({ {123, 534}, {346, 5432}, {242, 735} });
+        std::unordered_map<int, uint16_t> v2({ {555, 666} });
+        
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v1[123]  == 534);
+        ASSERT_TRUE(v1[346]  == 5432);
+        ASSERT_TRUE(v1[242]  == 735);
+        ASSERT_FALSE(v1[555] == 666);
+    }
+
+    buffer.clear();
+
+    /*
+        Nested
+    */
+
+    {
+        std::unordered_map<int, std::unordered_map<int, int>> v1;
+        v1[123][536]  = 346;
+        v1[5432][242] = 735;
+        std::unordered_map<int, std::unordered_map<int, int>> v2;
+        v2[567][873] = 1248;
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v2[123][536]  == 346);
+        ASSERT_TRUE(v2[5432][242] == 735);
+        ASSERT_FALSE(v2[567][873] == 735);
+    }
+
+    buffer.clear();
+
+    /*
+        User defined serialize
+    */
+
+    {
+        std::unordered_map<int, derived_struct> v1({ { 32, {69, "a", { 567, 8910 }, false} }, { 557, {70, "b", { 568, 8911 }, true} } });
+        std::unordered_map<int, derived_struct> v2({ { 987, {32, "a", { 11, 78 }, false} } });
+
+        buffer << v1 >> v2;
+        ASSERT_TRUE(v2.contains(32));
+        ASSERT_TRUE(v2.contains(557));
+        ASSERT_FALSE(v2.contains(987));
+    }
+}
+
+TEST(serialize, multiple_containers) {
+    __BUFFER buffer;
+    
+    std::vector<int> v1{ 435921472, 123, 85447 };
+    std::vector<int> v2{ 435921474 };
+    std::set<int>    s1{ 778151561, 111474, 87916 };
+    std::set<int>    s2{ 778151568 };
+
+    buffer << v1 << s1;
+    buffer >> v2 >> s2;
+
+    ASSERT_TRUE(v1 == v2);
+    ASSERT_TRUE(s1 == s2);
 }
