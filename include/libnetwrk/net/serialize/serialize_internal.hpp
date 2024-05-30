@@ -19,110 +19,112 @@ namespace {
     template <typename...>
     inline constexpr bool assert_force_false = false;
 
+    template<typename From, typename To>
+    concept convertible_to = requires {
+        requires std::is_convertible_v<From, To> &&
+                 requires { static_cast<To>(std::declval<From>()); };
+    };
+
+    template<typename Buffer>
+    concept supported_buffer = std::derived_from<Buffer, libnetwrk::buffer>;
+
     ////////////////////////////////////////////////////////////////////////////
     // SUPPORTED
 
-    template<typename T>
-    struct marked_supported : std::false_type {};
+    template<typename Type>
+    concept primitive = requires {
+        requires std::same_as<Type, bool>     ||
+                 std::same_as<Type, char>     ||
+                 std::same_as<Type, int8_t>   ||
+                 std::same_as<Type, uint8_t>  ||
+                 std::same_as<Type, int16_t>  ||
+                 std::same_as<Type, uint16_t> ||
+                 std::same_as<Type, int32_t>  ||
+                 std::same_as<Type, uint32_t> ||
+                 std::same_as<Type, int64_t>  ||
+                 std::same_as<Type, uint64_t> ||
+                 std::same_as<Type, float>    ||
+                 std::same_as<Type, double>   ||
+                 libnetwrk::is_enum<Type>;
+    };
 
-    template<typename T, size_t N>
-    struct marked_supported<std::array<T, N>> : std::true_type {};
-
-    template<typename... Args>
-    struct marked_supported<std::vector<Args...>> : std::true_type {};
-
-    template<typename... Args>
-    struct marked_supported<std::deque<Args...>> : std::true_type {};
-
-    template<typename... Args>
-    struct marked_supported<std::list<Args...>> : std::true_type {};
-
-    template<typename... Args>
-    struct marked_supported<std::set<Args...>> : std::true_type {};
-
-    template<typename... Args>
-    struct marked_supported<std::unordered_set<Args...>> : std::true_type {};
-
-    template<typename... Args>
-    struct marked_supported<std::map<Args...>> : std::true_type {};
-
-    template<typename... Args>
-    struct marked_supported<std::unordered_map<Args...>> : std::true_type {};
-
-    template<>
-    struct marked_supported<std::string> : std::true_type {};
-
-    ////////////////////////////////////////////////////////////////////////////
-    // UNSUPPORTED
+    template<typename Buffer, typename Type>
+    concept user_defined_serialize = requires {
+        requires supported_buffer<Buffer>
+        && requires(const Type value, Buffer& buffer) {
+            { value.serialize(buffer) } -> convertible_to<void>;
+        }
+        && requires(Type value, Buffer& buffer) {
+            { value.deserialize(buffer) } -> convertible_to<void>;
+            requires (!std::is_const_v<Type>);
+        };
+    };
 
     template<typename Type>
-    struct marked_unsupported : std::false_type {};
-
-    template<typename... Args>
-    struct marked_unsupported<std::vector<bool, Args...>> : std::true_type {};
-
-    template<typename Type>
-    concept marked_supported_vector = !std::same_as<Type, bool>;
-
-    ////////////////////////////////////////////////////////////////////////////
-    // PRIMITIVE
+    concept is_std_array = requires {
+        requires (
+            requires { typename std::tuple_size<Type>::type; }       &&
+            requires { typename std::tuple_element<0, Type>::type; } &&
+            std::same_as<Type, std::array<typename Type::value_type, std::tuple_size<Type>::value>>
+        );
+    };
 
     template<typename Type>
-    concept is_primitive = std::same_as<Type, bool>     ||
-                           std::same_as<Type, char>     ||
-                           std::same_as<Type, int8_t>   ||
-                           std::same_as<Type, uint8_t>  ||
-                           std::same_as<Type, int16_t>  ||
-                           std::same_as<Type, uint16_t> ||
-                           std::same_as<Type, int32_t>  ||
-                           std::same_as<Type, uint32_t> ||
-                           std::same_as<Type, int64_t>  ||
-                           std::same_as<Type, uint64_t> ||
-                           std::same_as<Type, float>    ||
-                           std::same_as<Type, double>;
+    concept contiguous_containers = requires {
+        requires ( 
+            std::same_as<Type, std::vector<typename Type::value_type>> && 
+            !std::same_as<typename Type::value_type, bool> 
+        ) 
+        || is_std_array<Type>;
+    };
+
+    template<typename Type>
+    concept containers = requires {
+        requires contiguous_containers<Type>                               ||
+                 std::same_as<Type, std::deque<typename Type::value_type>> ||
+                 std::same_as<Type, std::list<typename Type::value_type>>  ||
+                 std::same_as<Type, std::set<typename Type::value_type>>   ||
+                 std::same_as<Type, std::unordered_set<typename Type::value_type>>;
+    };
+
+    template<typename Type>
+    concept kvp_containers = requires {
+        requires std::same_as<Type, std::map<typename Type::key_type, typename Type::mapped_type>> ||
+                 std::same_as<Type, std::unordered_map<typename Type::key_type, typename Type::mapped_type>>;
+    };
 
     ////////////////////////////////////////////////////////////////////////////
     // SERIALIZABLE
 
-    template<typename From, typename To>
-    concept is_convertible_to = std::is_convertible_v<From, To> && requires { static_cast<To>(std::declval<From>()); };
+    
 
-    template<typename Buffer, typename Type>
-    concept has_serialize_func = requires(const Type value, Buffer& buffer) {
-        { value.serialize(buffer) } -> is_convertible_to<void>;
-    };
-
-    template<typename Buffer, typename Type>
-    concept has_deserialize_func = requires(Type value, Buffer& buffer) {
-        { value.deserialize(buffer) } -> is_convertible_to<void>;
-        requires (!std::is_const_v<Type>);
-    };
 }
 
 namespace libnetwrk::serialize::internal {
-
-    template<typename Buffer>
-    concept is_supported_buffer = libnetwrk::is_base_of<libnetwrk::buffer, Buffer>;
+    template<typename Buffer, typename Type>
+    concept serialize_supported = requires {
+        requires primitive<Type>                      ||
+                 user_defined_serialize<Buffer, Type> ||
+                 containers<Type>                     ||
+                 kvp_containers<Type>                 ||
+                 std::same_as<Type, std::string>      || 
+                 std::same_as<Type, char*>;
+    };
 
     template<typename Buffer, typename Type>
-    concept is_serializable = is_supported_buffer<Buffer> && has_serialize_func<Buffer, Type>&&
-        has_deserialize_func<Buffer, Type>;
+    concept serialize_unsupported = !serialize_supported<Buffer, Type>;
+
+    ////////////////////////////////////////////////////////////////////////////
+    // UNSUPPORTED
 
     template<typename Buffer, typename Type>
-    concept is_supported = (marked_supported<Type>::value && !marked_unsupported<Type>::value) || 
-        is_primitive<Type> || is_serializable<Buffer, Type>;
-
-    template<typename Buffer, typename Type>
-    concept is_unsupported = !is_supported<Buffer, Type>;
-
-    template<typename Buffer, typename Type>
-    requires is_unsupported<Buffer, Type>
+    requires serialize_unsupported<Buffer, Type>
     void serialize(Buffer& buffer, const Type& value) {
         static_assert(assert_force_false<Type>, "Called serialize() or << on a buffer with an unsupported type as the arg.");
     }
 
     template<typename Buffer, typename Type>
-    requires is_unsupported<Buffer, Type>
+    requires serialize_unsupported<Buffer, Type>
     void deserialize(Buffer& buffer, Type& value) {
         static_assert(assert_force_false<Type>, "Called deserialize() or >> on a buffer with an unsupported type as the arg.");
     }
@@ -131,16 +133,20 @@ namespace libnetwrk::serialize::internal {
     // SERIALIZE
 
     template<typename Buffer, typename Type>
-    requires is_primitive<Type>
+    requires primitive<Type>
     void serialize(Buffer& buffer, const Type& value) {
-        Type le = value;
-        internal::to_little_endian(le);
-
-        internal::write(buffer, static_cast<const uint8_t*>(static_cast<const void*>(&le)), sizeof(Type));
+        if constexpr (enforce_endianness<Type>) {
+            Type le = value;
+            internal::byte_swap(le);
+            internal::write(buffer, static_cast<const uint8_t*>(static_cast<const void*>(&le)), sizeof(Type));
+        }
+        else {
+            internal::write(buffer, static_cast<const uint8_t*>(static_cast<const void*>(&value)), sizeof(Type));
+        }
     }
 
     template<typename Buffer, typename Type>
-    requires is_serializable<Buffer, Type>
+    requires user_defined_serialize<Buffer, Type>
     void serialize(Buffer& buffer, const Type& value) {
         value.serialize(buffer);
     }
@@ -150,149 +156,59 @@ namespace libnetwrk::serialize::internal {
         uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
-            throw libnetwrk_exception("serialize: std::string size truncated.");
+            throw libnetwrk_exception("serialize: size truncated.");
 
         serialize(buffer, size);
         internal::write(buffer, static_cast<const uint8_t*>(static_cast<const void*>(value.data())), size);
     }
 
-    template<typename Buffer, typename Type, size_t Size>
-    void serialize(Buffer& buffer, const std::array<Type, Size>& value) {
-        uint32_t size = static_cast<uint32_t>(value.size());
-
-        if (size != value.size())
-            throw libnetwrk_exception("serialize: std::array size truncated.");
+    template<typename Buffer>
+    void serialize(Buffer& buffer, const char* value) {
+        uint32_t size = static_cast<uint32_t>(strlen(value));
 
         serialize(buffer, size);
-
-        if constexpr (is_primitive<Type>) {
-            internal::write(buffer, 
-                static_cast<const uint8_t*>(static_cast<const void*>(value.data())), size * sizeof(Type));
-        }
-        else {
-            for (uint32_t i = 0; i < size; i++) {
-                serialize(buffer, value[i]);
-            }
-        }
+        internal::write(buffer, static_cast<const uint8_t*>(static_cast<const void*>(value)), size);
     }
 
     template<typename Buffer, typename Type>
-    requires marked_supported_vector<Type>
-    void serialize(Buffer& buffer, const std::vector<Type>& value) {
+    requires containers<Type>
+    void serialize(Buffer& buffer, const Type& value) {
         uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
-            throw libnetwrk_exception("serialize: std::vector size truncated.");
+            throw libnetwrk_exception("serialize: size truncated.");
 
         serialize(buffer, size);
 
-        if constexpr (is_primitive<Type>) {
+        constexpr auto use_memcpy = (
+            contiguous_containers<Type>          && 
+            primitive<typename Type::value_type> && 
+            !enforce_endianness<typename Type::value_type>
+        );
+
+        if constexpr (use_memcpy) {
             internal::write(buffer,
-                static_cast<const uint8_t*>(static_cast<const void*>(value.data())), size * sizeof(Type));
+                            static_cast<const uint8_t*>(static_cast<const void*>(value.data())),
+                            size * sizeof(typename Type::value_type));
         }
         else {
-            for (uint32_t i = 0; i < size; i++) {
-                serialize(buffer, value[i]);
+            for (auto& element : value) {
+                serialize(buffer, element);
             }
         }
     }
 
     template<typename Buffer, typename Type>
-    void serialize(Buffer& buffer, const std::deque<Type>& value) {
+    requires kvp_containers<Type>
+    void serialize(Buffer& buffer, const Type& value) {
         uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
-            throw libnetwrk_exception("serialize: std::deque size truncated.");
+            throw libnetwrk_exception("serialize: size truncated.");
 
         serialize(buffer, size);
 
-        for (uint32_t i = 0; i < size; i++) {
-            serialize(buffer, value[i]);
-        }
-    }
-
-    template<typename Buffer, typename Type>
-    void serialize(Buffer& buffer, const std::list<Type>& value) {
-        uint32_t size = static_cast<uint32_t>(value.size());
-
-        if (size != value.size())
-            throw libnetwrk_exception("serialize: std::list size truncated.");
-
-        serialize(buffer, size);
-
-        uint32_t count = 0;
-        for (auto& element : value) {
-            if (count == size) break;
-
-            serialize(buffer, element);
-        }
-    }
-
-    template<typename Buffer, typename Type, typename... Args>
-    void serialize(Buffer& buffer, const std::set<Type, Args...>& value) {
-        uint32_t size = static_cast<uint32_t>(value.size());
-
-        if (size != value.size())
-            throw libnetwrk_exception("serialize: std::set size truncated.");
-
-        serialize(buffer, size);
-
-        uint32_t count = 0;
-        for (auto& element : value) {
-            if (count == size) break;
-
-            serialize(buffer, element);
-        }
-    }
-
-    template<typename Buffer, typename Type, typename... Args>
-    void serialize(Buffer& buffer, const std::unordered_set<Type, Args...>& value) {
-        uint32_t size = static_cast<uint32_t>(value.size());
-
-        if (size != value.size())
-            throw libnetwrk_exception("serialize: std::unordered_set size truncated.");
-
-        serialize(buffer, size);
-
-        uint32_t count = 0;
-        for (auto& element : value) {
-            if (count == size) break;
-
-            serialize(buffer, element);
-        }
-    }
-
-    template<typename Buffer, typename Key, typename Value>
-    void serialize(Buffer& buffer, const std::map<Key, Value>& value) {
-        uint32_t size = static_cast<uint32_t>(value.size());
-
-        if (size != value.size())
-            throw libnetwrk_exception("serialize: std::unordered_set size truncated.");
-
-        serialize(buffer, size);
-
-        uint32_t count = 0;
         for (auto& [kvp_key, kvp_value] : value) {
-            if (count == size) break;
-
-            serialize(buffer, kvp_key);
-            serialize(buffer, kvp_value);
-        }
-    }
-
-    template<typename Buffer, typename Key, typename Value>
-    void serialize(Buffer& buffer, const std::unordered_map<Key, Value>& value) {
-        uint32_t size = static_cast<uint32_t>(value.size());
-
-        if (size != value.size())
-            throw libnetwrk_exception("serialize: std::unordered_set size truncated.");
-
-        serialize(buffer, size);
-
-        uint32_t count = 0;
-        for (auto& [kvp_key, kvp_value] : value) {
-            if (count == size) break;
-
             serialize(buffer, kvp_key);
             serialize(buffer, kvp_value);
         }
@@ -302,13 +218,17 @@ namespace libnetwrk::serialize::internal {
     // DESERIALIZE
     
     template<typename Buffer, typename Type>
-    requires is_primitive<Type>
+    requires primitive<Type>
     void deserialize(Buffer& buffer, Type& value) {
         internal::read(buffer, static_cast<uint8_t*>(static_cast<void*>(&value)), sizeof(Type));
+
+        if constexpr (enforce_endianness<Type>) {
+            internal::byte_swap(value);
+        }
     }
 
     template<typename Buffer, typename Type>
-    requires is_serializable<Buffer, Type>
+    requires user_defined_serialize<Buffer, Type>
     void deserialize(Buffer& buffer, Type& value) {
         value.deserialize(buffer);
     }
@@ -322,121 +242,63 @@ namespace libnetwrk::serialize::internal {
         internal::read(buffer, static_cast<uint8_t*>(static_cast<void*>(value.data())), size);
     }
 
-    template<typename Buffer, typename Type, size_t Size>
-    void deserialize(Buffer& buffer, std::array<Type, Size>& value) {
+    template<typename Buffer, typename Type>
+    requires containers<Type>
+    void deserialize(Buffer& buffer, Type& value) {
         uint32_t size = 0;
         deserialize(buffer, size);
 
-        if (size != value.size())
-            throw libnetwrk_exception("deserialize: std::array size not the same.");
+        if constexpr (is_std_array<Type>) {
+            if (size != value.size())
+                throw libnetwrk_exception("deserialize: std::array size not the same.");
+        }
+        else if constexpr (std::same_as<Type, std::vector<typename Type::value_type>>) {
+            value.resize(size);
+        }
+        else {
+            value.clear();
+        }
 
-        if constexpr (is_primitive<Type>) {
-            internal::read(buffer, static_cast<uint8_t*>(static_cast<void*>(value.data())), size * sizeof(Type));
-        }   
+        constexpr auto use_memcpy = (
+            contiguous_containers<Type>          && 
+            primitive<typename Type::value_type> && 
+            !enforce_endianness<typename Type::value_type>
+        );
+
+        if constexpr (use_memcpy) {
+            internal::read(buffer, static_cast<uint8_t*>(static_cast<void*>(value.data())), size * sizeof(typename Type::value_type));
+        }
         else {
             for (uint32_t i = 0; i < size; i++) {
-                deserialize(buffer, value[i]);
+                if constexpr (contiguous_containers<Type>) 
+                {
+                    deserialize(buffer, value[i]);
+                }
+                else if constexpr (std::same_as<Type, std::deque<typename Type::value_type>> ||
+                    std::same_as<Type, std::list<typename Type::value_type>>) 
+                {
+                    value.push_back({});
+                    deserialize(buffer, value.back());
+                }
+                else {
+                    typename Type::value_type element{};
+                    deserialize(buffer, element);
+                    value.insert(element);
+                }
             }
         }
     }
 
     template<typename Buffer, typename Type>
-    requires marked_supported_vector<Type>
-    void deserialize(Buffer& buffer, std::vector<Type>& value) {
-        uint32_t size = 0;
-        deserialize(buffer, size);
-
-        value.resize(size);
-
-        if constexpr (is_primitive<Type>) {   
-            internal::read(buffer, static_cast<uint8_t*>(static_cast<void*>(value.data())), size * sizeof(Type));
-        }
-        else {
-            for (uint32_t i = 0; i < size; i++) {
-                deserialize(buffer, value[i]);
-            }
-        }
-    }
-
-    template<typename Buffer, typename Type>
-    void deserialize(Buffer& buffer, std::deque<Type>& value) {
+    requires kvp_containers<Type>
+    void deserialize(Buffer& buffer, Type& value) {
         uint32_t size = 0;
         deserialize(buffer, size);
 
         value.clear();
 
         for (uint32_t i = 0; i < size; i++) {
-            value.push_back({});
-            deserialize(buffer, value.back());
-        }
-    }
-
-    template<typename Buffer, typename Type>
-    void deserialize(Buffer& buffer, std::list<Type>& value) {
-        uint32_t size = 0;
-        deserialize(buffer, size);
-
-        value.clear();
-
-        for (uint32_t i = 0; i < size; i++) {
-            value.push_back({});
-            deserialize(buffer, value.back());
-        }
-    }
-
-    template<typename Buffer, typename Type, typename... Args>
-    void deserialize(Buffer& buffer, std::set<Type, Args...>& value) {
-        uint32_t size = 0;
-        deserialize(buffer, size);
-
-        value.clear();
-        
-        for (uint32_t i = 0; i < size; i++) {
-            Type element{};
-            deserialize(buffer, element);
-            value.insert(element);
-        }
-    }
-
-    template<typename Buffer, typename Type, typename... Args>
-    void deserialize(Buffer& buffer, std::unordered_set<Type, Args...>& value) {
-        uint32_t size = 0;
-        deserialize(buffer, size);
-
-        value.clear();
-
-        for (uint32_t i = 0; i < size; i++) {
-            Type element{};
-            deserialize(buffer, element);
-            value.insert(element);
-        }
-    }
-
-    template<typename Buffer, typename Key, typename Value>
-    void deserialize(Buffer& buffer, std::map<Key, Value>& value) {
-        uint32_t size = 0;
-        deserialize(buffer, size);
-
-        value.clear();
-
-        for (uint32_t i = 0; i < size; i++) {
-            Key key{};
-            deserialize(buffer, key);
-            
-            value[key] = {};
-            deserialize(buffer, value[key]);
-        }
-    }
-
-    template<typename Buffer, typename Key, typename Value>
-    void deserialize(Buffer& buffer, std::unordered_map<Key, Value>& value) {
-        uint32_t size = 0;
-        deserialize(buffer, size);
-
-        value.clear();
-
-        for (uint32_t i = 0; i < size; i++) {
-            Key key{};
+            typename Type::key_type key{};
             deserialize(buffer, key);
 
             value[key] = {};

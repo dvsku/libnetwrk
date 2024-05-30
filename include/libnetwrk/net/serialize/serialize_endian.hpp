@@ -15,12 +15,6 @@
 #include <type_traits>
 
 namespace {
-    constexpr bool is_system_little_endian() {
-        int32_t x = 0xaabbccdd;
-        uint8_t y = static_cast<uint8_t>(x);
-        return (y == 0xdd);
-    }
-
     static inline void swap_uint16(uint16_t* val) {
         *val = LIBNETWRK_SWAP_ENDIAN_16(*val);
     }
@@ -52,10 +46,25 @@ namespace {
     static inline void swap_double(double* val) {
         swap_uint64((uint64_t*)val);
     }
+
+    constexpr bool is_system_little_endian() {
+        int32_t x = 0xaabbccdd;
+        uint8_t y = static_cast<uint8_t>(x);
+        return (y == 0xdd);
+    }
 }
 
 namespace libnetwrk::serialize::internal {
-    template <typename Type>
+    template<typename Type>
+    concept enforce_endianness = requires {
+        requires !is_system_little_endian()   &&
+                 !std::same_as<Type, int8_t>  &&
+                 !std::same_as<Type, uint8_t> &&
+                 !std::same_as<Type, char>    &&
+                 !std::same_as<Type, bool>;
+    };
+
+    template<typename Type>
     constexpr auto byte_swap(Type& value) {
         if constexpr (std::same_as<Type, int16_t>) {
             swap_int16(&value);
@@ -81,13 +90,5 @@ namespace libnetwrk::serialize::internal {
         else if constexpr (std::same_as<Type, double>) {
             swap_double(&value);
         }
-    }
-
-    template <typename Type>
-    constexpr auto to_little_endian(Type& value) {
-        if constexpr (is_system_little_endian())
-            return;
-
-        return byte_swap(value);
     }
 }
