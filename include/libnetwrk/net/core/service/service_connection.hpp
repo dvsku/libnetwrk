@@ -34,6 +34,14 @@ namespace libnetwrk {
             base_t::stop();
         }
 
+    public:
+        storage_t& get_storage() {
+            return m_storage;
+        }
+
+    protected:
+        storage_t m_storage;
+
     protected:
         virtual void notify() override {}
 
