@@ -30,7 +30,7 @@ public:
         switch (command) {
             case base_t::command_t::c2s_ping:
             {
-                msg->msg >> ping;
+                msg->message >> ping;
                 libnetwrk::message<service_desc<T>> response(base_t::command_t::s2c_pong);
                 response << std::string("pOnG");
                 msg->sender->send(response);
@@ -57,7 +57,7 @@ public:
     void ev_message(base_t::command_t command, base_t::owned_message_t* msg) {
         switch (command) {
             case base_t::command_t::s2c_pong:
-                msg->msg >> pong;
+                msg->message >> pong;
                 break;
             default: break;
         }

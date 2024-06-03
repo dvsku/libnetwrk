@@ -38,7 +38,7 @@ namespace libnetwrk {
             authentication::request_t  auth_request{};
             authentication::response_t auth_response{};
 
-            message->msg >> auth_request;
+            message->message >> auth_request;
             auth_response = authentication::generate_response(auth_request);
 
             message_t response{};

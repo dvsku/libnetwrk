@@ -19,7 +19,7 @@ protected:
             case commands::s2c_echo:
             {
                 std::string text;
-                msg->msg >> text;
+                msg->message >> text;
                 LIBNETWRK_INFO(get_name(), "{}", text);
                 break;
             }

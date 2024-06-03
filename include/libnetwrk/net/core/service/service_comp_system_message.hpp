@@ -51,7 +51,7 @@ namespace libnetwrk {
             auto sender = std::static_pointer_cast<connection_internal_t>(message->sender);
 
             authentication::response_t auth_response{};
-            message->msg >> auth_response;
+            message->message >> auth_response;
 
             if (!authentication::validate(sender->auth_request, auth_response))
                 return sender->stop();

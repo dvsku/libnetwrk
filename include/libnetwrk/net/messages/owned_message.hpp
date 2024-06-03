@@ -8,7 +8,7 @@ namespace libnetwrk {
     class owned_message {
     public:
         using owned_message_t = owned_message<Desc, Connection>;
-        using message_t       = message<Desc>;
+        using message_t       = libnetwrk::message<Desc>;
         using connection_t    = Connection;
 
     public:
@@ -20,7 +20,7 @@ namespace libnetwrk {
         owned_message_t& operator=(owned_message_t&&)      = default;
 
     public:
-        message_t                     msg;
+        message_t                     message;
         std::shared_ptr<connection_t> sender;
     };
 }

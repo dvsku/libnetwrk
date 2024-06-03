@@ -33,7 +33,7 @@ public:
         message_t response;
         
         std::string received;
-        msg->msg >> received;
+        msg->message >> received;
 
         switch (command) {
             case commands::c2s_msg1: {
@@ -86,7 +86,7 @@ public:
         message_t response;
 
         std::string received;
-        msg->msg >> received;
+        msg->message >> received;
 
         switch (command) {
             case commands::s2c_msg1: {

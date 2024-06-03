@@ -51,7 +51,7 @@ class test_service : public tcp_service<service_desc> {
                     msg->sender->send(response);
                     break;
                 case commands::c2s_ping:
-                    msg->msg >> ping;
+                    msg->message >> ping;
                     response.set_command(commands::s2c_pong);
                     response << std::string("pOnG");
                     msg->sender->send(response);
@@ -104,7 +104,7 @@ class test_client : public tcp_client<service_desc> {
                     service_said_echo = true;
                     break;
                 case commands::s2c_pong:
-                    msg->msg >> pong;
+                    msg->message >> pong;
                     break;
                 case commands::s2c_broadcast:
                     service_said_broadcast = true;
@@ -138,7 +138,7 @@ public:
         message_t response;
         switch (command) {
             case commands::c2s_ping:
-                msg->msg >> ping;
+                msg->message >> ping;
                 response.set_command(commands::s2c_pong);
                 response << std::string("pOnG");
                 msg->sender->send(response);
@@ -187,7 +187,7 @@ public:
     void ev_message(command_t command, owned_message_t* msg) {
         switch (command) {
             case commands::s2c_pong:
-                msg->msg >> pong;
+                msg->message >> pong;
                 break;
             default:
                 break;

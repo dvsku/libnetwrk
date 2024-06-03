@@ -101,7 +101,7 @@ namespace libnetwrk {
 
                 owned_message_t owned_message;
 
-                co_await connection->co_read_message(owned_message.msg, ec);
+                co_await connection->co_read_message(owned_message.message, ec);
 
                 if (ec) {
                     if (ec != asio::error::eof && ec != asio::error::connection_reset) {
@@ -119,8 +119,8 @@ namespace libnetwrk {
 
                 // Post process message data
                 if (m_context.cb_post_process_message) {
-                    m_context.cb_post_process_message(&owned_message.msg.data);
-                    owned_message.msg.head.data_size = owned_message.msg.data.size();
+                    m_context.cb_post_process_message(&owned_message.message.data);
+                    owned_message.message.head.data_size = owned_message.message.data.size();
                 }
 
                 {
@@ -129,7 +129,7 @@ namespace libnetwrk {
                     {
                         std::lock_guard<std::mutex> cv_lock(this->m_cv_mutex);
 
-                        if (owned_message.msg.head.type == message_type::system) {
+                        if (owned_message.message.head.type == message_type::system) {
                             this->m_incoming_system_messages.push(std::move(owned_message));
                         }
                         else {
@@ -255,17 +255,17 @@ namespace libnetwrk {
                     }
                 }
 
-                if (message.msg.head.type == message_type::system) {
+                if (message.message.head.type == message_type::system) {
                     if (!m_context.cb_system_message)
                         throw libnetwrk_exception("System message callback not set.");
 
-                    m_context.cb_system_message(static_cast<system_command>(message.msg.head.command), &message);
+                    m_context.cb_system_message(static_cast<system_command>(message.message.head.command), &message);
                 }
                 else {
                     if (!m_context.cb_message)
                         throw libnetwrk_exception("Message callback not set.");
 
-                    m_context.cb_message(message.msg.command(), &message);
+                    m_context.cb_message(message.message.command(), &message);
                 }
             }
             catch (const std::exception& e) {

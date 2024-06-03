@@ -18,7 +18,7 @@ public:
         switch (command) {
             case commands::c2s_echo: {
                 std::string text;
-                msg->msg >> text;
+                msg->message >> text;
 
                 LIBNETWRK_INFO(get_name(), "{}:{}\t{}",
                     msg->sender->get_ip().c_str(), msg->sender->get_port(), text);
