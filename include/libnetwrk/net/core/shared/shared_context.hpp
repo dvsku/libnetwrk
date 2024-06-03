@@ -12,12 +12,12 @@
 #include <functional>
 
 namespace libnetwrk {
-    template<typename tn_connection>
+    template<typename Connection>
     class shared_context {
     public:
         using io_context_t = asio::io_context;
 
-        using connection_internal_t = tn_connection;
+        using connection_internal_t = Connection;
         using connection_t          = connection_internal_t::base_t;
         using command_t             = connection_t::command_t;
         using endpoint_t            = connection_internal_t::endpoint_t;

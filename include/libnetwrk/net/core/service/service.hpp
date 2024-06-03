@@ -9,15 +9,15 @@
 #include <algorithm>
 
 namespace libnetwrk {
-    template<typename tn_desc, typename tn_socket>
+    template<typename Desc, typename Socket>
     class service {
     public:
-        using context_t             = service_context<service_connection_internal<tn_desc, tn_socket>>;
+        using context_t             = service_context<service_connection_internal<Desc, Socket>>;
         using comp_connection_t     = service_comp_connection<context_t>;
         using comp_message_t        = service_comp_message<context_t>;
         using comp_system_message_t = service_comp_system_message<context_t>;
 
-        using service_t       = service<tn_desc, tn_socket>;
+        using service_t       = service<Desc, Socket>;
         using connection_t    = context_t::connection_t;
         using message_t       = context_t::message_t;
         using owned_message_t = context_t::owned_message_t;

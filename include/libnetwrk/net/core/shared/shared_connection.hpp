@@ -10,15 +10,15 @@
 #include <mutex>
 
 namespace libnetwrk {
-    template<typename tn_desc, typename tn_socket>
+    template<typename Desc, typename Socket>
     class shared_connection {
     public:
-        using socket_t           = tn_socket;
+        using socket_t           = Socket;
         using io_context_t       = typename socket_t::io_context_t;
-        using command_t          = typename tn_desc::command_t;
-        using connection_t       = shared_connection<tn_desc, socket_t>;
-        using message_t          = message<tn_desc>;
-        using outgoing_message_t = outgoing_message<tn_desc>;
+        using command_t          = typename Desc::command_t;
+        using connection_t       = shared_connection<Desc, Socket>;
+        using message_t          = message<Desc>;
+        using outgoing_message_t = outgoing_message<Desc>;
 
     public:
         shared_connection()                    = delete;

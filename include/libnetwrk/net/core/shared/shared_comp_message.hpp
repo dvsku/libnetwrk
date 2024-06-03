@@ -12,10 +12,10 @@
 #include <exception>
 
 namespace libnetwrk {
-    template<typename tn_context>
+    template<typename Context>
     class shared_comp_message {
     public:
-        using context_t          = tn_context;
+        using context_t          = Context;
         using connection_t       = context_t::connection_internal_t;
         using command_t          = context_t::command_t;
         using message_t          = context_t::message_t;

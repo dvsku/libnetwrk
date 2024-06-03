@@ -3,10 +3,10 @@
 #include "libnetwrk/net/misc/authentication.hpp"
 
 namespace libnetwrk {
-    template<typename tn_context>
+    template<typename Context>
     class client_comp_system_message {
     public:
-        using context_t             = tn_context;
+        using context_t             = Context;
         using connection_internal_t = context_t::connection_internal_t;
         using message_t             = context_t::message_t;
         using owned_message_t       = context_t::owned_message_t;

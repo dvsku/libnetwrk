@@ -4,15 +4,15 @@
 #include "libnetwrk/net/messages/owned_message.hpp"
 
 namespace libnetwrk {
-    template<typename tn_desc, typename tn_socket>
-    class client_connection : public shared_connection<tn_desc, tn_socket> {
+    template<typename Desc, typename Socket>
+    class client_connection : public shared_connection<Desc, Socket> {
     public:
-        using base_t             = shared_connection<tn_desc, tn_socket>;
+        using base_t             = shared_connection<Desc, Socket>;
         using io_context_t       = base_t::io_context_t;
         using command_t          = base_t::command_t;
-        using connection_t       = client_connection<tn_desc, tn_socket>;
+        using connection_t       = client_connection<Desc, Socket>;
         using message_t          = base_t::message_t;
-        using owned_message_t    = owned_message<tn_desc, connection_t>;
+        using owned_message_t    = owned_message<Desc, connection_t>;
         using outgoing_message_t = base_t::outgoing_message_t;
 
     public:

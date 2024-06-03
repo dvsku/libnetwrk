@@ -4,19 +4,19 @@
 #include "libnetwrk/net/messages/owned_message.hpp"
 
 namespace libnetwrk {
-    template<typename tn_desc, typename tn_socket>
-    class service_connection : public shared_connection<tn_desc, tn_socket> {
+    template<typename Desc, typename Socket>
+    class service_connection : public shared_connection<Desc, Socket> {
     public:
-        using base_t             = shared_connection<tn_desc, tn_socket>;
+        using base_t             = shared_connection<Desc, Socket>;
         using io_context_t       = base_t::io_context_t;
         using command_t          = base_t::command_t;
-        using connection_t       = service_connection<tn_desc, tn_socket>;
+        using connection_t       = service_connection<Desc, Socket>;
         using message_t          = base_t::message_t;
-        using owned_message_t    = owned_message<tn_desc, connection_t>;
+        using owned_message_t    = owned_message<Desc, connection_t>;
         using outgoing_message_t = base_t::outgoing_message_t;
         
-        using storage_t = std::conditional_t<desc_has_storage_type<tn_desc>, 
-                                typename tn_desc::storage_t, libnetwrk::nothing>;
+        using storage_t = std::conditional_t<desc_has_storage_type<Desc>,
+                                typename Desc::storage_t, libnetwrk::nothing>;
 
     public:
         service_connection()                    = delete;

@@ -6,14 +6,14 @@
 #include <atomic>
 
 namespace libnetwrk {
-    template<typename tn_desc, typename tn_socket>
-    class service_connection_internal : public service_connection<tn_desc, tn_socket> {
+    template<typename Desc, typename Socket>
+    class service_connection_internal : public service_connection<Desc, Socket> {
     public:
-        using base_t             = service_connection<tn_desc, tn_socket>;
+        using base_t             = service_connection<Desc, Socket>;
         using io_context_t       = base_t::io_context_t;
         using command_t          = base_t::command_t;
-        using connection_t       = service_connection_internal<tn_desc, tn_socket>;
-        using endpoint_t         = typename tn_socket::endpoint_t;
+        using connection_t       = service_connection_internal<Desc, Socket>;
+        using endpoint_t         = typename Socket::endpoint_t;
         using message_t          = base_t::message_t;
         using owned_message_t    = base_t::owned_message_t;
         using outgoing_message_t = base_t::outgoing_message_t;
@@ -78,7 +78,7 @@ namespace libnetwrk {
             this->m_socket.connect(endpoint);
         }
 
-        tn_socket& get_socket() {
+        Socket& get_socket() {
             return this->m_socket;
         }
 

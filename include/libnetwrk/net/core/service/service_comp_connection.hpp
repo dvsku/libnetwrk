@@ -8,11 +8,11 @@
 #include <mutex>
 
 namespace libnetwrk {
-    template<typename tn_context>
+    template<typename Context>
     class service_comp_connection {
     public:
-        using context_t    = tn_context;
-        using connection_t = typename tn_context::connection_internal_t;
+        using context_t    = Context;
+        using connection_t = typename Context::connection_internal_t;
 
     public:
         std::list<std::shared_ptr<connection_t>> connections;

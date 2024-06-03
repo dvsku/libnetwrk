@@ -14,10 +14,10 @@ namespace libnetwrk {
         uint8_t auth_deadline_sec = 10U;
     };
 
-    template<typename tn_connection>
-    class service_context : public shared_context<tn_connection> {
+    template<typename Connection>
+    class service_context : public shared_context<Connection> {
     public:
-        using connection_t = typename tn_connection::base_t;
+        using connection_t = typename Connection::base_t;
 
         using cb_start_t          = std::function<void()>;
         using cb_stop_t           = std::function<void()>;
@@ -35,7 +35,7 @@ namespace libnetwrk {
 
     public:
         service_context()
-            : shared_context<tn_connection>(),
+            : shared_context<Connection>(),
               cancel_cv(this->io_context)
         {}
     };

@@ -8,17 +8,17 @@
 #include <atomic>
 
 namespace libnetwrk {
-    template<typename tn_desc, typename tn_socket>
+    template<typename Desc, typename Socket>
     class client_connection_internal
-        : public client_connection<tn_desc, tn_socket>,
-          public std::enable_shared_from_this<client_connection_internal<tn_desc, tn_socket>> 
+        : public client_connection<Desc, Socket>,
+          public std::enable_shared_from_this<client_connection_internal<Desc, Socket>>
     {
     public:
-        using base_t             = client_connection<tn_desc, tn_socket>;
+        using base_t             = client_connection<Desc, Socket>;
         using io_context_t       = base_t::io_context_t;
         using command_t          = base_t::command_t;
-        using connection_t       = client_connection_internal<tn_desc, tn_socket>;
-        using endpoint_t         = typename tn_socket::endpoint_t;
+        using connection_t       = client_connection_internal<Desc, Socket>;
+        using endpoint_t         = typename Socket::endpoint_t;
         using message_t          = base_t::message_t;
         using owned_message_t    = base_t::owned_message_t;
         using outgoing_message_t = base_t::outgoing_message_t;

@@ -9,14 +9,14 @@
 #include <thread>
 
 namespace libnetwrk::tcp {
-    template<typename tn_desc = libnetwrk::default_service_desc>
-    requires libnetwrk_desc<tn_desc>
-    class tcp_service : public libnetwrk::service<tn_desc, libnetwrk::tcp::socket> {
+    template<typename Desc = libnetwrk::default_service_desc>
+    requires libnetwrk_desc<Desc>
+    class tcp_service : public libnetwrk::service<Desc, libnetwrk::tcp::socket> {
     public:
-        using base_t                = libnetwrk::service<tn_desc, libnetwrk::tcp::socket>;
+        using base_t                = libnetwrk::service<Desc, libnetwrk::tcp::socket>;
         using connection_t          = base_t::context_t::connection_t;
         using connection_internal_t = base_t::context_t::connection_internal_t;
-        using command_t             = typename tn_desc::command_t;
+        using command_t             = typename Desc::command_t;
         using message_t             = base_t::message_t;
         using owned_message_t       = base_t::owned_message_t;
 

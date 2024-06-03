@@ -5,16 +5,16 @@
 #include "libnetwrk/net/enum/enums.hpp"
 
 namespace libnetwrk {
-    template<typename tn_context>
-    class client_comp_message : public shared_comp_message<tn_context> {
+    template<typename Context>
+    class client_comp_message : public shared_comp_message<Context> {
     public:
-        using context_t         = tn_context;
-        using comp_connection_t = client_comp_connection<tn_context>;
+        using context_t         = Context;
+        using comp_connection_t = client_comp_connection<Context>;
         using message_t         = context_t::message_t;
 
     public:
         client_comp_message(context_t& context, comp_connection_t& comp_connection)
-            : shared_comp_message<tn_context>(context),
+            : shared_comp_message<Context>(context),
               m_comp_connection(comp_connection)
         {}
 

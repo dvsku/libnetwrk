@@ -7,11 +7,11 @@
 #include <functional>
 
 namespace libnetwrk {
-    template<typename tn_context>
-    class service_comp_message : public shared_comp_message<tn_context> {
+    template<typename Context>
+    class service_comp_message : public shared_comp_message<Context> {
     public:
-        using context_t          = tn_context;
-        using comp_connection_t  = service_comp_connection<tn_context>;
+        using context_t          = Context;
+        using comp_connection_t  = service_comp_connection<Context>;
         using connection_t       = context_t::connection_t;
         using message_t          = context_t::message_t;
         using outgoing_message_t = context_t::outgoing_message_t;
@@ -20,7 +20,7 @@ namespace libnetwrk {
 
     public:
         service_comp_message(context_t& context, comp_connection_t& comp_connection)
-            : shared_comp_message<tn_context>(context),
+            : shared_comp_message<Context>(context),
               m_comp_connection(comp_connection)
         {}
 

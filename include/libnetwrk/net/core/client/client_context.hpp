@@ -3,8 +3,8 @@
 #include "libnetwrk/net/core/shared/shared_context.hpp"
 
 namespace libnetwrk {
-    template<typename tn_connection>
-    class client_context : public shared_context<tn_connection> {
+    template<typename Connection>
+    class client_context : public shared_context<Connection> {
     public:
         using cb_disconnect_t = std::function<void()>;
 
@@ -13,6 +13,6 @@ namespace libnetwrk {
 
     public:
         client_context()
-            : shared_context<tn_connection>() {}
+            : shared_context<Connection>() {}
     };
 }
