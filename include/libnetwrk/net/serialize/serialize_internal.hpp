@@ -119,13 +119,13 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type>
     requires serialize_unsupported<Buffer, Type>
-    void serialize(Buffer& buffer, const Type& value) {
+    inline void serialize(Buffer& buffer, const Type& value) {
         static_assert(assert_force_false<Type>, "Called serialize() or << on a buffer with an unsupported type as the arg.");
     }
 
     template<typename Buffer, typename Type>
     requires serialize_unsupported<Buffer, Type>
-    void deserialize(Buffer& buffer, Type& value) {
+    inline void deserialize(Buffer& buffer, Type& value) {
         static_assert(assert_force_false<Type>, "Called deserialize() or >> on a buffer with an unsupported type as the arg.");
     }
 
@@ -134,7 +134,7 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type>
     requires primitive<Type>
-    void serialize(Buffer& buffer, const Type& value) {
+    inline void serialize(Buffer& buffer, const Type& value) {
         if constexpr (enforce_endianness<Type>) {
             Type le = value;
             internal::byte_swap(le);
@@ -147,12 +147,12 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type>
     requires user_defined_serialize<Buffer, Type>
-    void serialize(Buffer& buffer, const Type& value) {
+    inline void serialize(Buffer& buffer, const Type& value) {
         value.serialize(buffer);
     }
 
     template<typename Buffer>
-    void serialize(Buffer& buffer, const std::string& value) {
+    inline void serialize(Buffer& buffer, const std::string& value) {
         uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
@@ -163,7 +163,7 @@ namespace libnetwrk::serialize::internal {
     }
 
     template<typename Buffer>
-    void serialize(Buffer& buffer, const char* value) {
+    inline void serialize(Buffer& buffer, const char* value) {
         uint32_t size = static_cast<uint32_t>(strlen(value));
 
         serialize(buffer, size);
@@ -172,7 +172,7 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type>
     requires containers<Type>
-    void serialize(Buffer& buffer, const Type& value) {
+    inline void serialize(Buffer& buffer, const Type& value) {
         uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
@@ -200,7 +200,7 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type>
     requires kvp_containers<Type>
-    void serialize(Buffer& buffer, const Type& value) {
+    inline void serialize(Buffer& buffer, const Type& value) {
         uint32_t size = static_cast<uint32_t>(value.size());
 
         if (size != value.size())
@@ -219,7 +219,7 @@ namespace libnetwrk::serialize::internal {
     
     template<typename Buffer, typename Type>
     requires primitive<Type>
-    void deserialize(Buffer& buffer, Type& value) {
+    inline void deserialize(Buffer& buffer, Type& value) {
         internal::read(buffer, static_cast<uint8_t*>(static_cast<void*>(&value)), sizeof(Type));
 
         if constexpr (enforce_endianness<Type>) {
@@ -229,12 +229,12 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type>
     requires user_defined_serialize<Buffer, Type>
-    void deserialize(Buffer& buffer, Type& value) {
+    inline void deserialize(Buffer& buffer, Type& value) {
         value.deserialize(buffer);
     }
 
     template<typename Buffer>
-    void deserialize(Buffer& buffer, std::string& value) {
+    inline void deserialize(Buffer& buffer, std::string& value) {
         uint32_t size = 0;
         deserialize(buffer, size);
         
@@ -244,7 +244,7 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type>
     requires containers<Type>
-    void deserialize(Buffer& buffer, Type& value) {
+    inline void deserialize(Buffer& buffer, Type& value) {
         uint32_t size = 0;
         deserialize(buffer, size);
 
@@ -291,7 +291,7 @@ namespace libnetwrk::serialize::internal {
 
     template<typename Buffer, typename Type>
     requires kvp_containers<Type>
-    void deserialize(Buffer& buffer, Type& value) {
+    inline void deserialize(Buffer& buffer, Type& value) {
         uint32_t size = 0;
         deserialize(buffer, size);
 
