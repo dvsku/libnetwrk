@@ -10,7 +10,7 @@ namespace libnetwrk {
     };
 
     template<typename Desc>
-    requires is_libnetwrk_service_desc<Desc>
+    requires libnetwrk_desc<Desc>
     class message_head {
     public:
         using message_head_t = message_head<Desc>;

@@ -6,14 +6,10 @@ namespace libnetwrk {
     template<typename T>
     concept is_enum = std::is_enum<T>::value;
 
-    /*
-        libnetwrk service descriptor.
-    */
-    template<typename T>
-    concept is_libnetwrk_service_desc = requires {
-        typename T::command_t;
-        typename T::storage_t;
+    template<typename Desc>
+    concept libnetwrk_desc = requires {
+        typename Desc::command_t;
 
-        std::is_enum<typename T::command_t>::value;
+        requires is_enum<typename Desc::command_t>;
     };
 }

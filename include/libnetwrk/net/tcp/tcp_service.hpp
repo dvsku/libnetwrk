@@ -10,7 +10,7 @@
 
 namespace libnetwrk::tcp {
     template<typename tn_desc = libnetwrk::default_service_desc>
-    requires is_libnetwrk_service_desc<tn_desc>
+    requires libnetwrk_desc<tn_desc>
     class tcp_service : public libnetwrk::service<tn_desc, libnetwrk::tcp::socket> {
     public:
         using base_t                = libnetwrk::service<tn_desc, libnetwrk::tcp::socket>;

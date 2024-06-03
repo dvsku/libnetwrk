@@ -4,7 +4,7 @@
 
 namespace libnetwrk {
     template<typename Desc, typename Connection>
-    requires is_libnetwrk_service_desc<Desc>
+    requires libnetwrk_desc<Desc>
     class owned_message {
     public:
         using owned_message_t = owned_message<Desc, Connection>;
