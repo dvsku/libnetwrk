@@ -35,6 +35,22 @@ public:
     }
 };
 
+TEST(service_client, storage) {
+    struct no_storage {};
+
+    struct has_not_exactly_storage {
+        using not_exactly_storage_t = no_storage;
+    };
+
+    struct has_storage {
+        using storage_t = no_storage;
+    };
+
+    ASSERT_FALSE(desc_has_storage_type<no_storage>);
+    ASSERT_FALSE(desc_has_storage_type<has_not_exactly_storage>);
+    ASSERT_TRUE(desc_has_storage_type<has_storage>);
+}
+
 TEST(service_client, auth_timeout) {
     test_service service;
     service.get_settings().gc_freq_sec       = 1;
