@@ -14,6 +14,9 @@ namespace libnetwrk {
         using message_t          = base_t::message_t;
         using owned_message_t    = owned_message<tn_desc, connection_t>;
         using outgoing_message_t = base_t::outgoing_message_t;
+        
+        using storage_t = std::conditional_t<desc_has_storage_type<tn_desc>, 
+                                typename tn_desc::storage_t, libnetwrk::nothing>;
 
     public:
         service_connection()                    = delete;
