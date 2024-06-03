@@ -15,36 +15,48 @@
       </span>
   </p>
   <p>
-    Cross-platform networking library.
+    Header-only cross-platform networking library.
   </p>
 </div></br>
 
 ## About
-Based heavily on <a href="https://www.youtube.com/@javidx9">javidx9</a>'s work with networking. Relies on embedded ASIO 1.14.0 library. <br/> Recommended for use on small personal projects as it's not heavily tested.
+Based on <a href="https://www.youtube.com/@javidx9">javidx9</a>'s work with networking.<br/> Recommended for use on small personal projects as it's not heavily tested.
+
+## Dependencies
+- ASIO 1.30.2 (embedded)
 
 ## Requirements
-- c++20 or later compiler
+- c++20
+- compiler support for concepts and coroutines
+
+## Tested compiler support
+- MSVC 14.30 / Visual Studio 2022 17.0
+- GCC 10.5 with -fconcepts and -fcoroutines
 
 ## Usage
-- Copy libnetwrk directory to your project
-- Include ``libnetwrk`` directory in your project
+### CMake
+libnetwrk TARGET is provided as an INTERFACE that sets up compile flags, definitions and include directories.
+
+- Add libnetwrk via ``ADD_SUBDIRECTORY`` or ``FetchContent``
+- Use ``LINK_LIBRARIES(libnetwrk)`` or ``TARGET_LINK_LIBRARIES(your_target PRIVATE|PUBLIC libnetwrk)``
 - Include ``libnetwrk.hpp``
+
+### Manual
+...
 
 ## Limitations
 - currently only supports TCP
-- libnetwrk uses a simple binary serializer by default, so cross-platform compatibility is not guaranteed. You can implement your own serializer by looking at ``bin_serialize.hpp`` as an example.
+- ``std::size_t`` clamped to ``uint32_t`` to enable architecture independent serialization/deserialization of STL containers
 
 ## Usage examples
 ### Making a custom object serializeable
 
 ```
-template<typename T>
-void serialize(libnetwrk::buffer<T>& buffer) const {
+void serialize(libnetwrk::dynamic_buffer& buffer) const {
     ...
 }
 
-template<typename T>
-void deserialize(libnetwrk::buffer<T>& buffer) {
+void deserialize(libnetwrk::dynamic_buffer& buffer) {
     ...
 }
 ```
@@ -56,13 +68,11 @@ To make an object serializable you need to add and implement these functions. </
 struct object {
     std::string string_1;
   
-    template<typename T>
-    void serialize(libnetwrk::buffer<T>& buffer) const {
+    void serialize(libnetwrk::dynamic_buffer& buffer) const {
         buffer << string_1;
     }
   
-    template<typename T>
-    void deserialize(libnetwrk::buffer<T>& buffer) {
+    void deserialize(libnetwrk::dynamic_buffer& buffer) {
         buffer >> string_1;
     }
 }
@@ -70,20 +80,14 @@ struct object {
 struct derived_object : object {
     std::string string_2;
   
-    template<typename T>
-    void serialize(libnetwrk::buffer<T>& buffer) const {
+    void serialize(libnetwrk::dynamic_buffer& buffer) const {
         object::serialize(buffer);
         buffer << string_2;
     }
   
-    template<typename T>
-    void deserialize(libnetwrk::buffer<T>& buffer) {
+    void deserialize(libnetwrk::dynamic_buffer& buffer) {
         object::deserialize(buffer);
         buffer >> string_2;
     }
 }
 ```
-## Changes
-
-- 05 Jan 2024
-    - Changed custom object serialization. Previous serialization requried a separate object for each serializer type.
