@@ -15,11 +15,11 @@ IF(UNIX AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     CHECK_CXX_COMPILER_FLAG("-fcoroutines" LIBNETWRK_SUPPORTS_COROUTINES)
 
     IF(NOT LIBNETWRK_SUPPORTS_CONCEPTS)
-        MESSAGE(FATAL_ERROR "Compiler doesn't support concepts.")
+        MESSAGE(WARNING "Compiler doesn't support concepts.")
     ENDIF()
 
     IF(NOT LIBNETWRK_SUPPORTS_COROUTINES)
-        MESSAGE(FATAL_ERROR "Compiler doesn't support coroutines.")
+        MESSAGE(WARNING "Compiler doesn't support coroutines.")
     ENDIF()
 
     TARGET_COMPILE_OPTIONS(libnetwrk INTERFACE "-fconcepts")
@@ -33,7 +33,7 @@ ENDIF()
 IF(LIBNETWRK_HAS_COROUTINE)
     TARGET_COMPILE_DEFINITIONS(libnetwrk INTERFACE -DASIO_HAS_STD_COROUTINE)
 ELSE()
-    MESSAGE(FATAL_ERROR "Failed to find coroutine headers.'")
+    MESSAGE(WARNING "Failed to find coroutine headers.'")
 ENDIF()
 
 TARGET_COMPILE_DEFINITIONS(libnetwrk INTERFACE -DASIO_HAS_CO_AWAIT)
