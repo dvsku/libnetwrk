@@ -114,16 +114,51 @@ namespace libnetwrk {
             return m_context.name;
         }
 
+        /*
+            Set message callback
+
+            @param void(command_t, owned_message_t*) func
+        */
         void set_message_callback(context_t::cb_message_t cb) {
             if (!m_context.cb_message)
                 m_context.cb_message = cb;
         }
 
+        /*
+            Set connected callback
+
+            @param void(std::shared_ptr<connection_t>) func
+        */
+        void set_connect_callback(context_t::cb_connect_t cb) {
+            if (!m_context.cb_connect)
+                m_context.cb_connect = cb;
+        }
+
+        /*
+            Set disconnected callback
+
+            @param void() func
+        */
+        void set_disconnect_callback(context_t::cb_disconnect_t cb) {
+            if (!m_context.cb_disconnect)
+                m_context.cb_disconnect = cb;
+        }
+
+        /*
+            Set pre process message data callback
+
+            @param void(dynamic_buffer*) func
+        */
         void set_pre_process_message_callback(context_t::cb_pre_process_message_t cb) {
             if (!m_context.cb_pre_process_message)
                 m_context.cb_pre_process_message = cb;
         }
 
+        /*
+            Set post process message data callback
+
+            @param void(dynamic_buffer*) func
+        */
         void set_post_process_message_callback(context_t::cb_post_process_message_t cb) {
             if (!m_context.cb_post_process_message)
                 m_context.cb_post_process_message = cb;
