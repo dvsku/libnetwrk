@@ -9,19 +9,15 @@ SET(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 SET(ASIO_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/asio/include" PARENT_SCOPE)
 
 ###############################################################################
-## dv_utilities
+## libutil
 
 IF(LIBNETWRK_EXAMPLES)
-    SET(DVUTIL_TEST OFF)
-
     FetchContent_Declare(
-        dv_utilities
-        URL https://github.com/dvsku/dv_utilities/archive/refs/heads/master.zip
+        libutil
+        URL https://github.com/dvsku/libutil/archive/refs/heads/master.zip
     )
 
-    FetchContent_MakeAvailable(dv_utilities)
-
-    SET(DVUTIL_INCLUDES "${dv_utilities_SOURCE_DIR}/include" PARENT_SCOPE)
+    FetchContent_MakeAvailable(libutil)
 ENDIF()
 
 ###############################################################################

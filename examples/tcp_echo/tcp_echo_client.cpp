@@ -29,12 +29,12 @@ protected:
 };
 
 int main(int argc, char* argv[]) {
-    dvsku::dv_util_log::settings log_settings;
+    dvsku::util_log::settings log_settings;
     log_settings.log_to_file = false;
-    log_settings.level       = dvsku::dv_util_log::level::verbose;
+    log_settings.level       = dvsku::util_log::level::verbose;
 
-    dvsku::dv_util_log::init(log_settings);
-    dvsku::dv_util_log::create_source("console", &std::cout);
+    dvsku::util_log::init(log_settings);
+    dvsku::util_log::create_source("console", &std::cout);
 
     tcp_echo_client client;
     client.connect("127.0.0.1", 21205);
