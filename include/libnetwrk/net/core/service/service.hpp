@@ -221,6 +221,11 @@ namespace libnetwrk {
             return false;
         }
 
+    protected:
+        auto get_connection_by_id(uint64_t id) {
+            return m_comp_connection.get_connection_by_id(id);
+        }
+
     private:
         void stop_all_connections() {
             std::lock_guard<std::mutex> guard(m_comp_connection.connections_mutex);

@@ -33,6 +33,17 @@ namespace libnetwrk {
             connections.push_back(connection);
         }
 
+        std::shared_ptr<typename connection_t::base_t> get_connection_by_id(uint64_t id) {
+            std::lock_guard<std::mutex> guard(connections_mutex);
+            
+            for (auto& connection : connections) {
+                if (connection->get_id() == id)
+                    return connection;
+            }
+
+            return nullptr;
+        }
+
         void start_gc() {
             using namespace asio::experimental::awaitable_operators;
 
