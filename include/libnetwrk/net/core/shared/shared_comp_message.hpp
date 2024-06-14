@@ -184,7 +184,7 @@ namespace libnetwrk {
 
                         if (send_message->serialized_head.empty()) {
                             send_message->message.head.send_timestamp =
-                                std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+                                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
                             // Pre process message data
                             if (m_context.cb_pre_process_message) {
