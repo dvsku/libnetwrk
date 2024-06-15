@@ -52,7 +52,7 @@ namespace libnetwrk {
             Get milliseconds it took from receiving the message to a relative timestamp.
         */
         milliseconds_t latency(uint64_t timestamp) {
-            return std::chrono::duration_cast<milliseconds_t>(milliseconds_t(head.send_timestamp) - milliseconds_t(timestamp));
+            return milliseconds_t(timestamp - head.send_timestamp);
         }
 
         template <typename T>
