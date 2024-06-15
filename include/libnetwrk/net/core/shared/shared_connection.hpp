@@ -116,22 +116,19 @@ namespace libnetwrk {
 
             recv_message.head.deserialize(head_buffer);
 
+            if (recv_message.head.data_size != 0) {
+                recv_message.data.underlying().resize(recv_message.head.data_size);
+
+                auto [b_ec, b_size] = co_await m_socket.async_read(recv_message.data);
+
+                if (b_ec) {
+                    ec = b_ec;
+                    co_return;
+                }
+            }
+
             recv_message.head.recv_timestamp =
                 std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-            if (recv_message.head.data_size == 0) {
-                ec = {};
-                co_return;
-            }
-
-            recv_message.data.underlying().resize(recv_message.head.data_size);
-
-            auto [b_ec, b_size] = co_await m_socket.async_read(recv_message.data);
-
-            if (b_ec) {
-                ec = b_ec;
-                co_return;
-            }
 
             ec = {};
         }
