@@ -418,3 +418,37 @@ TEST(tcp_service_client, send_keep_message) {
         EXPECT_TRUE(message.data.size() == 0);
     }
 }
+
+TEST(tcp_service_client, client_reuse) {
+    test_service service;
+    service.start("127.0.0.1", 0);
+
+    test_client client;
+    client.connect("127.0.0.1", service.get_port());
+
+    test_client::message_t msg1(commands::c2s_ping);
+    msg1 << std::string("PiNg");
+    client.send(msg1);
+
+    service.process_messages_async();
+    client.process_messages_async();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(service.ping == "PiNg");
+    EXPECT_TRUE(client.pong == "pOnG");
+
+    client.disconnect();
+    client.connect("127.0.0.1", service.get_port());
+    client.pong = "";
+
+    test_client::message_t msg2(commands::c2s_ping);
+    msg2 << std::string("PiNg");
+    client.send(msg2);
+
+    client.process_messages_async();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+    EXPECT_TRUE(client.pong == "pOnG");
+}
