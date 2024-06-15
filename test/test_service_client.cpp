@@ -62,10 +62,11 @@ TEST(service_client, auth_timeout) {
 
     service.process_messages_async();
 
-    while (service.connections() != 0 || client.is_connected()) {
+    while (service.connections() != 0) {
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 
+    EXPECT_FALSE(client.is_connected());
     EXPECT_TRUE(service.client_connected);
     EXPECT_TRUE(service.client_disconnected);
     EXPECT_TRUE(service.dc_code == libnetwrk::disconnect_code::authentication_failed);
