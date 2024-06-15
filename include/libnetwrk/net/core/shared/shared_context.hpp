@@ -54,6 +54,8 @@ namespace libnetwrk {
         }
 
         void start_io_context() {
+            io_context.reset();
+
             m_io_context_thread = std::thread([this] { 
                 this->io_context.run(); 
             });
