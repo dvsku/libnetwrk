@@ -134,22 +134,17 @@ namespace libnetwrk {
         }
 
         asio::awaitable<void> co_write_message(std::shared_ptr<outgoing_message_t> message, std::error_code& ec) {
-            auto [h_ec, h_size] = co_await m_socket.async_write(message->serialized_head);
+            std::vector<asio::const_buffer> buffers;
+            buffers.push_back(asio::buffer(message->serialized_head.data(), message->serialized_head.size()));
 
-            if (h_ec) {
-                ec = h_ec;
-                co_return;
+            if (message->message.data.size() != 0) {
+                buffers.push_back(asio::buffer(message->message.data.data(), message->message.data.size()));
             }
+            
+            auto [err, size] = co_await m_socket.async_write(buffers);
 
-            if (message->message.data.size() == 0) {
-                ec = {};
-                co_return;
-            }
-
-            auto [b_ec, b_size] = co_await m_socket.async_write(message->message.data);
-
-            if (b_ec) {
-                ec = b_ec;
+            if (err) {
+                ec = err;
                 co_return;
             }
 
