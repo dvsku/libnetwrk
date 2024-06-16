@@ -62,6 +62,8 @@ TEST(service_client, auth_timeout) {
 
     service.process_messages_async();
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
     while (service.connections() != 0) {
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
