@@ -3,6 +3,7 @@
 #include "asio.hpp"
 #include "libnetwrk/net/messages/message.hpp"
 #include "libnetwrk/net/messages/outgoing_message.hpp"
+#include "libnetwrk/net/misc/timestamp.hpp"
 #include "libnetwrk/net/enum/enums.hpp"
 
 #include <string>
@@ -127,8 +128,7 @@ namespace libnetwrk {
                 }
             }
 
-            recv_message.head.recv_timestamp =
-                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            recv_message.head.recv_timestamp = get_milliseconds_timestamp();
 
             ec = {};
         }

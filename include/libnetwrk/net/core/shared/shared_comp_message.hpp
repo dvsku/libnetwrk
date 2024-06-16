@@ -3,6 +3,7 @@
 #include "asio.hpp"
 #include "libnetwrk/net/messages/owned_message.hpp"
 #include "libnetwrk/net/messages/outgoing_message.hpp"
+#include "libnetwrk/net/misc/timestamp.hpp"
 #include "libnetwrk/exceptions/libnetwrk_exception.hpp"
 
 #include <queue>
@@ -183,8 +184,7 @@ namespace libnetwrk {
                         std::lock_guard<std::mutex> guard(send_message->mutex);
 
                         if (send_message->serialized_head.empty()) {
-                            send_message->message.head.send_timestamp =
-                                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                            send_message->message.head.send_timestamp = get_milliseconds_timestamp();
 
                             // Pre process message data
                             if (m_context.cb_pre_process_message) {
