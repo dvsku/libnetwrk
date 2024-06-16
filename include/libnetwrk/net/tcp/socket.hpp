@@ -79,9 +79,9 @@ namespace libnetwrk::tcp {
             co_return result;
         }
 
-        asio::awaitable<std::tuple<std::error_code, size_t>> async_write(buffer& buffer) {
+        asio::awaitable<std::tuple<std::error_code, size_t>> async_write(const std::vector<asio::const_buffer>& buffer) {
             std::tuple<std::error_code, size_t> result = co_await asio::async_write(m_socket,
-                asio::buffer(buffer.data(), buffer.size()), asio::as_tuple(asio::use_awaitable));
+                buffer, asio::as_tuple(asio::use_awaitable));
 
             co_return result;
         }
