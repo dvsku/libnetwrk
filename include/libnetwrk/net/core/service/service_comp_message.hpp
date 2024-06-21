@@ -26,7 +26,7 @@ namespace libnetwrk {
 
     public:
         void send(std::shared_ptr<connection_t> client, message_t& message, libnetwrk::send_flags flags) {
-            if (!client || client->is_connected()) return;
+            if (!client || !client->is_connected()) return;
 
             client->send(message, flags);
         }
