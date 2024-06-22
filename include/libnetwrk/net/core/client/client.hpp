@@ -114,6 +114,10 @@ namespace libnetwrk {
             return m_context.name;
         }
 
+        client_settings& get_settings() {
+            return m_context.settings;
+        }
+
         /*
             Adjust a service timestamp to account for clock drift
         */

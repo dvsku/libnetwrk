@@ -5,12 +5,17 @@
 #include <array>
 
 namespace libnetwrk {
+    struct client_settings {
+    };
+
     template<typename Connection>
     class client_context : public shared_context<Connection> {
     public:
         using cb_disconnect_t = std::function<void()>;
 
     public:
+        client_settings settings;
+
         uint8_t                 clock_drift_samples_received = 0U;
         std::array<int32_t, 10> clock_drift_samples          = {};
 
