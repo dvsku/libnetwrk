@@ -37,8 +37,9 @@ namespace libnetwrk {
             : io_context(1) {}
 
     public:
-        std::string         name   = "";
-        std::atomic_uint8_t status = to_underlying(libnetwrk::service_status::stopped);
+        std::string         name        = "";
+        std::atomic_uint8_t status      = to_underlying(libnetwrk::service_status::stopped);
+        std::atomic_int32_t clock_drift = 0U;
         io_context_t        io_context;
 
         cb_message_t              cb_message;

@@ -40,8 +40,10 @@ namespace libnetwrk {
     private:
         void ev_system_message(system_command command, owned_message_t* message) {
             switch (command) {
-                case system_command::c2s_verify: return on_system_verify_message(message);
-                default:                         return;
+                case system_command::c2s_verify:     return on_system_verify_message(message);
+                case system_command::cev_clock_sync: return on_system_clock_sync_message(message);
+                
+                default: return;
             }
         }
 
@@ -63,6 +65,22 @@ namespace libnetwrk {
             response.head.command = static_cast<uint64_t>(system_command::s2c_verify_ok);
 
             sender->send(response);
+        }
+
+        void on_system_clock_sync_message(owned_message_t* message) {
+            LIBNETWRK_DEBUG(m_context.name, "Received clock sync request.");
+
+            uint8_t  sample_index     = 0U;
+            uint64_t client_timestamp = 0U;
+
+            message->message >> sample_index >> client_timestamp;
+
+            message_t response{};
+            response.head.type    = message_type::system;
+            response.head.command = static_cast<uint64_t>(system_command::sev_clock_sync);
+            response << sample_index << client_timestamp << get_milliseconds_timestamp();
+
+            message->sender->send(response);
         }
     };
 }

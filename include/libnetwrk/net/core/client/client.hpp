@@ -31,7 +31,7 @@ namespace libnetwrk {
         client(const std::string& name)
             : m_comp_connection(m_context),
               m_comp_message(m_context, m_comp_connection),
-              m_comp_system_message(m_context)
+              m_comp_system_message(m_context, m_comp_message)
         {
             m_context.name = name;
 
