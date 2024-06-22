@@ -211,7 +211,7 @@ namespace libnetwrk {
             m_context.cancel_cv.notify_all();
             m_context.cancel_cv.wait_for_end();
 
-            stop_all_connections();
+            m_comp_connection.stop_connections();
 
             m_context.stop_io_context();
             m_comp_message.stop_processing_messages();
@@ -224,20 +224,6 @@ namespace libnetwrk {
     protected:
         auto get_connection_by_id(uint64_t id) {
             return m_comp_connection.get_connection_by_id(id);
-        }
-
-    private:
-        void stop_all_connections() {
-            std::lock_guard<std::mutex> guard(m_comp_connection.connections_mutex);
-
-            for (auto& client : m_comp_connection.connections) {
-                if (!client) continue;
-
-                client->stop();
-
-                if (client->cancel_cv.has_active_operations())
-                    client->cancel_cv.wait_for_end();
-            }
         }
     };
 }

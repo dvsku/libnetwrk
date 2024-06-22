@@ -33,6 +33,19 @@ namespace libnetwrk {
             connections.push_back(connection);
         }
 
+        void stop_connections() {
+            std::lock_guard guard(connections_mutex);
+
+            for (auto& client : connections) {
+                if (!client) continue;
+
+                client->stop();
+
+                if (client->cancel_cv.has_active_operations())
+                    client->cancel_cv.wait_for_end();
+            }
+        }
+
         std::shared_ptr<typename connection_t::base_t> get_connection_by_id(uint64_t id) {
             std::lock_guard<std::mutex> guard(connections_mutex);
             

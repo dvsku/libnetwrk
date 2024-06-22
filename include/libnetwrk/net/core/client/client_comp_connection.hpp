@@ -32,6 +32,15 @@ namespace libnetwrk {
                 connection->connect(endpoint);
         }
 
+        void stop_connection() {
+            if (connection) {
+                connection->stop();
+
+                if (connection->cancel_cv.has_active_operations())
+                    connection->cancel_cv.wait_for_end();
+            }
+        }
+
     private:
         context_t& m_context;
     };

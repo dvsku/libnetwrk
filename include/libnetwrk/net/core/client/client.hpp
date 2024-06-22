@@ -182,10 +182,7 @@ namespace libnetwrk {
             if (m_comp_connection.connection)
                 m_comp_connection.connection->stop();
 
-            /*
-                Wait for all coroutines to stop
-            */
-            wait_for_coroutines_to_stop();
+            m_comp_connection.stop_connection();
 
             m_context.stop_io_context();
             m_comp_connection.connection.reset();
@@ -195,14 +192,6 @@ namespace libnetwrk {
 
         virtual bool connect_impl(const std::string& host, const uint16_t port) {
             return false;
-        }
-
-    private:
-        void wait_for_coroutines_to_stop() {
-            if (!m_comp_connection.connection)                                    return;
-            if (!m_comp_connection.connection->cancel_cv.has_active_operations()) return;
-
-            m_comp_connection.connection->cancel_cv.wait_for_end();
         }
     };
 }
