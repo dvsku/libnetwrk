@@ -179,8 +179,8 @@ namespace libnetwrk {
 
     protected:
         virtual void teardown() {
-            if (m_comp_connection.connection)
-                m_comp_connection.connection->stop();
+            m_context.cancel_cv.notify_all();
+            m_context.cancel_cv.wait_for_end();
 
             m_comp_connection.stop_connection();
 
