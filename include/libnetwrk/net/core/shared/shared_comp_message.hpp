@@ -100,9 +100,10 @@ namespace libnetwrk {
                 if (!connection->is_connected())
                     break;
 
-                owned_message_t owned_message;
+                owned_message_t owned_message{};
 
                 co_await connection->co_read_message(owned_message.message, ec);
+                owned_message.message.head.recv_timestamp = get_milliseconds_timestamp() - m_context.clock_drift;
 
                 if (ec) {
                     if (ec != asio::error::eof && ec != asio::error::connection_reset) {
@@ -184,7 +185,7 @@ namespace libnetwrk {
                         std::lock_guard<std::mutex> guard(send_message->mutex);
 
                         if (send_message->serialized_head.empty()) {
-                            send_message->message.head.send_timestamp = get_milliseconds_timestamp();
+                            send_message->message.head.send_timestamp = get_milliseconds_timestamp() - m_context.clock_drift;
 
                             // Pre process message data
                             if (m_context.cb_pre_process_message) {

@@ -128,8 +128,6 @@ namespace libnetwrk {
                 }
             }
 
-            recv_message.head.recv_timestamp = get_milliseconds_timestamp();
-
             ec = {};
         }
 
