@@ -14,8 +14,6 @@ namespace libnetwrk {
         using message_t      = message<Desc>;
         using command_t      = typename Desc::command_t;
 
-        using milliseconds_t = std::chrono::milliseconds;
-
     public:
         message_head_t head;
         dynamic_buffer data;
@@ -42,17 +40,18 @@ namespace libnetwrk {
         }
 
         /*
-            Get milliseconds it took from sending the message to receiving the message.
+            Get end-to-end latency.
         */
-        milliseconds_t latency() {
+        std::chrono::milliseconds latency() {
             return latency(head.recv_timestamp);
         }
 
         /*
-            Get milliseconds it took from receiving the message to a relative timestamp.
+            Get send timestamp to relative timestamp latency.
+            Relative timestamp is assumed to be in ms.
         */
-        milliseconds_t latency(uint64_t timestamp) {
-            return milliseconds_t(timestamp - head.send_timestamp);
+        std::chrono::milliseconds latency(uint64_t timestamp) {
+            return std::chrono::milliseconds(std::max((int64_t)0, (int64_t)(timestamp - head.send_timestamp)));
         }
 
         template <typename T>
