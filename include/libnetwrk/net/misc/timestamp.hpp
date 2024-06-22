@@ -9,6 +9,9 @@
 #include <cstdint>
 
 namespace libnetwrk {
+    /*
+        Get a non clock drift adjusted ms timestamp
+    */
     inline uint64_t get_milliseconds_timestamp() {
     #ifdef _WIN32
         SYSTEMTIME      st{};
