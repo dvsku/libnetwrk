@@ -6,6 +6,7 @@
 
 namespace libnetwrk {
     struct client_settings {
+        uint16_t clock_sync_freq_sec = 120U;
     };
 
     template<typename Connection>

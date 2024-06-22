@@ -1,7 +1,10 @@
 #pragma once
 
+#include "asio.hpp"
+#include "asio/experimental/awaitable_operators.hpp"
 #include "libnetwrk/net/misc/authentication.hpp"
 #include "libnetwrk/net/core/client/client_comp_message.hpp"
+#include "libnetwrk/net/misc/coroutine_cv.hpp"
 
 namespace libnetwrk {
     template<typename Context>
@@ -35,6 +38,30 @@ namespace libnetwrk {
     private:
         context_t&      m_context;
         comp_message_t& m_comp_message;
+
+    private:
+
+    private:
+        void start_clock_syncing() {
+            using namespace asio::experimental::awaitable_operators;
+
+            asio::co_spawn(m_context.io_context, co_clock_sync() || m_context.cancel_cv.wait(), [this](auto, auto) {
+                LIBNETWRK_DEBUG(m_context.name, "Stopped clock syncing.");
+            });
+        }
+
+        asio::awaitable<void> co_clock_sync() {
+            asio::steady_timer timer(m_context.io_context, std::chrono::seconds(m_context.settings.clock_sync_freq_sec));
+
+            while (true) {
+                send_clock_sync_request(0U);
+
+                timer.expires_after(std::chrono::seconds(m_context.settings.clock_sync_freq_sec));
+
+                auto [ec] = co_await timer.async_wait(asio::as_tuple(asio::use_awaitable));
+                if (ec) break;
+            }
+        }
 
     private:
         void ev_system_message(system_command command, owned_message_t* message) {
@@ -71,12 +98,10 @@ namespace libnetwrk {
             connection->is_authenticated = true;
             connection->write_cv.notify_all();
 
-            send_clock_sync_request(0U);
+            start_clock_syncing();
         }
 
         void on_system_clock_sync_message(owned_message_t* message) {
-            LIBNETWRK_DEBUG(m_context.name, "Received clock sync response.");
-
             uint8_t  sample_index      = 0U;
             uint64_t client_timestamp  = 0U;
             uint64_t service_timestamp = 0U;
@@ -131,6 +156,8 @@ namespace libnetwrk {
             
             m_context.clock_drift_samples_received = 0U;
             m_context.clock_drift_samples          = {};
+
+            LIBNETWRK_DEBUG(m_context.name, "Clock synced.");
         }
     };
 }
