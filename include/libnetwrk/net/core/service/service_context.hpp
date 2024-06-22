@@ -4,7 +4,6 @@
 #include "libnetwrk/net/core/service/service_connection.hpp"
 #include "libnetwrk/net/core/system_commands.hpp"
 #include "libnetwrk/net/enum/enums.hpp"
-#include "libnetwrk/net/misc/coroutine_cv.hpp"
 
 #include <functional>
 
@@ -26,7 +25,6 @@ namespace libnetwrk {
 
     public:
         service_settings settings;
-        coroutine_cv     cancel_cv;
 
         cb_start_t          cb_start;
         cb_stop_t           cb_stop;
@@ -35,8 +33,6 @@ namespace libnetwrk {
 
     public:
         service_context()
-            : shared_context<Connection>(),
-              cancel_cv(this->io_context)
-        {}
+            : shared_context<Connection>() {}
     };
 }

@@ -4,6 +4,7 @@
 #include "libnetwrk/net/containers/dynamic_buffer.hpp"
 #include "libnetwrk/net/core/system_commands.hpp"
 #include "libnetwrk/net/enum/enums.hpp"
+#include "libnetwrk/net/misc/coroutine_cv.hpp"
 
 #include <string>
 #include <memory>
@@ -34,13 +35,15 @@ namespace libnetwrk {
 
     public:
         shared_context()
-            : io_context(1) {}
+            : io_context(1), cancel_cv(io_context) {}
 
     public:
         std::string         name        = "";
         std::atomic_uint8_t status      = to_underlying(libnetwrk::service_status::stopped);
         std::atomic_int32_t clock_drift = 0U;
-        io_context_t        io_context;
+
+        io_context_t io_context;
+        coroutine_cv cancel_cv;
 
         cb_message_t              cb_message;
         cb_system_message_t       cb_system_message;
