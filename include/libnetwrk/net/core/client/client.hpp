@@ -115,6 +115,13 @@ namespace libnetwrk {
         }
 
         /*
+            Adjust a service timestamp to account for clock drift
+        */
+        const void adjust_timestamp(uint64_t timestamp) const {
+            timestamp -= m_context.clock_drift;
+        }
+
+        /*
             Set message callback
 
             @param void(command_t, owned_message_t*) func
