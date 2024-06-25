@@ -12,7 +12,7 @@ namespace libnetwrk {
     template<typename Connection>
     class client_context : public shared_context<Connection> {
     public:
-        using cb_disconnect_t = std::function<void()>;
+        using cb_disconnect_t = std::function<void(bool)>;
 
     public:
         client_settings settings;

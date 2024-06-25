@@ -37,7 +37,7 @@ namespace libnetwrk {
 
             m_context.cb_internal_disconnect = [this](auto) {
                 std::thread t = std::thread([this] {
-                    this->disconnect();
+                    this->internal_disconnect(false);
                 });
                 t.detach();
             };
@@ -79,18 +79,7 @@ namespace libnetwrk {
             Disconnect the client and clean up.
         */
         void disconnect() {
-            if (m_context.status != to_underlying(service_status::started))
-                return;
-
-            m_context.status = to_underlying(service_status::stopping);
-            this->teardown();
-
-            if (m_context.cb_disconnect)
-                m_context.cb_disconnect();
-
-            LIBNETWRK_INFO(m_context.name, "Disconnected.");
-
-            m_context.status = to_underlying(service_status::stopped);
+            internal_disconnect(true);
         }
 
         void send(message_t& message, libnetwrk::send_flags flags = libnetwrk::send_flags::none) {
@@ -148,7 +137,8 @@ namespace libnetwrk {
         /*
             Set disconnected callback
 
-            @param void() func
+            @param void(bool) func
+            @param bool -> user initiated disconnect
         */
         void set_disconnect_callback(context_t::cb_disconnect_t cb) {
             if (!m_context.cb_disconnect)
@@ -196,6 +186,22 @@ namespace libnetwrk {
 
         virtual bool connect_impl(const std::string& host, const uint16_t port) {
             return false;
+        }
+
+    private:
+        virtual void internal_disconnect(bool user_initiated) {
+            if (m_context.status != to_underlying(service_status::started))
+                return;
+
+            m_context.status = to_underlying(service_status::stopping);
+            this->teardown();
+
+            if (m_context.cb_disconnect)
+                m_context.cb_disconnect(user_initiated);
+
+            LIBNETWRK_INFO(m_context.name, "Disconnected.");
+
+            m_context.status = to_underlying(service_status::stopped);
         }
     };
 }
