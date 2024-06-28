@@ -20,7 +20,7 @@ protected:
             {
                 std::string text;
                 msg->message >> text;
-                LIBNETWRK_INFO(get_name(), "{}", text);
+                DV_LOG_INFO(get_name(), "{}", text);
                 break;
             }
             default: break;
@@ -29,12 +29,11 @@ protected:
 };
 
 int main(int argc, char* argv[]) {
-    dvsku::util_log::settings log_settings;
+    libutil::log::settings log_settings;
     log_settings.log_to_file = false;
-    log_settings.level       = dvsku::util_log::level::verbose;
+    log_settings.level       = libutil::log::level::debug;
 
-    dvsku::util_log::init(log_settings);
-    dvsku::util_log::create_source("console", &std::cout);
+    libutil::log::init(log_settings);
 
     tcp_echo_client client;
     client.connect("127.0.0.1", 21205);

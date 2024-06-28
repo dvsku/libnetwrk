@@ -20,7 +20,7 @@ public:
                 std::string text;
                 msg->message >> text;
 
-                LIBNETWRK_INFO(get_name(), "{}:{}\t{}",
+                DV_LOG_INFO(get_name(), "{}:{}\t{}",
                     msg->sender->get_ip().c_str(), msg->sender->get_port(), text);
 
                 response.set_command(commands::s2c_echo);
@@ -35,12 +35,11 @@ public:
 };
 
 int main(int argc, char* argv[]) {
-    dvsku::util_log::settings log_settings;
+    libutil::log::settings log_settings;
     log_settings.log_to_file = false;
-    log_settings.level       = dvsku::util_log::level::verbose;
+    log_settings.level       = libutil::log::level::debug;
 
-    dvsku::util_log::init(log_settings);
-    dvsku::util_log::create_source("console", &std::cout);
+    libutil::log::init(log_settings);
 
     tcp_echo_service service;
     service.start("127.0.0.1", 21205);
