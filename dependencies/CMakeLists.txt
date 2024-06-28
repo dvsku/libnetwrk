@@ -14,7 +14,7 @@ SET(ASIO_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/asio/include" PARENT_SCOPE)
 IF(LIBNETWRK_EXAMPLES)
     FetchContent_Declare(
         libutil
-        URL https://github.com/dvsku/libutil/archive/edd58aa8cbefcf986d63a5a3ecf0a7f37592afb3.zip
+        URL https://github.com/dvsku/libutil/archive/0dda2d1ba7baf1f6dfa065573db32fe9305afb4a.zip
     )
 
     FetchContent_MakeAvailable(libutil)
