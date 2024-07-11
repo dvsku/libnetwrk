@@ -52,8 +52,15 @@
         #define LIBNETWRK_VERBOSE(component, frmt, ...) do {} while(0)
     #endif
 
-    #ifndef LIBNETWRK_DEBUG
-        #define LIBNETWRK_DEBUG(component, frmt, ...)   do {} while(0)
+    #ifdef NDEBUG
+        #ifdef LIBNETWRK_DEBUG
+            #undef LIBNETWRK_DEBUG
+        #endif
+        #define LIBNETWRK_DEBUG(component, frmt, ...)       do {} while(0)
+    #else
+        #ifndef LIBNETWRK_DEBUG
+            #define LIBNETWRK_DEBUG(component, frmt, ...)   do {} while(0)
+        #endif
     #endif
 
     #ifndef LIBNETWRK_ENABLE_FILE_LOG
