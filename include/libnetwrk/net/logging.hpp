@@ -25,6 +25,16 @@
         #undef LIBNETWRK_DEBUG
     #endif
     #define LIBNETWRK_DEBUG(component, frmt, ...)   do {} while(0)
+
+    #ifdef LIBNETWRK_ENABLE_FILE_LOG
+        #undef LIBNETWRK_ENABLE_FILE_LOG
+    #endif
+    #define LIBNETWRK_ENABLE_FILE_LOG()   do {} while(0)
+
+    #ifdef LIBNETWRK_DISABLE_FILE_LOG
+        #undef LIBNETWRK_DISABLE_FILE_LOG
+    #endif
+    #define LIBNETWRK_DISABLE_FILE_LOG()  do {} while(0)
 #else
     #ifndef LIBNETWRK_INFO
         #define LIBNETWRK_INFO(component, frmt, ...)    do {} while(0)
@@ -44,5 +54,13 @@
 
     #ifndef LIBNETWRK_DEBUG
         #define LIBNETWRK_DEBUG(component, frmt, ...)   do {} while(0)
+    #endif
+
+    #ifndef LIBNETWRK_ENABLE_FILE_LOG
+        #define LIBNETWRK_ENABLE_FILE_LOG()  do {} while(0)
+    #endif
+
+    #ifndef LIBNETWRK_DISABLE_FILE_LOG
+        #define LIBNETWRK_DISABLE_FILE_LOG() do {} while(0)
     #endif
 #endif
