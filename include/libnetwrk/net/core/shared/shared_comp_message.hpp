@@ -107,7 +107,7 @@ namespace libnetwrk {
                 owned_message.message.head.recv_timestamp = get_milliseconds_timestamp() - m_context.clock_drift;
 
                 if (ec) {
-                    if (ec != asio::error::eof && ec != asio::error::connection_reset) {
+                    if (ec != asio::error::eof && ec != asio::error::connection_reset && ec != asio::error::operation_aborted) {
                         LIBNETWRK_ERROR(m_context.name, "Failed during read. | {}", ec.message());
                     }
 
@@ -217,7 +217,7 @@ namespace libnetwrk {
                     co_await connection->co_write_message(send_message, ec);
 
                     if (ec) {
-                        if (ec != asio::error::eof && ec != asio::error::connection_reset) {
+                        if (ec != asio::error::eof && ec != asio::error::connection_reset && ec != asio::error::operation_aborted) {
                             LIBNETWRK_ERROR(m_context.name, "Failed during write. | {}", ec.message());
                         }
 
