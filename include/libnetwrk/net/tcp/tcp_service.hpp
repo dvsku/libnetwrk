@@ -124,7 +124,6 @@ namespace libnetwrk::tcp {
 
             if (!this->m_context.cb_before_connect || this->m_context.cb_before_connect(std::static_pointer_cast<connection_t>(connection))) {
                 this->m_comp_connection.accept_connection(connection);
-                connection->set_id(++this->m_comp_connection.id_counter);
                 this->m_comp_message.start_connection_read_and_write(connection);
                 this->m_comp_system_message.send_auth_message(connection);
 

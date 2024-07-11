@@ -17,7 +17,6 @@ namespace libnetwrk {
     public:
         std::list<std::shared_ptr<connection_t>> connections;
         std::mutex                               connections_mutex;
-        uint64_t                                 id_counter = 0U;
 
     public:
         service_comp_connection(context_t& context)
@@ -30,6 +29,7 @@ namespace libnetwrk {
 
         void accept_connection(std::shared_ptr<connection_t> connection) {
             std::lock_guard<std::mutex> guard(connections_mutex);
+            connection->set_id(m_id_count++);
             connections.push_back(connection);
         }
 
@@ -67,6 +67,7 @@ namespace libnetwrk {
 
     private:
         context_t& m_context;
+        uint64_t   m_id_count = 1U;
 
     private:
         asio::awaitable<void> co_gc() {
