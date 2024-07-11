@@ -55,13 +55,13 @@ namespace libnetwrk {
 
             asio::co_spawn(m_context.io_context, this->co_read(connection) || connection->cancel_cv.wait(),
                 [this, connection](auto, auto) {
-                    LIBNETWRK_DEBUG(m_context.name, "{}: Stopped reading messages.", connection->get_id());
+                    LIBNETWRK_DEBUG(m_context.name, "[{}] Stopped reading messages.", connection->get_id());
                 }
             );
 
             asio::co_spawn(m_context.io_context, this->co_write(connection) || connection->cancel_cv.wait(),
                 [this, connection](auto, auto) {
-                    LIBNETWRK_DEBUG(m_context.name, "{}: Stopped writing messages.", connection->get_id());
+                    LIBNETWRK_DEBUG(m_context.name, "[{}] Stopped writing messages.", connection->get_id());
                 }
             );
         }
@@ -95,7 +95,7 @@ namespace libnetwrk {
         asio::awaitable<void> co_read(std::shared_ptr<connection_t> connection) {
             std::error_code ec = {};
 
-            LIBNETWRK_DEBUG(m_context.name, "Started reading messages.");
+            LIBNETWRK_DEBUG(m_context.name, "[{}] Started reading messages.", connection->get_id());
 
             while (true) {
                 if (!connection->is_connected())
@@ -108,7 +108,7 @@ namespace libnetwrk {
 
                 if (ec) {
                     if (ec != asio::error::eof && ec != asio::error::connection_reset && ec != asio::error::operation_aborted) {
-                        LIBNETWRK_ERROR(m_context.name, "Failed during read. | {}", ec.message());
+                        LIBNETWRK_ERROR(m_context.name, "[{}] Failed during read. | {}", connection->get_id(), ec.message());
                     }
 
                     //connection->stop();
@@ -124,7 +124,7 @@ namespace libnetwrk {
                 // Verify CRC32
                 uint32_t crc = crc32_compute(owned_message.message.data.data(), owned_message.message.head.data_size);
                 if (owned_message.message.head.crc != crc) {
-                    LIBNETWRK_WARNING(m_context.name, "Detected corrupted message. Message dropped.");
+                    LIBNETWRK_WARNING(m_context.name, "[{}] Detected corrupted message. Message dropped.", connection->get_id());
                     continue;
                 }
             #endif
@@ -157,7 +157,7 @@ namespace libnetwrk {
         asio::awaitable<void> co_write(std::shared_ptr<connection_t> connection) {
             std::error_code ec = {};
 
-            LIBNETWRK_DEBUG(m_context.name, "Started writing messages.");
+            LIBNETWRK_DEBUG(m_context.name, "[{}] Started writing messages.", connection->get_id());
 
             while (true) {
                 if (!connection->is_connected())
@@ -218,7 +218,7 @@ namespace libnetwrk {
 
                     if (ec) {
                         if (ec != asio::error::eof && ec != asio::error::connection_reset && ec != asio::error::operation_aborted) {
-                            LIBNETWRK_ERROR(m_context.name, "Failed during write. | {}", ec.message());
+                            LIBNETWRK_ERROR(m_context.name, "[{}] Failed during write. | {}", connection->get_id(), ec.message());
                         }
 
                         //connection->stop();
