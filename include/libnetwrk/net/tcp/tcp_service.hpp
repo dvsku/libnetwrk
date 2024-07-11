@@ -119,7 +119,7 @@ namespace libnetwrk::tcp {
         }
 
         asio::awaitable<void> co_accept(std::shared_ptr<connection_internal_t> connection) {
-            LIBNETWRK_VERBOSE(this->m_context.name, "Attempted connection from {}:{}.",
+            LIBNETWRK_VERBOSE(this->m_context.name, "[{}:{}] Attempted connection.",
                 connection->get_ip(), connection->get_port());
 
             if (!this->m_context.cb_before_connect || this->m_context.cb_before_connect(std::static_pointer_cast<connection_t>(connection))) {
@@ -131,11 +131,11 @@ namespace libnetwrk::tcp {
                 if (this->m_context.cb_connect)
                     this->m_context.cb_connect(std::static_pointer_cast<connection_t>(connection));
 
-                LIBNETWRK_INFO(this->m_context.name, "Connection success from {}:{}.",
-                    connection->get_ip(), connection->get_port());
+                LIBNETWRK_INFO(this->m_context.name, "[{}] [{}:{}] Connection success.",
+                    connection->get_id(), connection->get_ip(), connection->get_port());
             }
             else {
-                LIBNETWRK_WARNING(this->m_context.name, "Connection denied.");
+                LIBNETWRK_WARNING(this->m_context.name, "[{}:{}] Connection denied.", connection->get_ip(), connection->get_port());
             }
 
             co_return;

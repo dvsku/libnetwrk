@@ -38,10 +38,10 @@ namespace libnetwrk {
                 connection->stop();
 
                 if (connection->disconnect_code == libnetwrk::disconnect_code::authentication_failed) {
-                    LIBNETWRK_VERBOSE(m_context.name, "{}: Auth timeout. Disconnecting client.", connection->get_id());
+                    LIBNETWRK_VERBOSE(m_context.name, "[{}] Auth timeout. Disconnecting client.", connection->get_id());
                 }
                 else {
-                    LIBNETWRK_VERBOSE(m_context.name, "{}: Client disconnected.", connection->get_id());
+                    LIBNETWRK_VERBOSE(m_context.name, "[{}] Client disconnected.", connection->get_id());
                 }
             };
         }

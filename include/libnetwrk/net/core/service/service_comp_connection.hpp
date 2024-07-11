@@ -114,7 +114,7 @@ namespace libnetwrk {
                     count_after = connections.size();
                 }
 
-                LIBNETWRK_VERBOSE(m_context.name, "GC tc: {} rc: {}", count_after, count_before - count_after);
+                LIBNETWRK_VERBOSE(m_context.name, "GC total: {} ({})", count_after, 0 - (int64_t)(count_before - count_after));
                 timer.expires_after(std::chrono::seconds(m_context.settings.gc_freq_sec));
             }
         }
