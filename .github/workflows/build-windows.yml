@@ -38,4 +38,4 @@ jobs:
       
         - name: Test
           working-directory: ${{ runner.workspace }}/build
-          run: ctest --timeout 30 -j 4 -C ${{ matrix.build-type }}
+          run: ctest --timeout 30 -j 4
