@@ -75,8 +75,6 @@ namespace libnetwrk {
         }
 
         void on_system_verify_message(owned_message_t* message) {
-            LIBNETWRK_DEBUG(m_context.name, "Received verify request.");
-
             authentication::request_t  auth_request{};
             authentication::response_t auth_response{};
 
@@ -92,8 +90,6 @@ namespace libnetwrk {
         }
 
         void on_system_verify_ok_message(owned_message_t* msg) {
-            LIBNETWRK_DEBUG(m_context.name, "Verification successful.");
-
             auto connection = std::static_pointer_cast<connection_internal_t>(msg->sender);
             connection->is_authenticated = true;
             connection->write_cv.notify_all();

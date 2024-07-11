@@ -111,7 +111,6 @@ namespace libnetwrk {
                         LIBNETWRK_ERROR(m_context.name, "[{}] Failed during read. | {}", connection->get_id(), ec.message());
                     }
 
-                    //connection->stop();
                     if (m_context.cb_internal_disconnect)
                         m_context.cb_internal_disconnect(connection);
 
@@ -221,7 +220,6 @@ namespace libnetwrk {
                             LIBNETWRK_ERROR(m_context.name, "[{}] Failed during write. | {}", connection->get_id(), ec.message());
                         }
 
-                        //connection->stop();
                         if (m_context.cb_internal_disconnect)
                             m_context.cb_internal_disconnect(connection);
 
@@ -289,10 +287,6 @@ namespace libnetwrk {
                 (void)e;
 
                 LIBNETWRK_ERROR(m_context.name, "Failed to process message. | {}", e.what());
-                return false;
-            }
-            catch (...) {
-                LIBNETWRK_ERROR(m_context.name, "Failed to process message. | Critical fail.");
                 return false;
             }
 

@@ -83,11 +83,6 @@ namespace libnetwrk::tcp {
                 this->teardown();
                 return false;
             }
-            catch (...) {
-                LIBNETWRK_ERROR(this->m_context.name, "Failed to start listening. | Critical fail.");
-                this->teardown();
-                return false;
-            }
 
             return true;
         }

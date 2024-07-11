@@ -48,8 +48,6 @@ namespace libnetwrk {
         }
 
         void on_system_verify_message(owned_message_t* message) {
-            LIBNETWRK_DEBUG(m_context.name, "Received verify response.");
-
             auto sender = std::static_pointer_cast<connection_internal_t>(message->sender);
 
             authentication::response_t auth_response{};
@@ -68,8 +66,6 @@ namespace libnetwrk {
         }
 
         void on_system_clock_sync_message(owned_message_t* message) {
-            LIBNETWRK_DEBUG(m_context.name, "Received clock sync request.");
-
             uint8_t  sample_index     = 0U;
             uint64_t client_timestamp = 0U;
 

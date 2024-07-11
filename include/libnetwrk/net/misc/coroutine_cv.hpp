@@ -60,20 +60,5 @@ namespace libnetwrk {
         asio::io_context&    m_io_context;
         asio::steady_timer   m_timer;
         std::atomic_uint16_t m_operations = 0U;
-
-    private:
-        asio::awaitable<void> co_wait_for_end() {
-            asio::system_timer timer{ co_await asio::this_coro::executor };
-
-            while (true) {
-                timer.expires_after(std::chrono::milliseconds{ 5 });
-                auto [ec] = co_await timer.async_wait(asio::as_tuple(asio::use_awaitable));
-
-                if (ec || m_operations == 0)
-                    break;
-            }
-
-            co_return;
-        }
     };
 }

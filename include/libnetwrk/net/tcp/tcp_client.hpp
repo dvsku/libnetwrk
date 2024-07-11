@@ -64,11 +64,6 @@ namespace libnetwrk::tcp {
                 this->teardown();
                 return false;
             }
-            catch (...) {
-                LIBNETWRK_ERROR(this->m_context.name, "Failed to connect. | Critical fail.");
-                this->teardown();
-                return false;
-            }
 
             return true;
         }
