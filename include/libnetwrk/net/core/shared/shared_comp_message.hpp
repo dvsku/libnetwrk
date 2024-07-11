@@ -4,6 +4,7 @@
 #include "libnetwrk/net/messages/owned_message.hpp"
 #include "libnetwrk/net/messages/outgoing_message.hpp"
 #include "libnetwrk/net/misc/timestamp.hpp"
+#include "libnetwrk/net/misc/crc32.hpp"
 #include "libnetwrk/exceptions/libnetwrk_exception.hpp"
 
 #include <queue>
@@ -119,6 +120,15 @@ namespace libnetwrk {
 
                 owned_message.sender = connection;
 
+            #ifndef LIBNETWRK_DISABLE_CRC
+                // Verify CRC32
+                uint32_t crc = crc32_compute(owned_message.message.data.data(), owned_message.message.head.data_size);
+                if (owned_message.message.head.crc != crc) {
+                    LIBNETWRK_WARNING(m_context.name, "Detected corrupted message. Message dropped.");
+                    continue;
+                }
+            #endif
+
                 // Post process message data
                 if (m_context.cb_post_process_message) {
                     m_context.cb_post_process_message(&owned_message.message.data);
@@ -192,6 +202,12 @@ namespace libnetwrk {
                                 m_context.cb_pre_process_message(&send_message->message.data);
                                 send_message->message.head.data_size = send_message->message.data.size();
                             }
+
+                        #ifndef LIBNETWRK_DISABLE_CRC
+                            // Compute CRC32
+                            send_message->message.head.crc =
+                                crc32_compute(send_message->message.data.data(), send_message->message.head.data_size);
+                        #endif
 
                             // Serialize head
                             send_message->message.head.serialize(send_message->serialized_head);

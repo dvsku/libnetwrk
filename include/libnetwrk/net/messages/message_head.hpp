@@ -22,6 +22,7 @@ namespace libnetwrk {
         uint64_t       command        = 0U;
         uint64_t       send_timestamp = 0U;
         uint64_t       recv_timestamp = 0U;
+        uint32_t       crc            = 0U;
         uint32_t       data_size      = 0U;
 
     public:
@@ -33,12 +34,14 @@ namespace libnetwrk {
             this->command        = head.command;
             this->send_timestamp = head.send_timestamp;
             this->recv_timestamp = head.recv_timestamp;
+            this->crc            = head.crc;
             this->data_size      = head.data_size;
 
             head.type           = message_type_t{};
             head.command        = 0U;
             head.send_timestamp = 0U;
             head.recv_timestamp = 0U;
+            head.crc            = 0U;
             head.data_size      = 0U;
         }
 
@@ -50,26 +53,32 @@ namespace libnetwrk {
                 this->command        = head.command;
                 this->send_timestamp = head.send_timestamp;
                 this->recv_timestamp = head.recv_timestamp;
+                this->crc            = head.crc;
                 this->data_size      = head.data_size;
 
                 head.type           = message_type_t{};
                 head.command        = 0U;
                 head.send_timestamp = 0U;
                 head.recv_timestamp = 0U;
+                head.crc            = 0U;
                 head.data_size      = 0U;
             }
             return *this;
         }
 
     public:
-        static constexpr size_t size = sizeof(type) + sizeof(command) + sizeof(send_timestamp) + sizeof(data_size);
+        static constexpr size_t size = sizeof(type)           +
+                                       sizeof(command)        +
+                                       sizeof(send_timestamp) +
+                                       sizeof(crc)            +
+                                       sizeof(data_size);
 
         void serialize(fixed_buffer<message_head_t::size>& buffer) const {
-            buffer << type << command << send_timestamp << data_size;
+            buffer << type << command << send_timestamp << crc << data_size;
         }
 
         void deserialize(fixed_buffer<message_head_t::size>& buffer) {
-            buffer >> type >> command >> send_timestamp >> data_size;
+            buffer >> type >> command >> send_timestamp >> crc >> data_size;
         }
     };
 }
